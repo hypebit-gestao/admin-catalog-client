@@ -188,11 +188,14 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
           folderName: session?.user?.user?.name,
         });
 
-        res?.map((item: any) => {
-          if (item?.imageUrl) {
-            uploadedImagesUrls.push(item.imageUrl);
-          }
-        });
+        if (Array.isArray(res) && res.length > 0) {
+          uploadedImagesUrls.push(res[0].imageUrl);
+        } else {
+          console.error(
+            "A resposta do serviço de upload não tem a estrutura esperada:",
+            res
+          );
+        }
       }
 
       await productService.PUT(
@@ -202,7 +205,8 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
           description: data.description,
           category_id: data.category_id,
           weight: Number(data.weight),
-          images: [...uploadedImagesUrls, ...(product?.images as string[])],
+          images: [...uploadedImagesUrls, ...(product?.images || [])],
+
           currency: data.currency,
           price: Number(data.price),
           user_id: session?.user?.user?.id,

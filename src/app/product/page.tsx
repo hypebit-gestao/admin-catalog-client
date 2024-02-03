@@ -107,12 +107,12 @@ const Product = () => {
                 {products?.map((product, index) => (
                   <div
                     key={index}
-                    className="card w-auto bg-base-100 shadow-xl"
+                    className="card w-[450px] bg-base-100 shadow-xl"
                   >
-                    <div className="h-auto">
+                    <div className="">
                       {product.images && product.images.length > 0 ? (
                         <Image
-                          className="h-full w-full "
+                          className="h-[350px]"
                           src={`${
                             product?.images?.length > 0
                               ? product?.images[0]
@@ -125,7 +125,7 @@ const Product = () => {
                         />
                       ) : (
                         <Image
-                          className="h-[300px] w-full"
+                          className="h-[350px] w-full"
                           src={`https://www.pallenz.co.nz/assets/camaleon_cms/image-not-found-4a963b95bf081c3ea02923dceaeb3f8085e1a654fc54840aac61a57a60903fef.png`}
                           alt="Shoes"
                           width={1920}
