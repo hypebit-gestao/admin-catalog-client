@@ -11,7 +11,7 @@ const Home = () => {
   const { data: session } = useSession();
   const [loading, setLoading] = useState(false);
   const [countProducts, setCountProducts] = useState(0);
-  const [countCategories, setCountCategories] = useState(0);
+  const [countCategories, setCountCategories] = useState<number | undefined>(0);
   const categoryService = useCategoryService();
   const productService = useProductService();
 
@@ -22,9 +22,13 @@ const Home = () => {
         session?.user?.user?.id,
         session?.user.accessToken
       );
-      if (productsCount) {
+      console.log("COUNT: ", productsCount);
+      if (productsCount === 0) {
         setLoading(false);
-        setCountProducts(productsCount);
+        setCountProducts(0);
+      } else {
+        setLoading(false);
+        setCountProducts(countProducts);
       }
     };
 
@@ -33,7 +37,10 @@ const Home = () => {
         session?.user?.user?.id,
         session?.user.accessToken
       );
-      if (categoriesCount) {
+      if (categoriesCount === 0) {
+        setLoading(false);
+        setCountCategories(0);
+      } else {
         setLoading(false);
         setCountCategories(categoriesCount);
       }
