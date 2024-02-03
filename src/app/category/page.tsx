@@ -24,6 +24,7 @@ import useCategoryUpdateModal from "@/utils/hooks/category/useUpdateCategoryModa
 import CategoryEdit from "@/components/category/category-edit";
 import useCategoryDeleteModal from "@/utils/hooks/category/useDeleteCategoryModal";
 import CategoryDelete from "@/components/category/category-delete";
+import Image from "next/image";
 
 const Category = () => {
   const [loading, setLoading] = useState(false);
@@ -68,12 +69,12 @@ const Category = () => {
     };
   }, []);
 
-  const handleDelete = (id: string) => {
+  const handleDelete = (id: string | undefined) => {
     useCategoryDeleteModal.setState({ itemId: id });
     categoryDeleteModal.onOpen();
   };
 
-  const handleEdit = (id: string) => {
+  const handleEdit = (id: string | undefined) => {
     categoryEditModal.onOpen();
     useCategoryUpdateModal.setState({ itemId: id });
   };
@@ -204,18 +205,74 @@ const Category = () => {
           {loading === true ? (
             <Loader color="text-green-primary" />
           ) : (
-            <div className="ag-theme-quartz">
-              <AgGridReact
-                rowData={rowData}
-                columnDefs={colDefs as any}
-                getRowStyle={getRowStyle as any}
-                domLayout="autoHeight"
-                pagination={true}
-                paginationPageSizeSelector={[10, 20]}
-                paginationPageSize={10}
-                localeText={AG_GRID_LOCALE_PT_BR}
-              />
-            </div>
+            <>
+              <div className="lg:hidden ">
+                {rowData?.map((category, index) => (
+                  <div
+                    key={index}
+                    className="card w-auto bg-base-100 shadow-xl"
+                  >
+                    <div className="h-auto">
+                      {category.image_url ? (
+                        <Image
+                          className="h-full w-full "
+                          src={`${category.image_url}`}
+                          alt="Shoes"
+                          width={1920}
+                          height={1080}
+                          objectFit="cover"
+                        />
+                      ) : (
+                        <Image
+                          className="h-[300px] w-full"
+                          src={`https://www.pallenz.co.nz/assets/camaleon_cms/image-not-found-4a963b95bf081c3ea02923dceaeb3f8085e1a654fc54840aac61a57a60903fef.png`}
+                          alt="Shoes"
+                          width={1920}
+                          height={1080}
+                          objectFit="cover"
+                        />
+                      )}
+                    </div>
+                    <div className="card-body bg-white">
+                      <h2 className="font-bold text-2xl text-green-primary truncate">
+                        {category.name}
+                      </h2>
+                      <p className="text-[#2c6e49]">{category.description}</p>
+                      <div className="card-actions justify-between">
+                        <div className="flex flex-row items-center">
+                          <div
+                            onClick={() => handleEdit(category && category.id)}
+                            className="mr-3 cursor-pointer"
+                          >
+                            <MdEdit color="blue" size={32} />
+                          </div>
+                          <div
+                            onClick={() =>
+                              handleDelete(category && category.id)
+                            }
+                            className="cursor-pointer"
+                          >
+                            <MdDelete color="red" size={32} />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="hidden lg:block ag-theme-quartz">
+                <AgGridReact
+                  rowData={rowData}
+                  columnDefs={colDefs as any}
+                  getRowStyle={getRowStyle as any}
+                  domLayout="autoHeight"
+                  pagination={true}
+                  paginationPageSizeSelector={[10, 20]}
+                  paginationPageSize={10}
+                  localeText={AG_GRID_LOCALE_PT_BR}
+                />
+              </div>
+            </>
           )}
         </div>
       </ContentMain>
