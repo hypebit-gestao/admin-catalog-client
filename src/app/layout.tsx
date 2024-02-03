@@ -9,6 +9,8 @@ import Header from "@/components/header";
 import { useSession } from "next-auth/react";
 import Auth from "./auth";
 import Sidebar from "@/components/sidebar";
+import "ag-grid-community/styles//ag-grid.css";
+import "ag-grid-community/styles//ag-theme-quartz.css";
 
 const inter = Inter({ subsets: ["latin"] });
 

@@ -43,6 +43,7 @@ import Image from "next/image";
 import { Checkbox } from "../ui/checkbox";
 import useEditProductModal from "@/utils/hooks/product/useEditProductModal";
 import { Product } from "@/models/product";
+import Loader from "../loader";
 
 interface ProductRegisterProps {
   isOpen: boolean;
@@ -71,6 +72,7 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
   const [users, setUsers] = useState<User>();
   const [product, setProduct] = useState<Product>();
   const productRegisterModal = useProductRegisterModal();
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
   const [filePreviews, setFilePreviews] = useState<any[]>([]);
   const productEditModal = useEditProductModal();
@@ -112,6 +114,7 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
   };
 
   useEffect(() => {
+    setLoading(true);
     const getProduct = async () => {
       const fetchedProduct = await productService.GETBYID(
         productEditModal.itemId,
@@ -134,6 +137,7 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
           if (fetchedProduct.images) {
             setFilePreviews(fetchedProduct.images);
           }
+          setLoading(false);
         }
       }
     };
@@ -162,13 +166,9 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
 
     getUser();
     getCategories();
-  }, [
-    session?.user?.accessToken,
-    productEditModal.itemId,
-    productEditModal.isOpen,
-  ]);
+  }, [session?.user?.accessToken, productEditModal.itemId]);
 
-  console.log("FilePreviewas: ", filePreviews);
+  console.log("Product:", product);
 
   const onUpdate = async (data: z.infer<typeof formSchema>) => {
     try {
@@ -233,253 +233,282 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
       }
       body={
         <>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onUpdate)} className=" w-full">
-              <div>
-                <h1 className="my-4 font-semibold text-green-primary">
-                  Informações do produto
-                </h1>
-                <div className="flex flex-row mb-5">
-                  <div className="w-full mr-5">
-                    <FormField
-                      control={form.control}
-                      name="name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-blue-primary">
-                            Nome
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="Insira o nome do produto"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <div className="w-full">
-                    <FormField
-                      control={form.control}
-                      name="weight"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-blue-primary">
-                            Peso/Volume
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              className=""
-                              placeholder="Insira o peso/volume do produto"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
-
-                <div className="flex flex-row mb-5">
-                  <div className="w-full mr-5">
-                    <FormField
-                      control={form.control}
-                      name="category_id"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Categoria</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                          >
+          {loading ? (
+            <Loader color="text-green-primary" />
+          ) : (
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onUpdate)} className=" w-full">
+                <div>
+                  <h1 className="my-4 font-semibold text-green-primary">
+                    Informações do produto
+                  </h1>
+                  <div className="flex flex-row mb-5">
+                    <div className="w-full mr-5">
+                      <FormField
+                        control={form.control}
+                        name="name"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-blue-primary">
+                              Nome
+                            </FormLabel>
                             <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecione a categoria do produto" />
-                              </SelectTrigger>
+                              <Input
+                                placeholder="Insira o nome do produto"
+                                {...field}
+                              />
                             </FormControl>
-                            <SelectContent className="z-[300]">
-                              {categories.map((category, index) => (
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <div className="w-full">
+                      <FormField
+                        control={form.control}
+                        name="weight"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-blue-primary">
+                              Peso/Volume
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                className=""
+                                placeholder="Insira o peso/volume do produto"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex flex-row mb-5">
+                    <div className="w-full mr-5">
+                      <FormField
+                        control={form.control}
+                        name="category_id"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Categoria</FormLabel>
+                            <Select
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecione a categoria do produto" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent className="z-[300]">
+                                {categories.map((category, index) => (
+                                  <SelectItem
+                                    key={index}
+                                    value={category.id as string}
+                                  >
+                                    {category.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <div className="w-full">
+                      <FormField
+                        control={form.control}
+                        name="user_id"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Usuário</FormLabel>
+                            <Select
+                              onValueChange={field.onChange}
+                              defaultValue={session?.user?.user?.name}
+                              disabled
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent className="z-[300]">
                                 <SelectItem
-                                  key={index}
-                                  value={category.id as string}
+                                  disabled
+                                  defaultValue={session?.user?.user?.name}
+                                  value={session?.user?.user?.name}
                                 >
-                                  {category.name}
+                                  {session?.user?.user?.name}
                                 </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                              </SelectContent>
+                            </Select>
 
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                   </div>
-                  <div className="w-full">
-                    <FormField
-                      control={form.control}
-                      name="user_id"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Usuário</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            defaultValue={session?.user?.user?.name}
-                            disabled
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent className="z-[300]">
-                              <SelectItem
-                                disabled
-                                defaultValue={session?.user?.user?.name}
-                                value={session?.user?.user?.name}
-                              >
-                                {session?.user?.user?.name}
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
 
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                  <div className="flex flex-row mb-5">
+                    <div className="w-full mr-5">
+                      <FormField
+                        control={form.control}
+                        name="currency"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Moeda</FormLabel>
+                            <Select
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecione a moeda do produto" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent className="z-[300]">
+                                <SelectItem value="brl">BRL</SelectItem>
+                                <SelectItem value="usd">USD</SelectItem>
+                              </SelectContent>
+                            </Select>
+
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <div className="w-full">
+                      <FormField
+                        control={form.control}
+                        name="price"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-blue-primary">
+                              Preço
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="Insira o preço do produto"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                   </div>
                 </div>
 
-                <div className="flex flex-row mb-5">
-                  <div className="w-full mr-5">
-                    <FormField
-                      control={form.control}
-                      name="currency"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Moeda</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                          >
+                <div className="mt-12">
+                  <h1 className="my-4 font-semibold text-green-primary">
+                    Informações adicionais
+                  </h1>
+                  <div className="flex flex-row mb-5">
+                    <div className="w-full ">
+                      <FormField
+                        control={form.control}
+                        name="images"
+                        render={({
+                          field: { value, onChange, ...fieldProps },
+                        }) => (
+                          <FormItem>
+                            <FormLabel>Imagens do produto</FormLabel>
                             <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecione a moeda do produto" />
-                              </SelectTrigger>
+                              <Input
+                                {...fieldProps}
+                                placeholder="Imagens"
+                                type="file"
+                                accept="image/*, application/pdf"
+                                onChange={(event: any) => {
+                                  onChange(event.target.files);
+                                  const files = event.target.files;
+
+                                  if (files && files.length > 0) {
+                                    const newPreviews = Array.from(files).map(
+                                      (file: any) => {
+                                        const blob = new Blob([file], {
+                                          type: file.type,
+                                        });
+                                        return {
+                                          file,
+                                          preview: URL.createObjectURL(blob),
+                                        };
+                                      }
+                                    );
+
+                                    setFilePreviews([
+                                      ...filePreviews,
+                                      ...newPreviews,
+                                    ]);
+                                  }
+                                }}
+                                multiple
+                              />
                             </FormControl>
-                            <SelectContent className="z-[300]">
-                              <SelectItem value="brl">BRL</SelectItem>
-                              <SelectItem value="usd">USD</SelectItem>
-                            </SelectContent>
-                          </Select>
-
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <div className="w-full">
-                    <FormField
-                      control={form.control}
-                      name="price"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-blue-primary">
-                            Preço
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="Insira o preço do produto"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-12">
-                <h1 className="my-4 font-semibold text-green-primary">
-                  Informações adicionais
-                </h1>
-                <div className="flex flex-row mb-5">
-                  <div className="w-full ">
-                    <FormField
-                      control={form.control}
-                      name="images"
-                      render={({
-                        field: { value, onChange, ...fieldProps },
-                      }) => (
-                        <FormItem>
-                          <FormLabel>Imagens do produto</FormLabel>
-                          <FormControl>
-                            <Input
-                              {...fieldProps}
-                              placeholder="Imagens"
-                              type="file"
-                              accept="image/*, application/pdf"
-                              onChange={(event: any) => {
-                                onChange(event.target.files);
-                                const files = event.target.files;
-
-                                if (files && files.length > 0) {
-                                  const newPreviews = Array.from(files).map(
-                                    (file: any) => {
-                                      const blob = new Blob([file], {
-                                        type: file.type,
-                                      });
-                                      return {
-                                        file,
-                                        preview: URL.createObjectURL(blob),
-                                      };
-                                    }
-                                  );
-
-                                  setFilePreviews([
-                                    ...filePreviews,
-                                    ...newPreviews,
-                                  ]);
-                                }
-                              }}
-                              multiple
-                            />
-                          </FormControl>
-                          <div className="grid grid-cols-2 gap-4">
-                            {filePreviews.map((preview, index) => (
-                              <div
-                                key={index}
-                                className="relative mt-3 w-[300px]"
-                              >
+                            <div className="grid grid-cols-2 gap-4">
+                              {filePreviews.map((preview, index) => (
                                 <div
-                                  className="absolute top-0 right-0 cursor-pointer"
-                                  onClick={() => handleDeleteFile(index)}
+                                  key={index}
+                                  className="relative mt-3 w-[300px]"
                                 >
-                                  <TiDelete color="red" size={24} />
-                                </div>
+                                  <div
+                                    className="absolute top-0 right-0 cursor-pointer"
+                                    onClick={() => handleDeleteFile(index)}
+                                  >
+                                    <TiDelete color="red" size={24} />
+                                  </div>
 
-                                {typeof preview === "string" ? (
-                                  <Image
-                                    className="w-[300px] h-[300px]"
-                                    src={preview}
-                                    alt={`Preview ${index + 1}`}
-                                    width={300}
-                                    height={300}
-                                  />
-                                ) : (
-                                  <img
-                                    className="w-[300px] h-[300px]"
-                                    src={URL.createObjectURL(preview.file)}
-                                    alt={`Preview ${index + 1}`}
-                                  />
-                                )}
+                                  {typeof preview === "string" ? (
+                                    <Image
+                                      className="w-[300px] h-[300px]"
+                                      src={preview}
+                                      alt={`Preview ${index + 1}`}
+                                      width={300}
+                                      height={300}
+                                    />
+                                  ) : (
+                                    <img
+                                      className="w-[300px] h-[300px]"
+                                      src={URL.createObjectURL(preview.file)}
+                                      alt={`Preview ${index + 1}`}
+                                    />
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <FormField
+                      control={form.control}
+                      name="featured"
+                      render={({ field }) => (
+                        <FormItem>
+                          <div className="flex flex-col">
+                            <FormLabel>Status</FormLabel>
+                            <FormControl>
+                              <div className="flex flex-row mt-5 items-center">
+                                <Checkbox
+                                  color="blue"
+                                  className="w-5 h-5"
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                />
+                                <div className="ml-2">Produto em destaque</div>
                               </div>
-                            ))}
+                            </FormControl>
                           </div>
                           <FormMessage />
                         </FormItem>
@@ -487,40 +516,15 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                     />
                   </div>
                 </div>
-                <div>
-                  <FormField
-                    control={form.control}
-                    name="featured"
-                    render={({ field }) => (
-                      <FormItem>
-                        <div className="flex flex-col">
-                          <FormLabel>Status</FormLabel>
-                          <FormControl>
-                            <div className="flex flex-row mt-5 items-center">
-                              <Checkbox
-                                color="blue"
-                                className="w-5 h-5"
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                              />
-                              <div className="ml-2">Produto em destaque</div>
-                            </div>
-                          </FormControl>
-                        </div>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div>
 
-              <div className="mt-12">
-                <Button size="lg" className="w-full" type="submit">
-                  Atualizar
-                </Button>
-              </div>
-            </form>
-          </Form>
+                <div className="mt-12">
+                  <Button size="lg" className="w-full" type="submit">
+                    Atualizar
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          )}
         </>
       }
     />

@@ -33,6 +33,7 @@ import Image from "next/image";
 import { TiDelete } from "react-icons/ti";
 import useEditUserModal from "@/utils/hooks/user/useEditUserModal";
 import { User } from "@/models/user";
+import Loader from "../loader";
 
 interface UserEditProps {
   isOpen: boolean;
@@ -63,10 +64,11 @@ const UserEdit = ({ isOpen, onClose }: UserEditProps) => {
   const userService = useUserService();
   const uploadService = useUploadService();
   const userRegisterModal = useUserRegisterModal();
-  const userEditModal = useEditUserModal()
+  const userEditModal = useEditUserModal();
   const cepService = useCepService();
   const [user, setUser] = useState<User>();
-  const [address, setAddress] = useState<Address>()
+  const [address, setAddress] = useState<Address>();
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
   const inputFileRef = useRef<any>(null);
   const [filePreview, setFilePreview] = useState<any>(null);
@@ -156,11 +158,11 @@ const UserEdit = ({ isOpen, onClose }: UserEditProps) => {
   };
 
   useEffect(() => {
+    setLoading(true);
     const getUser = async () => {
       const fetchedUser = await userService.GETBYID(
-       
         userEditModal.itemId,
-        session?.user.accessToken,
+        session?.user.accessToken
       );
 
       if (fetchedUser) {
@@ -176,10 +178,10 @@ const UserEdit = ({ isOpen, onClose }: UserEditProps) => {
           if (fetchedUser.image_url) {
             setFilePreview(fetchedUser.image_url);
           }
+          setLoading(false);
         }
       }
     };
-    
 
     getUser();
 
@@ -187,8 +189,7 @@ const UserEdit = ({ isOpen, onClose }: UserEditProps) => {
       const getAddress = async () => {
         const fetchedAddress = await addressService.GETBYID(
           user?.address_id,
-          session?.user.accessToken,
-
+          session?.user.accessToken
         );
 
         if (fetchedAddress) {
@@ -206,9 +207,12 @@ const UserEdit = ({ isOpen, onClose }: UserEditProps) => {
       };
       getAddress();
     }
-
-  }, [session?.user.accessToken, userEditModal.itemId, user?.address_id, userEditModal.isOpen]);
-  console.log("User: ", user);
+  }, [
+    session?.user.accessToken,
+    userEditModal.itemId,
+    user?.address_id,
+    userEditModal.isOpen,
+  ]);
   const getCep = async () => {
     await cepService
       .GET(cep)
@@ -225,29 +229,29 @@ const UserEdit = ({ isOpen, onClose }: UserEditProps) => {
   };
 
   const onUpdate = async (data: z.infer<typeof formSchema>) => {
-    console.log("Data: ", data)
+    console.log("Data: ", data);
     try {
       if (data?.image_url) {
         await uploadService
-        .POST({
-          file: data.image_url,
-          folderName: data.name,
-        })
-        .then(async (res: ReturnUpload | undefined) => {
-          if (Array.isArray(res) && res.length > 0 && res[0].imageUrl) {
-            await userService.PUT(
-               {
-                ...data,
-                user_type: 1,
-                status: "ACTIVE",
-                address_id: user?.address_id,
-                image_url: res[0].imageUrl,
-                id: user?.id,
-              },
-              session?.user?.accessToken
-            );
-          }
-        });
+          .POST({
+            file: data.image_url,
+            folderName: data.name,
+          })
+          .then(async (res: ReturnUpload | undefined) => {
+            if (Array.isArray(res) && res.length > 0 && res[0].imageUrl) {
+              await userService.PUT(
+                {
+                  ...data,
+                  user_type: 1,
+                  status: "ACTIVE",
+                  address_id: user?.address_id,
+                  image_url: res[0].imageUrl,
+                  id: user?.id,
+                },
+                session?.user?.accessToken
+              );
+            }
+          });
       } else {
         await userService.PUT(
           {
@@ -270,9 +274,7 @@ const UserEdit = ({ isOpen, onClose }: UserEditProps) => {
     }
   };
 
-
-  console.log("filePreview: ", filePreview)
-
+  console.log("filePreview: ", filePreview);
 
   return (
     <Modal
@@ -285,345 +287,348 @@ const UserEdit = ({ isOpen, onClose }: UserEditProps) => {
       }
       body={
         <>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onUpdate)} className=" w-full">
-              <div>
-                <h1 className="my-4 font-semibold text-green-primary">
-                  Informações pessoais
-                </h1>
-                <div className="flex flex-row mb-5">
-                  <div className="w-full mr-5">
-                    <FormField
-                      control={form.control}
-                      name="name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-blue-primary">
-                            Nome
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="Insira o nome do usuário"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+          {loading ? (
+            <Loader color="text-green-primary" />
+          ) : (
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onUpdate)} className=" w-full">
+                <div>
+                  <h1 className="my-4 font-semibold text-green-primary">
+                    Informações pessoais
+                  </h1>
+                  <div className="flex flex-row mb-5">
+                    <div className="w-full mr-5">
+                      <FormField
+                        control={form.control}
+                        name="name"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-blue-primary">
+                              Nome
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="Insira o nome do usuário"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <div className="w-full">
+                      <FormField
+                        control={form.control}
+                        name="cpf_cnpj"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-blue-primary">
+                              CPF/CNPJ
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                maxLength={18}
+                                className=""
+                                placeholder="Insira o cpf/cnpj do usuário"
+                                value={cpfCnpjMask(field.value)}
+                                onChange={(e) => {
+                                  field.onChange(e.target.value);
+                                }}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                   </div>
-                  <div className="w-full">
-                    <FormField
-                      control={form.control}
-                      name="cpf_cnpj"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-blue-primary">
-                            CPF/CNPJ
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              maxLength={18}
-                              className=""
-                              placeholder="Insira o cpf/cnpj do usuário"
-                              value={cpfCnpjMask(field.value)}
-                              onChange={(e) => {
-                                field.onChange(e.target.value);
-                              }}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+
+                  <div className="flex flex-row mb-5">
+                    <div className="w-full mr-5">
+                      <FormField
+                        control={form.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-blue-primary">
+                              E-mail
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="Insira o e-mail do usuário"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <div className="w-full">
+                      <FormField
+                        control={form.control}
+                        name="phone"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-blue-primary">
+                              Telefone
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                maxLength={15}
+                                className=""
+                                placeholder="Insira o telefone do usuário"
+                                value={phoneMask(field.value)}
+                                onChange={(e) => {
+                                  field.onChange(e.target.value);
+                                }}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex flex-row ">
+                    <div className="">
+                      <FormField
+                        control={form.control}
+                        name="username"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-blue-primary">
+                              Nome de usuário
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="Insira o nome de usuário"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                   </div>
                 </div>
 
-                <div className="flex flex-row mb-5">
-                  <div className="w-full mr-5">
-                    <FormField
-                      control={form.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-blue-primary">
-                            E-mail
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="Insira o e-mail do usuário"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                <div className="mt-12">
+                  <h1 className="my-4 font-semibold text-green-primary">
+                    Informações de endereço
+                  </h1>
+                  <div className="flex flex-row mb-5">
+                    <div className="w-full mr-5">
+                      <FormField
+                        control={form.control}
+                        name="cep"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-blue-primary">
+                              Cep
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                maxLength={9}
+                                onBlur={(e) => {
+                                  setCustomValue("cep", e.target.value);
+                                  getCep();
+                                }}
+                                placeholder="Insira o cep"
+                                value={cepMask(field.value)}
+                                onChange={(e) => {
+                                  field.onChange(e.target.value);
+                                }}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <div className="w-full">
+                      <FormField
+                        control={form.control}
+                        name="street"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-blue-primary">
+                              Rua
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                className=""
+                                placeholder="Insira a rua"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                   </div>
-                  <div className="w-full">
-                    <FormField
-                      control={form.control}
-                      name="phone"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-blue-primary">
-                            Telefone
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              maxLength={15}
-                              className=""
-                              placeholder="Insira o telefone do usuário"
-                              value={phoneMask(field.value)}
-                              onChange={(e) => {
-                                field.onChange(e.target.value);
-                              }}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+
+                  <div className="flex flex-row mb-5">
+                    <div className="w-full mr-5">
+                      <FormField
+                        control={form.control}
+                        name="district"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-blue-primary">
+                              Bairro
+                            </FormLabel>
+                            <FormControl>
+                              <Input placeholder="Insira o bairro" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <div className="w-full">
+                      <FormField
+                        control={form.control}
+                        name="number"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-blue-primary">
+                              Número
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                className=""
+                                placeholder="Insira o número"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex flex-row ">
+                    <div className="w-full mr-5">
+                      <FormField
+                        control={form.control}
+                        name="city"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-blue-primary">
+                              Cidade
+                            </FormLabel>
+                            <FormControl>
+                              <Input placeholder="Insira a cidade" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <div className="w-full">
+                      <FormField
+                        control={form.control}
+                        name="state"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-blue-primary">
+                              Estado
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                maxLength={2}
+                                className=""
+                                placeholder="Insira o estado"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                   </div>
                 </div>
 
-                <div className="flex flex-row ">
-                  <div className="">
-                    <FormField
-                      control={form.control}
-                      name="username"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-blue-primary">
-                            Nome de usuário
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="Insira o nome de usuário"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-              
-                </div>
-              </div>
+                <div className="mt-12">
+                  <h1 className="my-4 font-semibold text-green-primary">
+                    Informações adicionais
+                  </h1>
 
-              <div className="mt-12">
-                <h1 className="my-4 font-semibold text-green-primary">
-                  Informações de endereço
-                </h1>
-                <div className="flex flex-row mb-5">
-                  <div className="w-full mr-5">
-                    <FormField
-                      control={form.control}
-                      name="cep"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-blue-primary">
-                            Cep
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              maxLength={9}
-                              onBlur={(e) => {
-                                setCustomValue("cep", e.target.value);
-                                getCep();
-                              }}
-                              placeholder="Insira o cep"
-                              value={cepMask(field.value)}
-                              onChange={(e) => {
-                                field.onChange(e.target.value);
-                              }}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                  <div className="mb-5">
+                    <div>
+                      <FormField
+                        control={form.control}
+                        name="person_link"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-blue-primary">
+                              URL
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="Insira o nome da loja que aparecerá no link do site"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                   </div>
-                  <div className="w-full">
-                    <FormField
-                      control={form.control}
-                      name="street"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-blue-primary">
-                            Rua
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              className=""
-                              placeholder="Insira a rua"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
+                  <div className="flex flex-row ">
+                    <div className="w-full ">
+                      <FormField
+                        control={form.control}
+                        name="image_url"
+                        render={({
+                          field: { value, onChange, ...fieldProps },
+                        }) => (
+                          <FormItem>
+                            <FormLabel>Logo da Loja</FormLabel>
+                            <FormControl>
+                              <Input
+                                {...fieldProps}
+                                ref={inputFileRef}
+                                placeholder="Logo da Loja"
+                                type="file"
+                                accept="image/*, application/pdf"
+                                onChange={(event) => {
+                                  onChange(
+                                    event.target.files && event.target.files[0]
+                                  );
+                                  if (event.target.files) {
+                                    if (event.target.files[0]) {
+                                      const reader = new FileReader();
 
-                <div className="flex flex-row mb-5">
-                  <div className="w-full mr-5">
-                    <FormField
-                      control={form.control}
-                      name="district"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-blue-primary">
-                            Bairro
-                          </FormLabel>
-                          <FormControl>
-                            <Input placeholder="Insira o bairro" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <div className="w-full">
-                    <FormField
-                      control={form.control}
-                      name="number"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-blue-primary">
-                            Número
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              className=""
-                              placeholder="Insira o número"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
+                                      reader.onloadend = () => {
+                                        setFilePreview(reader.result);
+                                      };
 
-                <div className="flex flex-row ">
-                  <div className="w-full mr-5">
-                    <FormField
-                      control={form.control}
-                      name="city"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-blue-primary">
-                            Cidade
-                          </FormLabel>
-                          <FormControl>
-                            <Input placeholder="Insira a cidade" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <div className="w-full">
-                    <FormField
-                      control={form.control}
-                      name="state"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-blue-primary">
-                            Estado
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              maxLength={2}
-                              className=""
-                              placeholder="Insira o estado"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-12">
-                <h1 className="my-4 font-semibold text-green-primary">
-                  Informações adicionais
-                </h1>
-
-                <div className="mb-5">
-                  <div>
-                    <FormField
-                      control={form.control}
-                      name="person_link"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-blue-primary">
-                            URL
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="Insira o nome da loja que aparecerá no link do site"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
-                <div className="flex flex-row ">
-                  <div className="w-full ">
-                    <FormField
-                      control={form.control}
-                      name="image_url"
-                      render={({
-                        field: { value, onChange, ...fieldProps },
-                      }) => (
-                        <FormItem>
-                          <FormLabel>Logo da Loja</FormLabel>
-                          <FormControl>
-                            <Input
-                              {...fieldProps}
-                              ref={inputFileRef}
-                              placeholder="Logo da Loja"
-                              type="file"
-                              accept="image/*, application/pdf"
-                              onChange={(event) => {
-                                onChange(
-                                  event.target.files && event.target.files[0]
-                                );
-                                if (event.target.files) {
-                                  if (event.target.files[0]) {
-                                    const reader = new FileReader();
-
-                                    reader.onloadend = () => {
-                                      setFilePreview(reader.result);
-                                    };
-
-                                    reader.readAsDataURL(event.target.files[0]);
+                                      reader.readAsDataURL(
+                                        event.target.files[0]
+                                      );
+                                    }
                                   }
-                                }
-                              }}
-                            />
-                          </FormControl>
-                          {filePreview && (
-                            <div className="relative mt-3 w-[300px] ">
-                              <div
-                                className="absolute top-0 right-0 cursor-pointer"
-                                onClick={handleDeleteFile}
-                              >
-                                <TiDelete color="red" size={24} />
-                              </div>
+                                }}
+                              />
+                            </FormControl>
+                            {filePreview && (
+                              <div className="relative mt-3 w-[300px] ">
+                                <div
+                                  className="absolute top-0 right-0 cursor-pointer"
+                                  onClick={handleDeleteFile}
+                                >
+                                  <TiDelete color="red" size={24} />
+                                </div>
 
-                             
                                 <Image
                                   className=""
                                   src={filePreview}
@@ -631,25 +636,25 @@ const UserEdit = ({ isOpen, onClose }: UserEditProps) => {
                                   width={300}
                                   height={300}
                                 />
-                               
-                            </div>
-                          )}
+                              </div>
+                            )}
 
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="mt-12">
-                <Button size="lg" className="w-full" type="submit">
-                  Atualizar
-                </Button>
-              </div>
-            </form>
-          </Form>
+                <div className="mt-12">
+                  <Button size="lg" className="w-full" type="submit">
+                    Atualizar
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          )}
         </>
       }
     />

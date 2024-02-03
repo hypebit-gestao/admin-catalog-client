@@ -58,9 +58,8 @@ const Product = () => {
     getProducts();
   }, [
     session?.user?.accessToken,
-    productRegisterModal.isOpen,
-    productEditModal.isOpen,
-    productDeleteModal.isOpen,
+    productEditModal.itemId,
+    productDeleteModal.itemId,
   ]);
 
   const handleDelete = (id: string | undefined) => {
