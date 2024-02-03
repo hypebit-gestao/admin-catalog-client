@@ -105,7 +105,8 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
 
     const getCategories = async () => {
       const fetchedCategories = await categoryService.GETALL(
-        session?.user.accessToken
+        session?.user.accessToken,
+        session?.user?.user?.id
       );
       if (fetchedCategories) {
         setCategories(fetchedCategories);

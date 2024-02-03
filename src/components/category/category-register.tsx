@@ -76,6 +76,7 @@ const CategoryRegister = ({ isOpen, onClose }: CategoryRegisterProps) => {
                 {
                   name: data.name,
                   description: data.description,
+                  user_id: session?.user?.user?.id,
                   image_url: res[0].imageUrl,
                 },
                 session?.user?.accessToken
@@ -87,6 +88,7 @@ const CategoryRegister = ({ isOpen, onClose }: CategoryRegisterProps) => {
           {
             name: data.name,
             description: data.description,
+            user_id: session?.user?.user?.id,
           },
           session?.user?.accessToken
         );

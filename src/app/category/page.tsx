@@ -32,13 +32,14 @@ const Category = () => {
   const categoryService = useCategoryService();
   const categoryRegisterModal = useCategoryRegisterModal();
   const categoryEditModal = useCategoryUpdateModal();
-  const categoryDeleteModal = useCategoryDeleteModal()
+  const categoryDeleteModal = useCategoryDeleteModal();
 
   useEffect(() => {
     setLoading(true);
     const getCategories = async () => {
       const fetchedCategory = await categoryService.GETALL(
-        session?.user.accessToken
+        session?.user.accessToken,
+        session?.user?.user?.id
       );
       if (fetchedCategory) {
         setLoading(false);
@@ -62,7 +63,6 @@ const Category = () => {
   const handleEdit = (id: string) => {
     categoryEditModal.onOpen();
     useCategoryUpdateModal.setState({ itemId: id });
-
   };
   const ActionsRenderer = (props: any) => {
     return (
@@ -125,10 +125,10 @@ const Category = () => {
 
   return (
     <>
-    <CategoryDelete
-    isOpen={categoryDeleteModal.isOpen}
-    onClose={categoryDeleteModal.onClose}
-    />
+      <CategoryDelete
+        isOpen={categoryDeleteModal.isOpen}
+        onClose={categoryDeleteModal.onClose}
+      />
       <CategoryEdit
         isOpen={categoryEditModal.isOpen}
         onClose={categoryEditModal.onClose}

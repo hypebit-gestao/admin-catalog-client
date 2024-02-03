@@ -23,9 +23,10 @@ export const useCategoryService = () => {
   };
 
   const GETALL = async (
-    session: string | any
+    session: string | any,
+    userId: string | undefined
   ): Promise<Category[] | undefined> => {
-    const response = await fetchWrapper<Category[]>("category", {
+    const response = await fetchWrapper<Category[]>(`category/user/${userId}`, {
       method: "GET",
       headers: {
         Authorization: `${session}`,
@@ -93,8 +94,7 @@ export const useCategoryService = () => {
     }
 
     return response;
-  }
-  
+  };
 
   return {
     POST,
