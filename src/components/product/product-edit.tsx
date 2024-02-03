@@ -44,6 +44,7 @@ import { Checkbox } from "../ui/checkbox";
 import useEditProductModal from "@/utils/hooks/product/useEditProductModal";
 import { Product } from "@/models/product";
 import Loader from "../loader";
+import { Textarea } from "../ui/textarea";
 
 interface ProductRegisterProps {
   isOpen: boolean;
@@ -52,7 +53,7 @@ interface ProductRegisterProps {
 
 const formSchema = z.object({
   name: z.string().min(1, "Nome do produto é obrigatório"),
-  // description: z.string().min(1, "Descrição do produto é obrigatório"),
+  description: z.string().min(1, "Descrição do produto é obrigatório"),
   category_id: z.string().min(1, "Categoria do produto é obrigatório"),
   weight: z.string().min(1, "Peso do produto é obrigatório"),
   images: z.any(),
@@ -81,7 +82,7 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
-      // description: "",
+      description: "",
       category_id: "",
       weight: "",
       images: "",
@@ -125,7 +126,7 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
         if (fetchedProduct.id === productEditModal.itemId) {
           setProduct(fetchedProduct as Product);
           setCustomValue("name", fetchedProduct.name);
-          // setCustomValue("description", fetchedProduct.description);
+          setCustomValue("description", fetchedProduct.description);
           setCustomValue("category_id", fetchedProduct.category_id);
           setCustomValue("weight", fetchedProduct.weight);
           setCustomValue("images", fetchedProduct.images);
@@ -399,6 +400,28 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                                 {...field}
                               />
                             </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+                  <div className="flex flex-row mb-5">
+                    <div className="w-full">
+                      <FormField
+                        control={form.control}
+                        name="description"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Descrição</FormLabel>
+                            <FormControl>
+                              <Textarea
+                                placeholder="Descrição do produto"
+                                className="resize-none"
+                                {...field}
+                              />
+                            </FormControl>
+
                             <FormMessage />
                           </FormItem>
                         )}
