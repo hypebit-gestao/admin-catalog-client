@@ -107,9 +107,9 @@ const Product = () => {
                 {products?.map((product, index) => (
                   <div
                     key={index}
-                    className="card w-[350px] bg-base-100 shadow-xl"
+                    className="card w-auto bg-base-100 shadow-xl"
                   >
-                    <div className="h-[300px]">
+                    <div className="h-auto">
                       {product.images && product.images.length > 0 ? (
                         <Image
                           className="h-full w-full "
@@ -135,7 +135,7 @@ const Product = () => {
                       )}
                     </div>
                     <div className="card-body bg-white">
-                      <h2 className="font-bold text-2xl text-green-primary">
+                      <h2 className="font-bold text-2xl text-green-primary truncate">
                         {product.name}
                       </h2>
                       <p className="text-[#2c6e49]">{product.description}</p>

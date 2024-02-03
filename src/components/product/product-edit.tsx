@@ -431,7 +431,7 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                   <h1 className="my-4 font-semibold text-green-primary">
                     Informações adicionais
                   </h1>
-                  <div className="flex flex-row mb-5">
+                  <div className="flex flex-col lg:flex-row mb-5">
                     <div className="w-full ">
                       <FormField
                         control={form.control}
@@ -473,11 +473,11 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                                 multiple
                               />
                             </FormControl>
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                               {filePreviews.map((preview, index) => (
                                 <div
                                   key={index}
-                                  className="relative mt-3 w-[300px]"
+                                  className="relative mt-3 w-auto lg:w-[300px]"
                                 >
                                   <div
                                     className="absolute top-0 right-0 cursor-pointer"
@@ -495,10 +495,12 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                                       height={300}
                                     />
                                   ) : (
-                                    <img
+                                    <Image
                                       className="w-[300px] h-[300px]"
                                       src={URL.createObjectURL(preview.file)}
                                       alt={`Preview ${index + 1}`}
+                                      width={300}
+                                      height={300}
                                     />
                                   )}
                                 </div>

@@ -583,7 +583,7 @@ const UserEdit = ({ isOpen, onClose }: UserEditProps) => {
                       />
                     </div>
                   </div>
-                  <div className="flex flex-row ">
+                  <div className="flex flex-col lg:flex-row ">
                     <div className="w-full ">
                       <FormField
                         control={form.control}
