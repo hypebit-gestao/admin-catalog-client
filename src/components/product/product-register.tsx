@@ -41,6 +41,7 @@ import { useRouter } from "next/navigation";
 import { TiDelete } from "react-icons/ti";
 import Image from "next/image";
 import { Checkbox } from "../ui/checkbox";
+import { Textarea } from "../ui/textarea";
 
 interface ProductRegisterProps {
   isOpen: boolean;
@@ -49,7 +50,7 @@ interface ProductRegisterProps {
 
 const formSchema = z.object({
   name: z.string().min(1, "Nome do produto é obrigatório"),
-  // description: z.string().min(1, "Descrição do produto é obrigatório"),
+  description: z.string().min(1, "Descrição do produto é obrigatório"),
   category_id: z.string().min(1, "Categoria do produto é obrigatório"),
   weight: z.string().min(1, "Peso do produto é obrigatório"),
   images: z.any(),
@@ -148,7 +149,7 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                     price: Number(data.price),
                     user_id: session?.user?.user?.id,
                     featured: data.featured,
-                    description: "fdlksfkdls",
+                    description: data.description,
                   },
                   session?.user?.accessToken
                 );
@@ -166,7 +167,7 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
             price: Number(data.price),
             user_id: session?.user?.user?.id,
             featured: data.featured,
-            description: "fdlksfkdls",
+            description: data.description,
           },
           session?.user?.accessToken
         );
@@ -357,6 +358,28 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                               {...field}
                             />
                           </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
+                <div className="flex flex-row mb-5">
+                  <div className="w-full">
+                    <FormField
+                      control={form.control}
+                      name="description"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Descrição</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              placeholder="Descrição do produto"
+                              className="resize-none"
+                              {...field}
+                            />
+                          </FormControl>
+
                           <FormMessage />
                         </FormItem>
                       )}
