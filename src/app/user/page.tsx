@@ -48,10 +48,11 @@ const User = () => {
   const [loading, setLoading] = useState(false);
   const { data: session } = useSession();
   const [rowData, setRowData] = useState<User[]>([]);
+  const [screenWidth, setScreenWidth] = useState(window.innerWidth);
   const userService = useUserService();
   const userRegisterModal = useUserRegisterModal();
-  const userDeleteModal = useUserDeleteModal()
-  const userEditModal = useEditUserModal()
+  const userDeleteModal = useUserDeleteModal();
+  const userEditModal = useEditUserModal();
 
   useEffect(() => {
     setLoading(true);
@@ -64,7 +65,24 @@ const User = () => {
     };
 
     getUsers();
-  }, [session?.user?.accessToken, userRegisterModal.isOpen, userEditModal.isOpen, userDeleteModal.isOpen]);
+  }, [
+    session?.user?.accessToken,
+    userRegisterModal.isOpen,
+    userEditModal.isOpen,
+    userDeleteModal.isOpen,
+  ]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setScreenWidth(window.innerWidth);
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   const handleDelete = (id: string) => {
     useUserDeleteModal.setState({ itemId: id });
@@ -74,7 +92,6 @@ const User = () => {
   const handleEdit = (id: string) => {
     useEditUserModal.setState({ itemId: id });
     userEditModal.onOpen();
-
   };
   const ActionsRenderer = (props: any) => {
     return (
@@ -156,46 +173,107 @@ const User = () => {
     },
   ]);
 
+  useEffect(() => {
+    if (screenWidth < 768) {
+      setColDefs([
+        {
+          field: "name",
+          flex: 1,
+          headerName: "Nome",
+          filter: true,
+          floatingFilter: true,
+        },
+        {
+          field: "actions",
+          headerName: "Ações",
+          width: 200,
+          cellRenderer: ActionsRenderer,
+        },
+      ]);
+    } else {
+      setColDefs([
+        {
+          field: "name",
+          flex: 1,
+          headerName: "Nome",
+          filter: true,
+          floatingFilter: true,
+        },
+        {
+          field: "cpf_cnpj",
+          flex: 1,
+          headerName: "CPF/CNPJ",
+          filter: true,
+          floatingFilter: true,
+        },
+        {
+          field: "email",
+          flex: 1,
+          headerName: "E-mail",
+          filter: true,
+          floatingFilter: true,
+        },
+        {
+          field: "phone",
+          flex: 1,
+          headerName: "Telefone",
+          filter: true,
+          floatingFilter: true,
+        },
+        {
+          field: "status",
+          flex: 1,
+          headerName: "Status",
+        },
+        {
+          field: "actions",
+          headerName: "Ações",
+          width: 200,
+          cellRenderer: ActionsRenderer,
+        },
+      ]);
+    }
+  }, [screenWidth]);
+
   return (
     <>
-    <UserDelete
-      isOpen={userDeleteModal.isOpen}
-      onClose={userDeleteModal.onClose}
-    />
-    <UserEdit
-      isOpen={userEditModal.isOpen}
-      onClose={userEditModal.onClose}
-    />
+      <UserDelete
+        isOpen={userDeleteModal.isOpen}
+        onClose={userDeleteModal.onClose}
+      />
+      <UserEdit isOpen={userEditModal.isOpen} onClose={userEditModal.onClose} />
       <UserRegister
         isOpen={userRegisterModal.isOpen}
         onClose={userRegisterModal.onClose}
       />
       <ContentMain title="Lojas">
-        <div className="flex justify-end">
-          <IoIosAddCircle
-            onClick={() => userRegisterModal.onOpen()}
-            size={44}
-            className="text-green-primary cursor-pointer  hover:opacity-70 transition-all duration-200"
-          />
-        </div>
+        <div className="w-full">
+          <div className="flex justify-end">
+            <IoIosAddCircle
+              onClick={() => userRegisterModal.onOpen()}
+              size={44}
+              className="text-green-primary cursor-pointer  hover:opacity-70 transition-all duration-200"
+            />
+          </div>
 
-        <div className="my-10 ">
-          {loading === true ? (
-            <Loader color="text-green-primary" />
-          ) : (
-            <div className="ag-theme-quartz">
-              <AgGridReact
-                rowData={rowData}
-                columnDefs={colDefs as any}
-                getRowStyle={getRowStyle as any}
-                domLayout="autoHeight"
-                pagination={true}
-                paginationPageSizeSelector={[10, 20]}
-                paginationPageSize={10}
-                localeText={AG_GRID_LOCALE_PT_BR}
-              />
-            </div>
-          )}
+          <div className="my-10">
+            {loading === true ? (
+              <Loader color="text-green-primary" />
+            ) : (
+              <div className="ag-theme-quartz">
+                <AgGridReact
+                  rowData={rowData}
+                  columnDefs={colDefs as any}
+                  getRowStyle={getRowStyle as any}
+                  domLayout="autoHeight"
+                  pagination={true}
+                  paginationPageSizeSelector={[10, 20]}
+                  paginationPageSize={10}
+                  localeText={AG_GRID_LOCALE_PT_BR}
+                />
+              </div>
+            )}
+          </div>
         </div>
       </ContentMain>
     </>

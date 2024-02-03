@@ -37,7 +37,9 @@ const Header = () => {
           />
         </div>
         <div>
-          <h1 className="text-white">Bem vindo, {session?.user?.user?.name}</h1>
+          <h1 className="text-white hidden lg:block">
+            Bem vindo, {session?.user?.user?.name}
+          </h1>
           {/* <Avatar className="bg-white p-2 w-auto h-auto">
             <AvatarImage
               className="w-10 h-10"

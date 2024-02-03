@@ -14,7 +14,7 @@ const MenuItem = ({ label, icon: Icon, href }: MenuItemProps) => {
     <Link href={href}>
       <li className="w-full cursor-pointer text-white flex items-center mb-8">
         <Icon color="text-white" size={28} className="mr-3" />
-        {label}
+        <span className="hidden lg:block">{label}</span>
       </li>
     </Link>
   );

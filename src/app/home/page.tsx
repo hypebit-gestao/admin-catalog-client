@@ -45,7 +45,7 @@ const Home = () => {
 
   return (
     <ContentMain title="Home">
-      <div className="grid grid-cols-3 w-full gap-64 mt-12">
+      <div className="grid grid-cols-1 lg:grid-cols-3 w-full gap-y-8 lg:gap-64 mt-12">
         <div className="bg-green-primary p-4 rounded-lg flex flex-col justify-center items-center ">
           {loading ? (
             <Loader />

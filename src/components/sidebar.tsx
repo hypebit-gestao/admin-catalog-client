@@ -14,7 +14,7 @@ const Sidebar = () => {
 
   return (
     <aside
-      className={`fixed left-0 p-3 bg-green-primary min-h-screen mt-20 w-52 ${
+      className={` p-3 bg-green-primary mt-20  lg:w-52 ${
         status === "authenticated" ? "block" : "hidden"
       }`}
     >

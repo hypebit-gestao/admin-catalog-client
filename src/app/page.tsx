@@ -51,13 +51,16 @@ export default function Home() {
 
   return (
     <main className="bg-[#081c15] min-h-screen flex justify-center items-center">
-      <div className="bg-[#f2f4f3] rounded-lg p-6 w-1/3">
+      <div className="bg-[#f2f4f3] flex flex-col items-center justify-center rounded-lg p-6 w-[90%] lg:w-1/3">
         <h1 className="text-center font-bold text-blue-primary text-2xl">
           LOGIN
         </h1>
-        <div>
+        <div className="my-5 w-full flex justify-center">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="space-y-8 w-full"
+            >
               <FormField
                 control={form.control}
                 name="username"
@@ -94,8 +97,12 @@ export default function Home() {
                   </>
                 )}
               />
-              <div className="flex justify-center">
-                <Button className="bg-[#081c15]" size={"xl"} type="submit">
+              <div className="w-full flex justify-center">
+                <Button
+                  className="bg-[#081c15] w-full lg:w-[70%]"
+                  size={"lg"}
+                  type="submit"
+                >
                   Entrar
                 </Button>
               </div>

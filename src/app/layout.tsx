@@ -30,9 +30,11 @@ export default function RootLayout({
         <body className={inter.className}>
           <ToastProvider />
           <Header />
-          <Sidebar />
-          <div className="w-full min-h-screen h-auto">
-            <Auth>{children}</Auth>
+          <div className="flex flex-row w-full">
+            <Sidebar />
+            <div className="w-full min-h-screen h-auto">
+              <Auth>{children}</Auth>
+            </div>
           </div>
         </body>
       </AuthProvider>

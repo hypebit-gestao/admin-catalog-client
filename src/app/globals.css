@@ -66,6 +66,12 @@
   }
 }
 
+@media (max-width: 768px) {
+  .ag-theme-quartz {
+    width: 400px;
+  }
+}
+
 .ag-theme-quartz .ag-header {
   background-color: #081c15; /* Cor de fundo do cabeçalho */
 }

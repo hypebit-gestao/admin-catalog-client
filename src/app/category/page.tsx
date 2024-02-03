@@ -29,6 +29,7 @@ const Category = () => {
   const [loading, setLoading] = useState(false);
   const { data: session } = useSession();
   const [rowData, setRowData] = useState<Category[]>([]);
+  const [screenWidth, setScreenWidth] = useState(window.innerWidth);
   const categoryService = useCategoryService();
   const categoryRegisterModal = useCategoryRegisterModal();
   const categoryEditModal = useCategoryUpdateModal();
@@ -54,6 +55,18 @@ const Category = () => {
     categoryEditModal.isOpen,
     categoryDeleteModal.isOpen,
   ]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setScreenWidth(window.innerWidth);
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   const handleDelete = (id: string) => {
     useCategoryDeleteModal.setState({ itemId: id });
@@ -122,6 +135,47 @@ const Category = () => {
       cellRenderer: ActionsRenderer,
     },
   ]);
+
+  useEffect(() => {
+    if (screenWidth < 768) {
+      setColDefs([
+        {
+          field: "name",
+          flex: 1,
+          headerName: "Nome",
+          filter: true,
+          floatingFilter: true,
+        },
+        {
+          field: "actions",
+          headerName: "Ações",
+          width: 200,
+          cellRenderer: ActionsRenderer,
+        },
+      ]);
+    } else {
+      setColDefs([
+        {
+          field: "name",
+          flex: 1,
+          headerName: "Nome",
+          filter: true,
+          floatingFilter: true,
+        },
+        {
+          field: "description",
+          flex: 1,
+          headerName: "Descrição",
+        },
+        {
+          field: "actions",
+          headerName: "Ações",
+          width: 200,
+          cellRenderer: ActionsRenderer,
+        },
+      ]);
+    }
+  }, [screenWidth]);
 
   return (
     <>

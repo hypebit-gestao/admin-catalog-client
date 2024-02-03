@@ -246,8 +246,8 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                   </div>
                 </div>
 
-                <div className="flex flex-row mb-5">
-                  <div className="w-full mr-5">
+                <div className="flex flex-col lg:flex-row mb-5">
+                  <div className="w-full mb-5 lg:mb-0 lg:mr-5">
                     <FormField
                       control={form.control}
                       name="category_id"
@@ -315,8 +315,8 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                   </div>
                 </div>
 
-                <div className="flex flex-row mb-5">
-                  <div className="w-full mr-5">
+                <div className="flex flex-col lg:flex-row mb-5">
+                  <div className="w-full mb-5  lg:mb-0 lg:mr-5">
                     <FormField
                       control={form.control}
                       name="currency"

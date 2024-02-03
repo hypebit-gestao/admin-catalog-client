@@ -57,7 +57,7 @@ bg-neutral/70
       >
         <div
           className={`    relative
-        w-[80%]
+        w-[90%]
         md:w-4/6
         lg:w-3/6
         xl:w-[40%]
