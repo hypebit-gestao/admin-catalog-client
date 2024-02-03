@@ -110,8 +110,13 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
   const handleDeleteFile = (index: number) => {
     const newPreviews = [...filePreviews];
     newPreviews.splice(index, 1);
+
+    const updatedImages = newPreviews.map((preview) =>
+      typeof preview === "string" ? preview : preview.file
+    );
+
     setFilePreviews(newPreviews);
-    setProduct({ ...(product as Product), images: newPreviews as string[] });
+    setProduct({ ...(product as Product), images: updatedImages });
   };
 
   useEffect(() => {
@@ -173,46 +178,38 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
 
   const onUpdate = async (data: z.infer<typeof formSchema>) => {
     try {
-      const uploadedImagesUrls: string[] = []; // Array para armazenar as URLs dos arquivos
+      const uploadedImagesUrls: string[] = [];
+
+      // Upload files
       for (let i = 0; i < data.images.length; i++) {
         const file = data.images[i];
+        const res: any = await uploadService.POST({
+          file,
+          folderName: session?.user?.user?.name,
+        });
 
-        await uploadService
-          .POST({
-            file,
-            folderName: session?.user?.user?.name,
-          })
-          .then(async (res: any) => {
-            res?.map((item: any) => {
-              if (item?.imageUrl) {
-                uploadedImagesUrls.push(item.imageUrl);
-              }
-            });
-
-            if (i === data.images.length - 1) {
-              await productService.PUT(
-                {
-                  name: data.name,
-                  weight: Number(data.weight),
-                  category_id: data.category_id,
-                  images:
-                    uploadedImagesUrls.length > 0
-                      ? [
-                          ...uploadedImagesUrls,
-                          ...(product?.images as string[]),
-                        ]
-                      : product?.images,
-                  currency: data.currency,
-                  price: Number(data.price),
-                  user_id: session?.user?.user?.id,
-                  featured: data.featured,
-                  description: "fdlksfkdls",
-                },
-                session?.user?.accessToken
-              );
-            }
-          });
+        res?.map((item: any) => {
+          if (item?.imageUrl) {
+            uploadedImagesUrls.push(item.imageUrl);
+          }
+        });
       }
+
+      await productService.PUT(
+        {
+          id: product?.id,
+          name: data.name,
+          description: data.description,
+          category_id: data.category_id,
+          weight: Number(data.weight),
+          images: [...uploadedImagesUrls, ...(product?.images as string[])],
+          currency: data.currency,
+          price: Number(data.price),
+          user_id: session?.user?.user?.id,
+          featured: data.featured,
+        },
+        session?.user?.accessToken
+      );
 
       toast.success(`${data.name} atualizado com sucesso`);
       form.reset();
