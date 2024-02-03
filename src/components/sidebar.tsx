@@ -9,6 +9,9 @@ import { useSession } from "next-auth/react";
 const Sidebar = () => {
   const { data: session, status } = useSession();
   console.log("session: ", session?.user?.user.user_type);
+
+  const isAdmin = session?.user?.user?.user_type === 2;
+
   return (
     <aside
       className={`fixed left-0 p-3 bg-green-primary min-h-screen mt-20 w-52 ${
@@ -17,15 +20,17 @@ const Sidebar = () => {
     >
       <ul className="mt-14">
         <MenuItem href="/home" label="Home" icon={FaHome} />
-        {session?.user?.user?.user_type === 2 && (
-          <MenuItem href="/user" label="Lojas" icon={FaStore} />
+        {isAdmin && <MenuItem href="/user" label="Lojas" icon={FaStore} />}
+        {!isAdmin && (
+          <MenuItem href="/category" label="Categorias" icon={MdCategory} />
         )}
-        <MenuItem href="/category" label="Categorias" icon={MdCategory} />
-        <MenuItem
-          href="/product"
-          label="Produtos"
-          icon={MdOutlineProductionQuantityLimits}
-        />
+        {!isAdmin && (
+          <MenuItem
+            href="/product"
+            label="Produtos"
+            icon={MdOutlineProductionQuantityLimits}
+          />
+        )}
       </ul>
     </aside>
   );

@@ -37,13 +37,14 @@ const Header = () => {
           />
         </div>
         <div>
-          <Avatar className="bg-white p-2 w-auto h-auto">
+          <h1 className="text-white">Bem vindo, {session?.user?.user?.name}</h1>
+          {/* <Avatar className="bg-white p-2 w-auto h-auto">
             <AvatarImage
               className="w-10 h-10"
               src={session?.user?.user?.image_url}
             />
             <AvatarFallback>CN</AvatarFallback>
-          </Avatar>
+          </Avatar> */}
         </div>
       </div>
     </header>

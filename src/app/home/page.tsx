@@ -1,17 +1,75 @@
 "use client";
 
-import { signOut } from "next-auth/react";
-import React from "react";
-import toast from "react-hot-toast";
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
+import { signOut, useSession } from "next-auth/react";
+import React, { useEffect, useState } from "react";
 import ContentMain from "@/components/content-main";
+import { useCategoryService } from "@/services/category.service";
+import { useProductService } from "@/services/product.service";
+import Loader from "@/components/loader";
 
 const Home = () => {
+  const { data: session } = useSession();
+  const [loading, setLoading] = useState(false);
+  const [countProducts, setCountProducts] = useState(0);
+  const [countCategories, setCountCategories] = useState(0);
+  const categoryService = useCategoryService();
+  const productService = useProductService();
+
+  useEffect(() => {
+    setLoading(true);
+    const getCountProducts = async () => {
+      const productsCount = await productService.COUNTPRODUCTS(
+        session?.user?.user?.id,
+        session?.user.accessToken
+      );
+      if (productsCount) {
+        setLoading(false);
+        setCountProducts(productsCount);
+      }
+    };
+
+    const getCountCategories = async () => {
+      const categoriesCount = await categoryService.COUNTCATEGORIES(
+        session?.user?.user?.id,
+        session?.user.accessToken
+      );
+      if (categoriesCount) {
+        setLoading(false);
+        setCountCategories(categoriesCount);
+      }
+    };
+
+    getCountProducts();
+    getCountCategories();
+  }, [session?.user?.accessToken]);
+
   return (
     <ContentMain title="Home">
-      <div>
-        <h1>Bem vindo ao Catálogo Online</h1>
+      <div className="grid grid-cols-3 w-full gap-64 mt-12">
+        <div className="bg-green-primary p-4 rounded-lg flex flex-col justify-center items-center ">
+          {loading ? (
+            <Loader />
+          ) : (
+            <>
+              <h1 className="text-white text-xl">Produtos </h1>
+              <h3 className="text-white text-2xl mt-5">{countProducts}</h3>
+            </>
+          )}
+        </div>
+        <div className="bg-green-primary p-4 rounded-lg flex flex-col justify-center items-center ">
+          <h1 className="text-white text-xl">Pedidos </h1>
+          <h3 className="text-white text-2xl mt-5">4</h3>
+        </div>
+        <div className="bg-green-primary p-4 rounded-lg flex flex-col justify-center items-center ">
+          {loading ? (
+            <Loader />
+          ) : (
+            <>
+              <h1 className="text-white text-xl">Categorias </h1>
+              <h3 className="text-white text-2xl mt-5">{countCategories}</h3>
+            </>
+          )}
+        </div>
       </div>
     </ContentMain>
   );

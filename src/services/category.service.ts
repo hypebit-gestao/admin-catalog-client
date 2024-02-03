@@ -58,6 +58,24 @@ export const useCategoryService = () => {
     return response;
   };
 
+  const COUNTCATEGORIES = async (
+    user_id: string | undefined,
+    session: string | any
+  ): Promise<number | undefined> => {
+    const response = await fetchWrapper<number>(`category/count/${user_id}`, {
+      method: "GET",
+      headers: {
+        Authorization: `${session}`,
+      },
+    });
+
+    if (!response) {
+      console.error("Sem resposta do servidor");
+    }
+
+    return response;
+  };
+
   const PUT = async (
     data: Category,
     session: string | any
@@ -100,6 +118,7 @@ export const useCategoryService = () => {
     POST,
     GETALL,
     GETBYID,
+    COUNTCATEGORIES,
     PUT,
     DELETE,
   };

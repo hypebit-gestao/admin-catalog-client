@@ -4,7 +4,7 @@ export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
       credentials: {
-        email: { label: "email", type: "text" },
+        username: { label: "username", type: "text" },
         password: { label: "password", type: "password" },
       },
       async authorize(credentials, req) {
@@ -16,7 +16,7 @@ export const authOptions: NextAuthOptions = {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              email: credentials?.email,
+              username: credentials?.username,
               password: credentials?.password,
             }),
           }

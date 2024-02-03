@@ -58,6 +58,24 @@ export const useProductService = () => {
     return response;
   };
 
+  const COUNTPRODUCTS = async (
+    user_id: string | undefined,
+    session: string | any
+  ): Promise<number | undefined> => {
+    const response = await fetchWrapper<number>(`product/count/${user_id}`, {
+      method: "GET",
+      headers: {
+        Authorization: `${session}`,
+      },
+    });
+
+    if (!response) {
+      console.error("Sem resposta do servidor");
+    }
+
+    return response;
+  };
+
   const PUT = async (
     data: Product,
     session: string | any
@@ -91,6 +109,7 @@ export const useProductService = () => {
   return {
     GETBYUSERID,
     GETBYID,
+    COUNTPRODUCTS,
     POST,
     PUT,
     DELETE,
