@@ -109,7 +109,7 @@ const Product = () => {
                     className="card w-[350px] bg-base-100 shadow-xl"
                   >
                     <div className="h-[300px]">
-                      {product.images ? (
+                      {product.images && product.images.length > 0 ? (
                         <Image
                           className="h-full w-full "
                           src={`${
