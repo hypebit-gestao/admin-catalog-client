@@ -1,0 +1,53 @@
+"use client";
+
+import React from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { signOut, useSession } from "next-auth/react";
+import { CgLogOut } from "react-icons/cg";
+import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
+
+const Header = () => {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
+  const onLogout = () => {
+    signOut({ redirect: false }).then(() => {
+      toast.success("Deslogado com sucesso");
+      router.push("/");
+    });
+  };
+  return (
+    <header
+      className={`bg-green-primary shadow-xl w-screen h-20 fixed top-0   justify-between items-center px-4 z-[100] ${
+        status === "authenticated" ? "flex" : "hidden"
+      }`}
+    >
+      <div>
+        <h1 className="text-white">Catalogo Admin</h1>
+      </div>
+      <div className="flex items-center">
+        <div className="mr-6 flex">
+          <h3 className="mr-4 text-white">Sair</h3>
+          <CgLogOut
+            className="cursor-pointer"
+            onClick={onLogout}
+            size={28}
+            color="white"
+          />
+        </div>
+        <div>
+          <Avatar className="bg-white p-2 w-auto h-auto">
+            <AvatarImage
+              className="w-10 h-10"
+              src={session?.user?.user?.image_url}
+            />
+            <AvatarFallback>CN</AvatarFallback>
+          </Avatar>
+        </div>
+      </div>
+    </header>
+  );
+};
+
+export default Header;
