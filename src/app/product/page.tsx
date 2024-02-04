@@ -97,7 +97,21 @@ const Product = () => {
             className="text-blue-primary cursor-pointer  hover:opacity-70 transition-all duration-200"
           />
         </div>
-
+        {/* <div className="bg-black w-[450px] h-[450px]">
+                    <div style={{ width: "100%", height: "100%" }}>
+                      <Image
+                        src={`${
+                              product?.images?.length > 0
+                                ? product?.images[0]
+                                : ""
+                            }`}
+                        alt={product.name}
+                        width={1920}
+                        height={1080}
+                        objectFit="cover" // Adiciona a propriedade object-fit com o valor cover
+                      />
+                    </div>
+                  </div> */}
         <div className="my-10 ">
           {loading === true ? (
             <Loader color="text-green-primary" />
@@ -105,28 +119,26 @@ const Product = () => {
             <>
               <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 lg:gap-x-6 gap-y-12">
                 {products?.map((product, index) => (
-                  <div
-                    key={index}
-                    className="card w-[450px] bg-base-100 shadow-xl"
-                  >
-                    <div className="">
+                  <div key={index} className=" shadow-xl">
+                    <div className=" rounded-lg ">
                       {product.images && product.images.length > 0 ? (
-                        <Image
-                          className="h-[350px]"
-                          src={`${
-                            product?.images?.length > 0
-                              ? product?.images[0]
-                              : ""
-                          }`}
-                          alt="Shoes"
-                          width={1920}
-                          height={1080}
-                          objectFit="cover"
-                        />
+                        <div className=" w-full h-[450px] rounded-lg ">
+                          <Image
+                            className="w-full h-full object-cover object-center rounded-lg "
+                            src={`${
+                              product?.images?.length > 0
+                                ? product?.images[0]
+                                : ""
+                            }`}
+                            alt="Shoes"
+                            width={450}
+                            height={300}
+                          />
+                        </div>
                       ) : (
                         <Image
-                          className="h-[350px] w-full"
-                          src={`https://www.pallenz.co.nz/assets/camaleon_cms/image-not-found-4a963b95bf081c3ea02923dceaeb3f8085e1a654fc54840aac61a57a60903fef.png`}
+                          className="h-[300px] w-full"
+                          src="https://www.pallenz.co.nz/assets/camaleon_cms/image-not-found-4a963b95bf081c3ea02923dceaeb3f8085e1a654fc54840aac61a57a60903fef.png"
                           alt="Shoes"
                           width={1920}
                           height={1080}
