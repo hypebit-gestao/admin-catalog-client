@@ -117,12 +117,12 @@ const Product = () => {
             <Loader color="text-green-primary" />
           ) : (
             <>
-              <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 lg:gap-x-6 gap-y-12">
+              <div className="grid grid-cols-1 lg:grid-cols-3 2xl:grid-cols-3 lg:gap-x-6 gap-y-12">
                 {products?.map((product, index) => (
                   <div key={index} className=" shadow-xl">
                     <div className=" rounded-lg ">
                       {product.images && product.images.length > 0 ? (
-                        <div className=" w-full h-[450px] rounded-lg ">
+                        <div className=" w-full h-[300px] rounded-lg ">
                           <Image
                             className="w-full h-full object-cover object-center rounded-lg "
                             src={`${
