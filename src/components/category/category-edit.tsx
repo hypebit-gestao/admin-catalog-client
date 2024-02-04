@@ -102,7 +102,6 @@ const CategoryEdit = ({ isOpen, onClose }: CategoryUpdateProps) => {
       );
 
       toast.success(`${data.name} criado com sucesso`);
-      form.reset();
       categoryEditModal.onClose();
       router.refresh();
     } catch (error) {

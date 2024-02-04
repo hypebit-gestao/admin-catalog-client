@@ -7,7 +7,6 @@ export interface Product {
   };
   category_id: string | undefined;
   user_id: string | undefined;
-  weight: number;
   featured: boolean;
   images?: string[] | null;
   currency: string;

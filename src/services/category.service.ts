@@ -22,16 +22,39 @@ export const useCategoryService = () => {
     return response;
   };
 
+  const POSTUSERCATEGORY = async (
+    data: Category,
+    session: string | any
+  ): Promise<Category | undefined> => {
+    const response = await fetchWrapper<Category>(`userCategory`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `${session}`,
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response) {
+      console.error("Sem resposta do servidor");
+    }
+
+    return response;
+  };
+
   const GETALL = async (
     session: string | any,
     userId: string | undefined
   ): Promise<Category[] | undefined> => {
-    const response = await fetchWrapper<Category[]>(`category/user/${userId}`, {
-      method: "GET",
-      headers: {
-        Authorization: `${session}`,
-      },
-    });
+    const response = await fetchWrapper<Category[]>(
+      `userCategory/user/${userId}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `${session}`,
+        },
+      }
+    );
 
     if (!response) {
       console.error("Sem resposta do servidor");
@@ -116,6 +139,7 @@ export const useCategoryService = () => {
 
   return {
     POST,
+    POSTUSERCATEGORY,
     GETALL,
     GETBYID,
     COUNTCATEGORIES,

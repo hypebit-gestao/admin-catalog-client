@@ -42,6 +42,7 @@ import { TiDelete } from "react-icons/ti";
 import Image from "next/image";
 import { Checkbox } from "../ui/checkbox";
 import { Textarea } from "../ui/textarea";
+import Loader from "../loader";
 
 interface ProductRegisterProps {
   isOpen: boolean;
@@ -52,7 +53,6 @@ const formSchema = z.object({
   name: z.string().min(1, "Nome do produto é obrigatório"),
   description: z.string().min(1, "Descrição do produto é obrigatório"),
   category_id: z.string().min(1, "Categoria do produto é obrigatório"),
-  weight: z.string().min(1, "Peso do produto é obrigatório"),
   images: z.any(),
   featured: z.boolean(),
   currency: z.string().min(1, "Moeda do produto é obrigatório"),
@@ -62,6 +62,7 @@ const formSchema = z.object({
 
 const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
   const { data: session } = useSession();
+  const [loading, setLoading] = useState(false);
   const userService = useUserService();
   const productService = useProductService();
   const categoryService = useCategoryService();
@@ -78,7 +79,6 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
       name: "",
       // description: "",
       category_id: "",
-      weight: "",
       images: "",
       currency: "",
       featured: false,
@@ -118,8 +118,12 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
     getCategories();
   }, [session?.user?.accessToken]);
 
+  console.log("Categories: ", categories);
+
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    console.log("Data: ", data);
     try {
+      setLoading(true);
       const uploadedImagesUrls: string[] = []; // Array para armazenar as URLs dos arquivos
 
       if (data.images.length > 0) {
@@ -142,7 +146,6 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                 await productService.POST(
                   {
                     name: data.name,
-                    weight: Number(data.weight),
                     category_id: data.category_id,
                     images: uploadedImagesUrls,
                     currency: data.currency,
@@ -160,7 +163,6 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
         await productService.POST(
           {
             name: data.name,
-            weight: Number(data.weight),
             category_id: data.category_id,
             images: null,
             currency: data.currency,
@@ -174,10 +176,11 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
       }
 
       toast.success(`${data.name} criado com sucesso`);
-      form.reset();
+      setLoading(false);
       productRegisterModal.onClose();
       router.refresh();
     } catch (error) {
+      setLoading(false);
       toast.error((error as Error).message);
     }
   };
@@ -222,28 +225,6 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                       )}
                     />
                   </div>
-                  <div className="w-full">
-                    <FormField
-                      control={form.control}
-                      name="weight"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-blue-primary">
-                            Peso/Volume
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              className=""
-                              placeholder="Insira o peso/volume do produto"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
                 </div>
 
                 <div className="flex flex-col lg:flex-row mb-5">
@@ -267,9 +248,9 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                               {categories.map((category, index) => (
                                 <SelectItem
                                   key={index}
-                                  value={category.id as string}
+                                  value={category.category?.id as string}
                                 >
-                                  {category.name}
+                                  {category.category?.name}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -496,7 +477,7 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
 
               <div className="mt-12">
                 <Button size="lg" className="w-full" type="submit">
-                  Cadastrar
+                  {loading ? <Loader /> : "Cadastrar"}
                 </Button>
               </div>
             </form>

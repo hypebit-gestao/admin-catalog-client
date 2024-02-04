@@ -79,23 +79,28 @@ const Category = () => {
     useCategoryUpdateModal.setState({ itemId: id });
   };
   const ActionsRenderer = (props: any) => {
+    const isSemCategoria = props.data.category.name === "Sem Categoria";
+
     return (
-      <div className="flex flex-row justify-center items-center ">
-        <button
-          className="text-blue-500 hover:text-blue-600 transition-all duration-200 mr-4"
-          onClick={() => {
-            console.log("Props: ", props.data.id);
-            handleEdit(props.data.id);
-          }}
-        >
-          <MdEdit className="" size={36} />
-        </button>
-        <button
-          className="text-red-500 hover:text-red-600 transition-all duration-200"
-          onClick={() => handleDelete(props.data.id)}
-        >
-          <MdDelete className="" size={36} />
-        </button>
+      <div className="flex flex-row justify-center items-center">
+        {!isSemCategoria && (
+          <>
+            <button
+              className="text-blue-500 hover:text-blue-600 transition-all duration-200 mr-4"
+              onClick={() => {
+                handleEdit(props.data.category?.id);
+              }}
+            >
+              <MdEdit className="" size={36} />
+            </button>
+            <button
+              className="text-red-500 hover:text-red-600 transition-all duration-200"
+              onClick={() => handleDelete(props.data.category?.id)}
+            >
+              <MdDelete className="" size={36} />
+            </button>
+          </>
+        )}
       </div>
     );
   };
@@ -157,7 +162,7 @@ const Category = () => {
     } else {
       setColDefs([
         {
-          field: "name",
+          field: "category.name",
           flex: 1,
           headerName: "Nome",
           filter: true,
@@ -235,9 +240,11 @@ const Category = () => {
                     </div>
                     <div className="card-body bg-white">
                       <h2 className="font-bold text-2xl text-green-primary truncate">
-                        {category.name}
+                        {category.category?.name}
                       </h2>
-                      <p className="text-[#2c6e49]">{category.description}</p>
+                      <p className="text-[#2c6e49]">
+                        {category.category?.description}
+                      </p>
                       <div className="card-actions justify-between">
                         <div className="flex flex-row items-center">
                           <div

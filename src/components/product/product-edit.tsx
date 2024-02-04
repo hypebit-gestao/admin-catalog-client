@@ -55,7 +55,6 @@ const formSchema = z.object({
   name: z.string().min(1, "Nome do produto é obrigatório"),
   description: z.string().min(1, "Descrição do produto é obrigatório"),
   category_id: z.string().min(1, "Categoria do produto é obrigatório"),
-  weight: z.string().min(1, "Peso do produto é obrigatório"),
   images: z.any(),
   featured: z.boolean(),
   currency: z.string().min(1, "Moeda do produto é obrigatório"),
@@ -84,7 +83,6 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
       name: "",
       description: "",
       category_id: "",
-      weight: "",
       images: "",
       currency: "",
       featured: false,
@@ -128,12 +126,12 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
       );
 
       if (fetchedProduct) {
+        console.log("Fetched: ", fetchedProduct);
         if (fetchedProduct.id === productEditModal.itemId) {
           setProduct(fetchedProduct as Product);
           setCustomValue("name", fetchedProduct.name);
           setCustomValue("description", fetchedProduct.description);
           setCustomValue("category_id", fetchedProduct.category_id);
-          setCustomValue("weight", fetchedProduct.weight);
           setCustomValue("images", fetchedProduct.images);
           setCustomValue("currency", fetchedProduct.currency);
           setCustomValue("featured", fetchedProduct.featured);
@@ -174,27 +172,33 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
     getCategories();
   }, [session?.user?.accessToken, productEditModal.itemId]);
 
+  console.log("Cat: ", categories);
+
   console.log("Product:", product);
 
   const onUpdate = async (data: z.infer<typeof formSchema>) => {
     try {
+      setLoading(true);
       const uploadedImagesUrls: string[] = [];
 
-      // Upload files
-      for (let i = 0; i < data.images.length; i++) {
-        const file = data.images[i];
-        const res: any = await uploadService.POST({
-          file,
-          folderName: session?.user?.user?.name,
-        });
+      // Verifique se data.images não é null ou undefined antes de iterar
+      if (data.images) {
+        // Upload files
+        for (let i = 0; i < data.images.length; i++) {
+          const file = data.images[i];
+          const res: any = await uploadService.POST({
+            file,
+            folderName: session?.user?.user?.name,
+          });
 
-        if (Array.isArray(res) && res.length > 0) {
-          uploadedImagesUrls.push(res[0].imageUrl);
-        } else {
-          console.error(
-            "A resposta do serviço de upload não tem a estrutura esperada:",
-            res
-          );
+          if (Array.isArray(res) && res.length > 0) {
+            uploadedImagesUrls.push(res[0].imageUrl);
+          } else {
+            console.error(
+              "A resposta do serviço de upload não tem a estrutura esperada:",
+              res
+            );
+          }
         }
       }
 
@@ -204,9 +208,7 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
           name: data.name,
           description: data.description,
           category_id: data.category_id,
-          weight: Number(data.weight),
           images: [...uploadedImagesUrls, ...(product?.images || [])],
-
           currency: data.currency,
           price: Number(data.price),
           user_id: session?.user?.user?.id,
@@ -216,10 +218,12 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
       );
 
       toast.success(`${data.name} atualizado com sucesso`);
-      form.reset();
+      setLoading(false);
       productEditModal.onClose();
       router.refresh();
     } catch (error) {
+      setLoading(false);
+      console.log("error: ", error);
       toast.error((error as Error).message);
     }
   };
@@ -265,28 +269,6 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                         )}
                       />
                     </div>
-                    <div className="w-full">
-                      <FormField
-                        control={form.control}
-                        name="weight"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-blue-primary">
-                              Peso/Volume
-                            </FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                className=""
-                                placeholder="Insira o peso/volume do produto"
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
                   </div>
 
                   <div className="flex flex-row mb-5">
@@ -310,9 +292,9 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                                 {categories.map((category, index) => (
                                   <SelectItem
                                     key={index}
-                                    value={category.id as string}
+                                    value={category.category?.id as string}
                                   >
-                                    {category.name}
+                                    {category.category?.name}
                                   </SelectItem>
                                 ))}
                               </SelectContent>
@@ -545,7 +527,7 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
 
                 <div className="mt-12">
                   <Button size="lg" className="w-full" type="submit">
-                    Atualizar
+                    {loading ? <Loader /> : "Atualizar"}
                   </Button>
                 </div>
               </form>

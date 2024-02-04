@@ -266,7 +266,6 @@ const UserEdit = ({ isOpen, onClose }: UserEditProps) => {
       }
 
       toast.success(`${data.name} atualizado com sucesso`);
-      form.reset();
       userEditModal.onClose();
       router.refresh();
     } catch (error) {

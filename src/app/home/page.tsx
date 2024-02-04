@@ -52,7 +52,7 @@ const Home = () => {
 
   return (
     <ContentMain title="Home">
-      <div className="grid grid-cols-1 lg:grid-cols-3 w-full gap-y-8 lg:gap-64 mt-12">
+      <div className="grid grid-cols-1 lg:grid-cols-2 w-full gap-y-8 lg:gap-64 mt-12">
         <div className="bg-green-primary p-4 rounded-lg flex flex-col justify-center items-center ">
           {loading ? (
             <Loader />
@@ -63,10 +63,10 @@ const Home = () => {
             </>
           )}
         </div>
-        <div className="bg-green-primary p-4 rounded-lg flex flex-col justify-center items-center ">
+        {/* <div className="bg-green-primary p-4 rounded-lg flex flex-col justify-center items-center ">
           <h1 className="text-white text-xl">Pedidos </h1>
           <h3 className="text-white text-2xl mt-5">4</h3>
-        </div>
+        </div> */}
         <div className="bg-green-primary p-4 rounded-lg flex flex-col justify-center items-center ">
           {loading ? (
             <Loader />

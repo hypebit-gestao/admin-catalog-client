@@ -229,7 +229,6 @@ const UserRegister = ({ isOpen, onClose }: UserRegisterProps) => {
 
       toast.success(`${data.name} criado com sucesso`);
       userRegisterModal.onClose();
-      form.reset();
       router.refresh();
     } catch (error) {
       toast.error((error as Error).message);
