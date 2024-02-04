@@ -7,6 +7,7 @@ export interface User {
   username: string;
   person_link: string;
   password?: string;
+  payer_id: number;
   address_id: string | undefined;
   phone: string;
   status: string;

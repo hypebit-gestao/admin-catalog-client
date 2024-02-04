@@ -244,6 +244,7 @@ const UserEdit = ({ isOpen, onClose }: UserEditProps) => {
                   ...data,
                   user_type: 1,
                   status: "ACTIVE",
+                  payer_id: 0,
                   address_id: user?.address_id,
                   image_url: res[0].imageUrl,
                   id: user?.id,
@@ -257,6 +258,7 @@ const UserEdit = ({ isOpen, onClose }: UserEditProps) => {
           {
             ...data,
             user_type: 1,
+            payer_id: 0,
             status: "ACTIVE",
             address_id: user?.address_id,
             id: user?.id,
