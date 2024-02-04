@@ -67,9 +67,9 @@ const User = () => {
     getUsers();
   }, [
     session?.user?.accessToken,
-    userRegisterModal.isOpen,
-    userEditModal.isOpen,
-    userDeleteModal.isOpen,
+    userEditModal.isUpdate,
+    userDeleteModal.isDelete,
+    userRegisterModal.isRegister,
   ]);
 
   useEffect(() => {

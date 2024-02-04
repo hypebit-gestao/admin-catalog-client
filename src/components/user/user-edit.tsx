@@ -229,7 +229,6 @@ const UserEdit = ({ isOpen, onClose }: UserEditProps) => {
   };
 
   const onUpdate = async (data: z.infer<typeof formSchema>) => {
-    console.log("Data: ", data);
     try {
       if (data?.image_url) {
         await uploadService
@@ -266,7 +265,7 @@ const UserEdit = ({ isOpen, onClose }: UserEditProps) => {
           session?.user.accessToken
         );
       }
-
+      useEditUserModal.setState({ isUpdate: true });
       toast.success(`${data.name} atualizado com sucesso`);
       userEditModal.onClose();
       router.refresh();
@@ -274,8 +273,6 @@ const UserEdit = ({ isOpen, onClose }: UserEditProps) => {
       toast.error((error as Error).message);
     }
   };
-
-  console.log("filePreview: ", filePreview);
 
   return (
     <Modal

@@ -5,6 +5,7 @@ interface ProductDeleteModalProps {
   onOpen: () => void;
   onClose: () => void;
   itemId: string;
+  isDelete: boolean;
 }
 
 const useProductDeleteModal = create<ProductDeleteModalProps>((set) => ({
@@ -12,6 +13,7 @@ const useProductDeleteModal = create<ProductDeleteModalProps>((set) => ({
   onOpen: () => set({ isOpen: true }),
   onClose: () => set({ isOpen: false }),
   itemId: "",
+  isDelete: false,
 }));
 
 export default useProductDeleteModal;

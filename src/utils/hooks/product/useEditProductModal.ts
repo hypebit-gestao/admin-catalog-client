@@ -5,6 +5,7 @@ interface ProductEditModalProps {
   onOpen: () => void;
   onClose: () => void;
   itemId: string;
+  isUpdate: boolean;
 }
 
 const useEditProductModal = create<ProductEditModalProps>((set) => ({
@@ -12,6 +13,7 @@ const useEditProductModal = create<ProductEditModalProps>((set) => ({
   onOpen: () => set({ isOpen: true }),
   onClose: () => set({ isOpen: false }),
   itemId: "",
+  isUpdate: false,
 }));
 
 export default useEditProductModal;

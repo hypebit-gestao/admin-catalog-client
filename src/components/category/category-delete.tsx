@@ -5,9 +5,7 @@ import Modal from "../modal";
 
 import { useSession } from "next-auth/react";
 
-
 import { useCategoryService } from "@/services/category.service";
-
 
 import { useRouter } from "next/navigation";
 import { MdDelete } from "react-icons/md";
@@ -21,22 +19,19 @@ interface CategoryDeleteProps {
   onClose: () => void;
 }
 
-
-
 const CategoryDelete = ({ isOpen, onClose }: CategoryDeleteProps) => {
   const { data: session } = useSession();
   const router = useRouter();
   const categoryService = useCategoryService();
-  const categoryDelete = useCategoryDeleteModal()
+  const categoryDelete = useCategoryDeleteModal();
   const [category, setCategory] = useState<Category>();
 
   const handleDelete = () => {
     categoryService.DELETE(categoryDelete.itemId, session?.user.accessToken);
     onClose();
     toast.success("Categoria excluída com sucesso");
-  }
+  };
 
- 
   return (
     <Modal
       isOpen={isOpen}
@@ -53,19 +48,26 @@ const CategoryDelete = ({ isOpen, onClose }: CategoryDeleteProps) => {
           <div className="flex flex-col justify-center items-center">
             <MdDelete size={100} color="red" />
             <div className="my-4 text-lg">
-            <p>Deseja mesmo excluir essa categoria?</p>
+              <p>Deseja mesmo excluir essa categoria?</p>
             </div>
             <div className="flex flex-row items-center my-6">
-              <Button size={"lg"} onClick={() => {
-                  handleDelete()
+              <Button
+                size={"lg"}
+                onClick={() => {
+                  handleDelete();
+                  useCategoryDeleteModal.setState({ isDelete: true });
                 }}
-                className="bg-red-600 hover:bg-red-700 mr-5 w-full">
-                    Excluir
+                className="bg-red-600 hover:bg-red-700 mr-5 w-full"
+              >
+                Excluir
               </Button>
-              <Button onClick={() => categoryDelete.onClose()} size={"lg"} variant={'outline'} >
-                  Cancelar
+              <Button
+                onClick={() => categoryDelete.onClose()}
+                size={"lg"}
+                variant={"outline"}
+              >
+                Cancelar
               </Button>
-             
             </div>
           </div>
         </>

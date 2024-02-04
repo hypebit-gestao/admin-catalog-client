@@ -217,6 +217,7 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
         session?.user?.accessToken
       );
 
+      useEditProductModal.setState({ isUpdate: true });
       toast.success(`${data.name} atualizado com sucesso`);
       setLoading(false);
       productEditModal.onClose();

@@ -52,9 +52,9 @@ const Category = () => {
     getCategories();
   }, [
     session?.user?.accessToken,
-    categoryRegisterModal.isOpen,
-    categoryEditModal.isOpen,
-    categoryDeleteModal.isOpen,
+    categoryRegisterModal.isRegister,
+    categoryEditModal.isUpdate,
+    categoryDeleteModal.isDelete,
   ]);
 
   useEffect(() => {

@@ -101,6 +101,7 @@ const CategoryEdit = ({ isOpen, onClose }: CategoryUpdateProps) => {
         session?.user.accessToken
       );
 
+      useCategoryUpdateModal.setState({ isUpdate: true });
       toast.success(`${data.name} criado com sucesso`);
       categoryEditModal.onClose();
       router.refresh();

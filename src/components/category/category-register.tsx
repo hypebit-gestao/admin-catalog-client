@@ -114,6 +114,7 @@ const CategoryRegister = ({ isOpen, onClose }: CategoryRegisterProps) => {
         }
       }
 
+      useCategoryRegisterModal.setState({ isRegister: true });
       toast.success(`${data.name} criado com sucesso`);
       categoryRegisterModal.onClose();
       router.refresh();

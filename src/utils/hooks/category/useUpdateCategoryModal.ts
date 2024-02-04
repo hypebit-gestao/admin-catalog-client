@@ -5,6 +5,7 @@ interface CategoryUpdateModalProps {
   onOpen: () => void;
   onClose: () => void;
   itemId: string;
+  isUpdate: boolean;
 }
 
 const useCategoryUpdateModal = create<CategoryUpdateModalProps>((set) => ({
@@ -12,6 +13,7 @@ const useCategoryUpdateModal = create<CategoryUpdateModalProps>((set) => ({
   onOpen: () => set({ isOpen: true }),
   onClose: () => set({ isOpen: false }),
   itemId: "",
+  isUpdate: false,
 }));
 
 export default useCategoryUpdateModal;

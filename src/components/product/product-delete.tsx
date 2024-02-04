@@ -63,6 +63,7 @@ const ProductDelete = ({ isOpen, onClose }: ProductDeleteProps) => {
                 size={"lg"}
                 onClick={() => {
                   handleDelete();
+                  useProductDeleteModal.setState({ isDelete: true });
                 }}
                 className="bg-red-600 hover:bg-red-700 mr-5 w-full"
               >

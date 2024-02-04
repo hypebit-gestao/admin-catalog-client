@@ -5,6 +5,7 @@ interface UserEditModalProps {
   onOpen: () => void;
   onClose: () => void;
   itemId: string;
+  isUpdate: boolean;
 }
 
 const useEditUserModal = create<UserEditModalProps>((set) => ({
@@ -12,6 +13,7 @@ const useEditUserModal = create<UserEditModalProps>((set) => ({
   onOpen: () => set({ isOpen: true }),
   onClose: () => set({ isOpen: false }),
   itemId: "",
+  isUpdate: false,
 }));
 
 export default useEditUserModal;

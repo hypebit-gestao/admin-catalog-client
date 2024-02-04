@@ -5,9 +5,7 @@ import Modal from "../modal";
 
 import { useSession } from "next-auth/react";
 
-
 import { useCategoryService } from "@/services/category.service";
-
 
 import { useRouter } from "next/navigation";
 import { MdDelete } from "react-icons/md";
@@ -24,23 +22,22 @@ interface UserDeleteProps {
   onClose: () => void;
 }
 
-
 const UserDelete = ({ isOpen, onClose }: UserDeleteProps) => {
   const { data: session } = useSession();
   const router = useRouter();
   const categoryService = useCategoryService();
-  const userService = useUserService()
-  const categoryDelete = useCategoryDeleteModal()
-  const userDelete = useUserDeleteModal()
+  const userService = useUserService();
+  const categoryDelete = useCategoryDeleteModal();
+  const userDelete = useUserDeleteModal();
   const [user, setUser] = useState<User>();
 
   const handleDelete = () => {
     userService.DELETE(userDelete.itemId, session?.user.accessToken);
+
     onClose();
     toast.success("Usuário excluído com sucesso");
-  }
+  };
 
- 
   return (
     <Modal
       isOpen={isOpen}
@@ -57,19 +54,26 @@ const UserDelete = ({ isOpen, onClose }: UserDeleteProps) => {
           <div className="flex flex-col justify-center items-center">
             <MdDelete size={100} color="red" />
             <div className="my-4 text-lg">
-            <p>Deseja mesmo excluir esse usuário?</p>
+              <p>Deseja mesmo excluir esse usuário?</p>
             </div>
             <div className="flex flex-row items-center my-6">
-              <Button size={"lg"} onClick={() => {
-                  handleDelete()
+              <Button
+                size={"lg"}
+                onClick={() => {
+                  handleDelete();
+                  useUserDeleteModal.setState({ isDelete: true });
                 }}
-                className="bg-red-600 hover:bg-red-700 mr-5 w-full">
-                    Excluir
+                className="bg-red-600 hover:bg-red-700 mr-5 w-full"
+              >
+                Excluir
               </Button>
-              <Button onClick={() => userDelete.onClose()} size={"lg"} variant={'outline'} >
-                  Cancelar
+              <Button
+                onClick={() => userDelete.onClose()}
+                size={"lg"}
+                variant={"outline"}
+              >
+                Cancelar
               </Button>
-             
             </div>
           </div>
         </>

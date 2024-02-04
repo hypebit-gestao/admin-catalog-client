@@ -175,6 +175,7 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
         );
       }
 
+      useProductRegisterModal.setState({ isRegister: true });
       toast.success(`${data.name} criado com sucesso`);
       setLoading(false);
       productRegisterModal.onClose();

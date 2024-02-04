@@ -11,6 +11,7 @@ import Auth from "./auth";
 import Sidebar from "@/components/sidebar";
 import "ag-grid-community/styles//ag-grid.css";
 import "ag-grid-community/styles//ag-theme-quartz.css";
+import useUserDeleteModal from "@/utils/hooks/user/useDeleteUserModal";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -24,6 +25,8 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const userDelete = useUserDeleteModal();
+  console.log("tst: ", userDelete.isDelete);
   return (
     <html lang="en">
       <AuthProvider>
