@@ -85,12 +85,15 @@ export const useCategoryService = () => {
     user_id: string | undefined,
     session: string | any
   ): Promise<number | undefined> => {
-    const response = await fetchWrapper<number>(`category/count/${user_id}`, {
-      method: "GET",
-      headers: {
-        Authorization: `${session}`,
-      },
-    });
+    const response = await fetchWrapper<number>(
+      `userCategory/count/${user_id}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `${session}`,
+        },
+      }
+    );
 
     if (!response) {
       console.error("Sem resposta do servidor");
