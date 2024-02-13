@@ -57,7 +57,7 @@ const formSchema = z.object({
   category_id: z.string().min(1, "Categoria do produto é obrigatório"),
   images: z.any(),
   featured: z.boolean(),
-  currency: z.string().min(1, "Moeda do produto é obrigatório"),
+  currency: z.string(),
   price: z.string().min(1, "Preço do produto é obrigatório"),
   user_id: z.string().min(1, "Usuário do produto é obrigatório"),
 });
@@ -336,33 +336,6 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                   </div>
 
                   <div className="flex flex-row mb-5">
-                    <div className="w-full mr-5">
-                      <FormField
-                        control={form.control}
-                        name="currency"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Moeda</FormLabel>
-                            <Select
-                              onValueChange={field.onChange}
-                              defaultValue={field.value}
-                            >
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Selecione a moeda do produto" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent className="z-[300]">
-                                <SelectItem value="brl">BRL</SelectItem>
-                                <SelectItem value="usd">USD</SelectItem>
-                              </SelectContent>
-                            </Select>
-
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
                     <div className="w-full">
                       <FormField
                         control={form.control}
