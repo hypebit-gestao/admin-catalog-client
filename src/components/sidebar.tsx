@@ -8,7 +8,6 @@ import { useSession } from "next-auth/react";
 
 const Sidebar = () => {
   const { data: session, status } = useSession();
-  console.log("session: ", session?.user?.user.user_type);
 
   const isAdmin = session?.user?.user?.user_type === 2;
 
@@ -24,13 +23,13 @@ const Sidebar = () => {
         {!isAdmin && (
           <MenuItem href="/category" label="Categorias" icon={MdCategory} />
         )}
-        {!isAdmin && (
+        {
           <MenuItem
             href="/product"
             label="Produtos"
             icon={MdOutlineProductionQuantityLimits}
           />
-        )}
+        }
       </ul>
     </aside>
   );

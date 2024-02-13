@@ -50,14 +50,10 @@ const Home = () => {
 
       if (response.ok) {
         // Handle success
-        console.log("File uploaded successfully");
       } else {
         // Handle error
-        console.error("File upload failed");
       }
-    } catch (error) {
-      console.error("Error uploading file", error);
-    }
+    } catch (error) {}
   };
 
   const onLogout = () => {
@@ -90,7 +86,6 @@ const Home = () => {
                         type="file"
                         accept="image/*, application/pdf"
                         onChange={(event) => {
-                          console.log("Event: ", event);
                           onChange(event.target.files && event.target.files[0]);
                         }}
                       />

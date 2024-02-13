@@ -22,7 +22,6 @@ const Home = () => {
         session?.user?.user?.id,
         session?.user.accessToken
       );
-      console.log("COUNT: ", productsCount);
       if (productsCount === 0) {
         setLoading(false);
         setCountProducts(0);

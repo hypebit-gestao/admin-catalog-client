@@ -36,9 +36,8 @@ export const useAddressService = () => {
   };
 
   const GETBYID = async (
-    
     id: string | undefined,
-    session: string | any,
+    session: string | any
   ): Promise<Address | undefined> => {
     const response = await fetchWrapper<Address>(`address/${id}`, {
       method: "GET",

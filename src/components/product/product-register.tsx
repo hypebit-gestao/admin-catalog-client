@@ -55,7 +55,7 @@ const formSchema = z.object({
   category_id: z.string().min(1, "Categoria do produto é obrigatório"),
   images: z.any(),
   featured: z.boolean(),
-  currency: z.string().min(1, "Moeda do produto é obrigatório"),
+  currency: z.string(),
   price: z.string().min(1, "Preço do produto é obrigatório"),
   user_id: z.string().min(1, "Usuário do produto é obrigatório"),
 });
@@ -77,7 +77,7 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
-      // description: "",
+      description: "",
       category_id: "",
       images: "",
       currency: "",
@@ -86,6 +86,17 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
       user_id: session?.user?.user?.name,
     },
   });
+
+  const resetForm = () => {
+    form.reset();
+    setFilePreviews([]);
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      resetForm();
+    }
+  }, [isOpen]);
 
   const handleDeleteFile = (index: number) => {
     const newPreviews = [...filePreviews];
@@ -118,10 +129,7 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
     getCategories();
   }, [session?.user?.accessToken]);
 
-  console.log("Categories: ", categories);
-
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
-    console.log("Data: ", data);
     try {
       setLoading(true);
       const uploadedImagesUrls: string[] = []; // Array para armazenar as URLs dos arquivos
@@ -148,7 +156,7 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                     name: data.name,
                     category_id: data.category_id,
                     images: uploadedImagesUrls,
-                    currency: data.currency,
+                    currency: "brl",
                     price: Number(data.price),
                     user_id: session?.user?.user?.id,
                     featured: data.featured,
@@ -165,7 +173,7 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
             name: data.name,
             category_id: data.category_id,
             images: null,
-            currency: data.currency,
+            currency: "brl",
             price: Number(data.price),
             user_id: session?.user?.user?.id,
             featured: data.featured,
@@ -298,7 +306,7 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                 </div>
 
                 <div className="flex flex-col lg:flex-row mb-5">
-                  <div className="w-full mb-5  lg:mb-0 lg:mr-5">
+                  {/* <div className="w-full mb-5  lg:mb-0 lg:mr-5">
                     <FormField
                       control={form.control}
                       name="currency"
@@ -324,7 +332,7 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                         </FormItem>
                       )}
                     />
-                  </div>
+                  </div> */}
                   <div className="w-full">
                     <FormField
                       control={form.control}
@@ -336,6 +344,7 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                           </FormLabel>
                           <FormControl>
                             <Input
+                              type="number"
                               placeholder="Insira o preço do produto"
                               {...field}
                             />

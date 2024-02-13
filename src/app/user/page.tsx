@@ -99,7 +99,6 @@ const User = () => {
         <button
           className="text-blue-500 hover:text-blue-600 transition-all duration-200 mr-4"
           onClick={() => {
-            console.log("Props: ", props.data.id);
             handleEdit(props.data.id);
           }}
         >

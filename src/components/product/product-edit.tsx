@@ -126,7 +126,6 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
       );
 
       if (fetchedProduct) {
-        console.log("Fetched: ", fetchedProduct);
         if (fetchedProduct.id === productEditModal.itemId) {
           setProduct(fetchedProduct as Product);
           setCustomValue("name", fetchedProduct.name);
@@ -171,10 +170,6 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
     getUser();
     getCategories();
   }, [session?.user?.accessToken, productEditModal.itemId]);
-
-  console.log("Cat: ", categories);
-
-  console.log("Product:", product);
 
   const onUpdate = async (data: z.infer<typeof formSchema>) => {
     try {
@@ -224,7 +219,6 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
       router.refresh();
     } catch (error) {
       setLoading(false);
-      console.log("error: ", error);
       toast.error((error as Error).message);
     }
   };
