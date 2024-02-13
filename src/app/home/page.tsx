@@ -22,12 +22,9 @@ const Home = () => {
         session?.user?.user?.id,
         session?.user.accessToken
       );
-      if (productsCount === 0) {
+      if (productsCount) {
         setLoading(false);
-        setCountProducts(0);
-      } else {
-        setLoading(false);
-        setCountProducts(countProducts);
+        setCountProducts(productsCount);
       }
     };
 
@@ -48,6 +45,8 @@ const Home = () => {
     getCountProducts();
     getCountCategories();
   }, [session?.user?.accessToken]);
+
+  console.log("COUNT: ", countProducts);
 
   return (
     <ContentMain title="Home">
