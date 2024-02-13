@@ -13,6 +13,7 @@ declare module "next-auth" {
         updatedAt: Date;
         cpf: string;
         password: string;
+        person_link: string;
         last_name: string;
         user_type: number;
       };

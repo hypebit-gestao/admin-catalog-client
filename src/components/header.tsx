@@ -6,10 +6,13 @@ import { signOut, useSession } from "next-auth/react";
 import { CgLogOut } from "react-icons/cg";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import { CgProfile } from "react-icons/cg";
+import useProfileModal from "@/utils/hooks/user/useProfileModal";
 
 const Header = () => {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const profileModal = useProfileModal();
 
   const onLogout = () => {
     signOut({ redirect: false }).then(() => {
@@ -24,7 +27,12 @@ const Header = () => {
       }`}
     >
       <div>
-        <h1 className="text-white">Catalogo Admin</h1>
+        <h1 className="text-white">Catalogo Place</h1>
+      </div>
+      <div>
+        <h1 className="text-xl text-white text-center">
+          {session?.user?.user?.name}
+        </h1>
       </div>
       <div className="flex items-center">
         <div className="mr-6 flex">
@@ -36,17 +44,16 @@ const Header = () => {
             color="white"
           />
         </div>
-        <div>
-          <h1 className="text-white hidden lg:block">
-            Bem vindo, {session?.user?.user?.name}
-          </h1>
-          {/* <Avatar className="bg-white p-2 w-auto h-auto">
+        <div onClick={() => profileModal.onOpen()} className="cursor-pointer">
+          <Avatar className="bg-white p-2 w-auto h-auto">
             <AvatarImage
               className="w-10 h-10"
               src={session?.user?.user?.image_url}
             />
-            <AvatarFallback>CN</AvatarFallback>
-          </Avatar> */}
+            <AvatarFallback className="w-10 h-10">
+              <CgProfile size={40} color="black" />
+            </AvatarFallback>
+          </Avatar>
         </div>
       </div>
     </header>

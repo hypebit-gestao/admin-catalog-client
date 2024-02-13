@@ -12,6 +12,10 @@ import Sidebar from "@/components/sidebar";
 import "ag-grid-community/styles//ag-grid.css";
 import "ag-grid-community/styles//ag-theme-quartz.css";
 import useUserDeleteModal from "@/utils/hooks/user/useDeleteUserModal";
+import useProfileModal from "@/utils/hooks/user/useProfileModal";
+import UserProfile from "@/components/user/user-profile";
+import UserEdit from "@/components/user/user-edit";
+import useEditUserModal from "@/utils/hooks/user/useEditUserModal";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -26,12 +30,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const userDelete = useUserDeleteModal();
-  console.log("tst: ", userDelete.isDelete);
+  const userEdit = useEditUserModal();
+  const profileModal = useProfileModal();
   return (
     <html lang="en">
       <AuthProvider>
         <body className={inter.className}>
           <ToastProvider />
+          <UserProfile
+            isOpen={profileModal.isOpen}
+            onClose={profileModal.onClose}
+          />
+          <UserEdit isOpen={userEdit.isOpen} onClose={userEdit.onClose} />
           <Header />
           <div className="flex flex-row w-full">
             <Sidebar />
