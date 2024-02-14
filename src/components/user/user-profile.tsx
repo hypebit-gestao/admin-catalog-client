@@ -76,13 +76,13 @@ const UserProfile = ({ isOpen, onClose }: ProfileProps) => {
               </h1>
               <p className="text-center">
                 {" "}
-                https://billing.stripe.com/p/login/00gbL0cXYgxI0AU8ww
+                https://billing.stripe.com/p/login/3cs5mq89Ue4l7AI144
               </p>
               <div className="flex justify-center my-4">
                 <Button
                   onClick={() =>
                     copyToClipboard(
-                      `https://billing.stripe.com/p/login/00gbL0cXYgxI0AU8ww`
+                      `https://billing.stripe.com/p/login/3cs5mq89Ue4l7AI144`
                     )
                   }
                 >
