@@ -17,7 +17,7 @@ const Sidebar = () => {
 
   return (
     <aside
-      className={` p-3 bg-green-primary mt-20  lg:w-52 ${
+      className={`  bg-green-primary mt-20  lg:w-52 ${
         status === "authenticated" ? "block" : "hidden"
       }`}
     >
