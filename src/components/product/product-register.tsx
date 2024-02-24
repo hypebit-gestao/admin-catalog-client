@@ -347,7 +347,7 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                     <div className="w-full mb-5 lg:mb-0 lg:mr-5">
                       <FormField
                         control={form.control}
-                        name="price"
+                        name="promotion_price"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel className="text-blue-primary">
