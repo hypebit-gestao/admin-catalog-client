@@ -45,7 +45,10 @@ const Order = () => {
   useEffect(() => {
     setLoading(true);
     const getOrders = async () => {
-      const fetchedOrder = await orderService.GETALL(session?.user.accessToken);
+      const fetchedOrder = await orderService.GETALL(
+        session?.user.accessToken,
+        session?.user?.user?.id
+      );
       if (fetchedOrder) {
         setLoading(false);
         setRowData(fetchedOrder as Order[]);

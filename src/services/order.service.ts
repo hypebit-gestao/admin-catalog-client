@@ -24,9 +24,10 @@ export const useOrderService = () => {
   };
 
   const GETALL = async (
-    session: string | any
+    session: string | any,
+    userId: string | undefined
   ): Promise<Order[] | undefined> => {
-    const response = await fetchWrapper<Order[]>("order", {
+    const response = await fetchWrapper<Order[]>(`order/user/${userId}`, {
       method: "GET",
       headers: {
         Authorization: `${session}`,
