@@ -10,5 +10,6 @@ export interface Product {
   featured: boolean;
   images?: string[] | null;
   currency: string;
+  promotion_price?: number;
   price: number;
 }

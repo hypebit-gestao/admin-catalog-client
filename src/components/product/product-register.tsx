@@ -56,6 +56,8 @@ const formSchema = z.object({
   images: z.any(),
   featured: z.boolean(),
   currency: z.string(),
+  isPromotion: z.boolean(),
+  promotion_price: z.string(),
   price: z.string().min(1, "Preço do produto é obrigatório"),
   user_id: z.string().min(1, "Usuário do produto é obrigatório"),
 });
@@ -82,7 +84,9 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
       images: "",
       currency: "",
       featured: false,
+      isPromotion: false,
       price: "",
+      promotion_price: "",
       user_id: session?.user?.user?.name,
     },
   });
@@ -158,6 +162,7 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                     images: uploadedImagesUrls,
                     currency: "brl",
                     price: Number(data.price),
+                    promotion_price: Number(data.promotion_price),
                     user_id: session?.user?.user?.id,
                     featured: data.featured,
                     description: data.description,
@@ -175,6 +180,7 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
             images: null,
             currency: "brl",
             price: Number(data.price),
+            promotion_price: Number(data.promotion_price),
             user_id: session?.user?.user?.id,
             featured: data.featured,
             description: data.description,
@@ -193,6 +199,10 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
       toast.error((error as Error).message);
     }
   };
+
+  const { setValue, watch } = form;
+
+  const isPromotion = watch("isPromotion");
 
   return (
     <Modal
@@ -304,35 +314,58 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                     />
                   </div>
                 </div>
-
+                <div className="mb-3">
+                  <h1 className="font-bold">
+                    Seu produto possui preço promocional?
+                  </h1>
+                </div>
+                <div className="mb-5">
+                  <FormField
+                    control={form.control}
+                    name="isPromotion"
+                    render={({ field }) => (
+                      <FormItem>
+                        <div className="flex flex-col">
+                          <FormControl>
+                            <div className="flex flex-row items-center">
+                              <Checkbox
+                                color="blue"
+                                className="w-5 h-5"
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </div>
+                          </FormControl>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
                 <div className="flex flex-col lg:flex-row mb-5">
-                  {/* <div className="w-full mb-5  lg:mb-0 lg:mr-5">
-                    <FormField
-                      control={form.control}
-                      name="currency"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Moeda</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                          >
+                  {isPromotion && (
+                    <div className="w-full mb-5 lg:mb-0 lg:mr-5">
+                      <FormField
+                        control={form.control}
+                        name="price"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-blue-primary">
+                              Preço Promocional
+                            </FormLabel>
                             <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecione a moeda do produto" />
-                              </SelectTrigger>
+                              <Input
+                                type="number"
+                                placeholder="Insira o preço promocional"
+                                {...field}
+                              />
                             </FormControl>
-                            <SelectContent className="z-[300]">
-                              <SelectItem value="brl">BRL</SelectItem>
-                              <SelectItem value="usd">USD</SelectItem>
-                            </SelectContent>
-                          </Select>
-
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div> */}
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  )}
                   <div className="w-full">
                     <FormField
                       control={form.control}
