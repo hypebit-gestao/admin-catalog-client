@@ -59,6 +59,7 @@ const formSchema = z.object({
   featured: z.boolean(),
   currency: z.string(),
   price: z.string().min(1, "Preço do produto é obrigatório"),
+  promotion_price: z.string(),
   user_id: z.string().min(1, "Usuário do produto é obrigatório"),
 });
 
@@ -87,6 +88,7 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
       currency: "",
       featured: false,
       price: "",
+      promotion_price: "",
       user_id: session?.user?.user?.name,
     },
   });
@@ -96,6 +98,8 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
   type FormSchemaType = z.infer<typeof formSchema>;
 
   type FormField = keyof FormSchemaType;
+
+  const isPromotionPrice = watch("promotion_price");
 
   const setCustomValue = (id: FormField, value: any) => {
     setValue(id, value, {
@@ -135,6 +139,7 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
           setCustomValue("currency", fetchedProduct.currency);
           setCustomValue("featured", fetchedProduct.featured);
           setCustomValue("price", fetchedProduct.price);
+          setCustomValue("promotion_price", fetchedProduct.promotion_price);
           setCustomValue("user_id", fetchedProduct.user_id);
 
           if (fetchedProduct.images) {
@@ -206,6 +211,9 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
           images: [...uploadedImagesUrls, ...(product?.images || [])],
           currency: data.currency,
           price: Number(data.price),
+          promotion_price: isPromotionPrice
+            ? Number(data.promotion_price)
+            : null,
           user_id: session?.user?.user?.id,
           featured: data.featured,
         },
@@ -336,6 +344,29 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                   </div>
 
                   <div className="flex flex-row mb-5">
+                    {isPromotionPrice && (
+                      <div className="w-full mb-5 lg:mb-0 lg:mr-5">
+                        <FormField
+                          control={form.control}
+                          name="promotion_price"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-blue-primary">
+                                Preço Promocional
+                              </FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  placeholder="Insira o preço promocional"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    )}
                     <div className="w-full">
                       <FormField
                         control={form.control}
@@ -347,6 +378,7 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                             </FormLabel>
                             <FormControl>
                               <Input
+                                type="number"
                                 placeholder="Insira o preço do produto"
                                 {...field}
                               />
