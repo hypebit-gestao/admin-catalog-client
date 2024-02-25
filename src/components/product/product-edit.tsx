@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import Modal from "../modal";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { set, useForm } from "react-hook-form";
 import * as z from "zod";
 
 import {
@@ -57,6 +57,7 @@ const formSchema = z.object({
   category_id: z.string().min(1, "Categoria do produto é obrigatório"),
   images: z.any(),
   featured: z.boolean(),
+  active: z.boolean(),
   currency: z.string(),
   price: z.string().min(1, "Preço do produto é obrigatório"),
   promotion_price: z.string(),
@@ -87,6 +88,7 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
       images: "",
       currency: "",
       featured: false,
+      active: true,
       price: "",
       promotion_price: "",
       user_id: session?.user?.user?.name,
@@ -138,6 +140,7 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
           setCustomValue("images", fetchedProduct.images);
           setCustomValue("currency", fetchedProduct.currency);
           setCustomValue("featured", fetchedProduct.featured);
+          setCustomValue("active", fetchedProduct.active);
           setCustomValue("price", fetchedProduct.price);
           setCustomValue("promotion_price", fetchedProduct.promotion_price);
           setCustomValue("user_id", fetchedProduct.user_id);
@@ -216,6 +219,7 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
             : null,
           user_id: session?.user?.user?.id,
           featured: data.featured,
+          active: data.active,
         },
         session?.user?.accessToken
       );
@@ -499,29 +503,57 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                     </div>
                   </div>
                   <div>
-                    <FormField
-                      control={form.control}
-                      name="featured"
-                      render={({ field }) => (
-                        <FormItem>
-                          <div className="flex flex-col">
-                            <FormLabel>Status</FormLabel>
-                            <FormControl>
-                              <div className="flex flex-row mt-5 items-center">
-                                <Checkbox
-                                  color="blue"
-                                  className="w-5 h-5"
-                                  checked={field.value}
-                                  onCheckedChange={field.onChange}
-                                />
-                                <div className="ml-2">Produto em destaque</div>
-                              </div>
-                            </FormControl>
-                          </div>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    <FormLabel>Status</FormLabel>
+                    <div>
+                      <FormField
+                        control={form.control}
+                        name="active"
+                        render={({ field }) => (
+                          <FormItem>
+                            <div className="flex flex-col">
+                              <FormControl>
+                                <div className="flex flex-row mt-5 items-center">
+                                  <Checkbox
+                                    color="blue"
+                                    className="w-5 h-5"
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                  />
+                                  <div className="ml-2">Produto ativo</div>
+                                </div>
+                              </FormControl>
+                            </div>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <div>
+                      <FormField
+                        control={form.control}
+                        name="featured"
+                        render={({ field }) => (
+                          <FormItem>
+                            <div className="flex flex-col">
+                              <FormControl>
+                                <div className="flex flex-row mt-5 items-center">
+                                  <Checkbox
+                                    color="blue"
+                                    className="w-5 h-5"
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                  />
+                                  <div className="ml-2">
+                                    Produto em destaque
+                                  </div>
+                                </div>
+                              </FormControl>
+                            </div>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                   </div>
                 </div>
 

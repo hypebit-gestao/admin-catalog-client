@@ -8,6 +8,7 @@ export interface Product {
   category_id: string | undefined;
   user_id: string | undefined;
   featured: boolean;
+  active: boolean;
   images?: string[] | null;
   currency: string;
   promotion_price?: number | null;

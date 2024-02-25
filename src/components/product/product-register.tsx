@@ -55,6 +55,7 @@ const formSchema = z.object({
   category_id: z.string().min(1, "Categoria do produto é obrigatório"),
   images: z.any(),
   featured: z.boolean(),
+  active: z.boolean(),
   currency: z.string(),
   isPromotion: z.boolean(),
   promotion_price: z.string(),
@@ -84,6 +85,7 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
       images: "",
       currency: "",
       featured: false,
+      active: true,
       isPromotion: false,
       price: "",
       promotion_price: "",
@@ -165,6 +167,7 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                     promotion_price: Number(data.promotion_price),
                     user_id: session?.user?.user?.id,
                     featured: data.featured,
+                    active: data.active,
                     description: data.description,
                   },
                   session?.user?.accessToken
@@ -183,6 +186,7 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
             promotion_price: Number(data.promotion_price),
             user_id: session?.user?.user?.id,
             featured: data.featured,
+            active: data.active,
             description: data.description,
           },
           session?.user?.accessToken
@@ -492,29 +496,55 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                   </div>
                 </div>
                 <div>
-                  <FormField
-                    control={form.control}
-                    name="featured"
-                    render={({ field }) => (
-                      <FormItem>
-                        <div className="flex flex-col">
-                          <FormLabel>Status</FormLabel>
-                          <FormControl>
-                            <div className="flex flex-row mt-5 items-center">
-                              <Checkbox
-                                color="blue"
-                                className="w-5 h-5"
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                              />
-                              <div className="ml-2">Produto em destaque</div>
-                            </div>
-                          </FormControl>
-                        </div>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <FormLabel>Status</FormLabel>
+                  <div>
+                    <FormField
+                      control={form.control}
+                      name="active"
+                      render={({ field }) => (
+                        <FormItem>
+                          <div className="flex flex-col">
+                            <FormControl>
+                              <div className="flex flex-row mt-5 items-center">
+                                <Checkbox
+                                  color="blue"
+                                  className="w-5 h-5"
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                />
+                                <div className="ml-2">Produto ativo</div>
+                              </div>
+                            </FormControl>
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <div>
+                    <FormField
+                      control={form.control}
+                      name="featured"
+                      render={({ field }) => (
+                        <FormItem>
+                          <div className="flex flex-col">
+                            <FormControl>
+                              <div className="flex flex-row mt-5 items-center">
+                                <Checkbox
+                                  color="blue"
+                                  className="w-5 h-5"
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                />
+                                <div className="ml-2">Produto em destaque</div>
+                              </div>
+                            </FormControl>
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                 </div>
               </div>
 
