@@ -140,7 +140,7 @@ const Order = () => {
 
   const [colDefs, setColDefs] = useState([
     {
-      field: "user.name",
+      field: "customer_name",
       flex: 1,
       headerName: "Nome do cliente",
       filter: true,
@@ -156,6 +156,11 @@ const Order = () => {
       valueFormatter: (params: any) => formatterStatus(params.value),
       flex: 1,
       headerName: "Status do pedido",
+    },
+    {
+      field: "observation",
+      flex: 1,
+      headerName: "Observação",
     },
     {
       field: "actions",
