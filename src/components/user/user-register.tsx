@@ -42,7 +42,6 @@ const formSchema = z.object({
   cpf_cnpj: z.string().min(1, "O campo CPF/CNPJ é obrigatório"),
   email: z.string().email("E-mail inválido"),
   phone: z.string().min(8, "Telefone inválido"),
-  username: z.string().min(1, "O campo Nome de usuário é obrigatório"),
   password: z.string().min(1, "O campo Senha é obrigatório"),
   person_link: z.string().min(1, "O campo Link personalizado é obrigatório"),
   image_url: z.any(),
@@ -81,7 +80,6 @@ const UserRegister = ({ isOpen, onClose }: UserRegisterProps) => {
       cpf_cnpj: "",
       email: "",
       phone: "",
-      username: "",
       person_link: "",
       password: "",
       image_url: "",
@@ -195,7 +193,6 @@ const UserRegister = ({ isOpen, onClose }: UserRegisterProps) => {
                     cpf_cnpj: removeFormatting(data.cpf_cnpj),
                     email: data.email,
                     phone: removeFormatting(data.phone),
-                    username: data.username,
                     password: data.password,
                     person_link: data.person_link,
                     payer_id: 0,
@@ -215,7 +212,6 @@ const UserRegister = ({ isOpen, onClose }: UserRegisterProps) => {
               cpf_cnpj: removeFormatting(data.cpf_cnpj),
               email: data.email,
               phone: removeFormatting(data.phone),
-              username: data.username,
               password: data.password,
               person_link: data.person_link,
               payer_id: 0,
@@ -352,26 +348,6 @@ const UserRegister = ({ isOpen, onClose }: UserRegisterProps) => {
                 </div>
 
                 <div className="flex flex-row ">
-                  <div className="w-full mr-5">
-                    <FormField
-                      control={form.control}
-                      name="username"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-blue-primary">
-                            Nome de usuário
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="Insira o nome de usuário"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
                   <div className="w-full">
                     <FormField
                       control={form.control}
