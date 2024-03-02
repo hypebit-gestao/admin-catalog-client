@@ -45,7 +45,6 @@ const formSchema = z.object({
   cpf_cnpj: z.string().min(1, "O campo CPF/CNPJ é obrigatório"),
   email: z.string().email("E-mail inválido"),
   phone: z.string().min(8, "Telefone inválido"),
-  username: z.string().min(1, "O campo Nome de usuário é obrigatório"),
   // password: z.string().min(1, "O campo Senha é obrigatório"),
   person_link: z.string().min(1, "O campo Link personalizado é obrigatório"),
   image_url: z.any(),
@@ -88,7 +87,6 @@ const UserEdit = ({ isOpen, onClose }: UserEditProps) => {
       cpf_cnpj: "",
       email: "",
       phone: "",
-      username: "",
       person_link: "",
       // password: "",
       image_url: "",
@@ -171,7 +169,6 @@ const UserEdit = ({ isOpen, onClose }: UserEditProps) => {
           setCustomValue("name", fetchedUser.name);
           setCustomValue("cpf_cnpj", fetchedUser.cpf_cnpj);
           setCustomValue("email", fetchedUser.email);
-          setCustomValue("username", fetchedUser.username);
           setCustomValue("person_link", fetchedUser.person_link);
           setCustomValue("phone", fetchedUser.phone);
           setCustomValue("image_url", fetchedUser.image_url);
@@ -383,29 +380,6 @@ const UserEdit = ({ isOpen, onClose }: UserEditProps) => {
                                 onChange={(e) => {
                                   field.onChange(e.target.value);
                                 }}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex flex-row ">
-                    <div className="">
-                      <FormField
-                        control={form.control}
-                        name="username"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-blue-primary">
-                              Nome de usuário
-                            </FormLabel>
-                            <FormControl>
-                              <Input
-                                placeholder="Insira o nome de usuário"
-                                {...field}
                               />
                             </FormControl>
                             <FormMessage />

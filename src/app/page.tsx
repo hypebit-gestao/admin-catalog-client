@@ -20,7 +20,7 @@ import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
-  username: z.string().min(1),
+  email: z.string().email().min(1),
   password: z.string().min(4),
 });
 
@@ -30,7 +30,7 @@ export default function Home() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      username: "",
+      email: "",
       password: "",
     },
   });
@@ -63,13 +63,13 @@ export default function Home() {
             >
               <FormField
                 control={form.control}
-                name="username"
+                name="email"
                 render={({ field }) => (
                   <>
                     <FormItem>
-                      <FormLabel>Nome de usuário</FormLabel>
+                      <FormLabel>E-mail</FormLabel>
                       <FormControl>
-                        <Input placeholder="Insira o username" {...field} />
+                        <Input placeholder="Insira o e-mail" {...field} />
                       </FormControl>
 
                       <FormMessage />

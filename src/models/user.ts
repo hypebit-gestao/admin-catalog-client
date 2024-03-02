@@ -4,7 +4,6 @@ export interface User {
   cpf_cnpj: string;
   user_type: number;
   email: string;
-  username: string;
   person_link: string;
   password?: string;
   payer_id: number;

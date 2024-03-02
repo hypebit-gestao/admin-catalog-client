@@ -30,7 +30,6 @@ const formSchema = z.object({
   name: z.string().min(1, "O campo Nome é obrigatório"),
   cpf_cnpj: z.string().min(1, "O campo CPF/CNPJ é obrigatório"),
   email: z.string().email("E-mail inválido"),
-  username: z.string().min(1, "O campo Nome de usuário é obrigatório"),
   password: z.string().min(1, "O campo Senha é obrigatório"),
   address_id: z.string().min(1, "O campo Endereço é obrigatório"),
   phone: z.string().min(1, "O campo Telefone é obrigatório"),
