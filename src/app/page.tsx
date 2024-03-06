@@ -18,6 +18,8 @@ import { Input } from "@/components/ui/input";
 import { signIn } from "next-auth/react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import Loader from "@/components/loader";
 
 const formSchema = z.object({
   email: z.string().email().min(1),
@@ -26,6 +28,7 @@ const formSchema = z.object({
 
 export default function Home() {
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -36,14 +39,17 @@ export default function Home() {
   });
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
+    setLoading(true);
     signIn("credentials", {
       ...values,
       redirect: false,
     }).then((callback: any) => {
       if (callback.ok) {
+        setLoading(false);
         router.push("/home");
         toast.success("Logado com sucesso");
       } else {
+        setLoading(false);
         toast.error(callback.error);
       }
     });
@@ -103,7 +109,7 @@ export default function Home() {
                   size={"lg"}
                   type="submit"
                 >
-                  Entrar
+                  {loading ? <Loader /> : "Entrar"}
                 </Button>
               </div>
             </form>
