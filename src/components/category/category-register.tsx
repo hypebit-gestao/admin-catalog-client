@@ -31,6 +31,7 @@ import Image from "next/image";
 import { Textarea } from "../ui/textarea";
 import { useUploadService } from "@/services/upload.service";
 import { ReturnUpload } from "@/models/upload";
+import Loader from "../loader";
 
 interface CategoryRegisterProps {
   isOpen: boolean;
@@ -47,6 +48,7 @@ const CategoryRegister = ({ isOpen, onClose }: CategoryRegisterProps) => {
   const { data: session } = useSession();
   const router = useRouter();
   const inputFileRef = useRef<any>(null);
+  const [loading, setLoading] = useState(false);
   const [filePreview, setFilePreview] = useState<any>(null);
 
   const categoryService = useCategoryService();
@@ -63,6 +65,7 @@ const CategoryRegister = ({ isOpen, onClose }: CategoryRegisterProps) => {
   });
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    setLoading(true);
     try {
       if (data.image_url) {
         await uploadService
@@ -116,9 +119,11 @@ const CategoryRegister = ({ isOpen, onClose }: CategoryRegisterProps) => {
 
       useCategoryRegisterModal.setState({ isRegister: true });
       toast.success(`${data.name} criado com sucesso`);
+      setLoading(false);
       categoryRegisterModal.onClose();
       router.refresh();
     } catch (error) {
+      setLoading(false);
       toast.error((error as Error).message);
     }
   };
@@ -283,7 +288,7 @@ const CategoryRegister = ({ isOpen, onClose }: CategoryRegisterProps) => {
 
               <div className="mt-12">
                 <Button size="lg" className="w-full" type="submit">
-                  Cadastrar
+                  {loading ? <Loader /> : "Cadastrar"}
                 </Button>
               </div>
             </form>
