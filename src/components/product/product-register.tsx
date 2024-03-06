@@ -136,8 +136,9 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
   }, [session?.user?.accessToken]);
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    if (loading) return;
+    setLoading(true);
     try {
-      setLoading(true);
       const uploadedImagesUrls: string[] = []; // Array para armazenar as URLs dos arquivos
 
       if (data.images.length > 0) {
@@ -549,7 +550,11 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
               </div>
 
               <div className="mt-12">
-                <Button size="lg" className="w-full" type="submit">
+                <Button
+                  size="lg"
+                  className={`w-full ${loading && "cursor-not-allowed"}`}
+                  type="submit"
+                >
                   {loading ? <Loader /> : "Cadastrar"}
                 </Button>
               </div>
