@@ -41,7 +41,9 @@ interface CategoryRegisterProps {
 const formSchema = z.object({
   name: z.string().min(1, "Nome da categoria é obrigatório"),
   description: z.string().min(1, "Descrição da categoria é obrigatório"),
-  image_url: z.any(),
+  image_url: z
+    .any()
+    .refine((value) => value !== "", "Imagem da categoria é obrigatória"),
 });
 
 const CategoryRegister = ({ isOpen, onClose }: CategoryRegisterProps) => {
@@ -65,6 +67,7 @@ const CategoryRegister = ({ isOpen, onClose }: CategoryRegisterProps) => {
   });
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    if (loading) return;
     setLoading(true);
     try {
       if (data.image_url) {
@@ -149,6 +152,16 @@ const CategoryRegister = ({ isOpen, onClose }: CategoryRegisterProps) => {
     setCustomValue("image_url", "");
     setFilePreview(null);
   };
+
+  const resetForm = () => {
+    form.reset();
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      resetForm();
+    }
+  }, [isOpen]);
 
   return (
     <Modal
@@ -287,7 +300,11 @@ const CategoryRegister = ({ isOpen, onClose }: CategoryRegisterProps) => {
               </div>
 
               <div className="mt-12">
-                <Button size="lg" className="w-full" type="submit">
+                <Button
+                  size="lg"
+                  className={`w-full ${loading && "cursor-not-allowed"}`}
+                  type="submit"
+                >
                   {loading ? <Loader /> : "Cadastrar"}
                 </Button>
               </div>
