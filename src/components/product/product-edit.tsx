@@ -60,6 +60,7 @@ const formSchema = z.object({
   active: z.boolean(),
   currency: z.string(),
   price: z.string().min(1, "Preço do produto é obrigatório"),
+  isPromotion: z.boolean(),
   promotion_price: z.string(),
   user_id: z.string().min(1, "Usuário do produto é obrigatório"),
 });
@@ -90,6 +91,7 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
       featured: false,
       active: true,
       price: "",
+      isPromotion: false,
       promotion_price: "",
       user_id: session?.user?.user?.name,
     },
@@ -101,7 +103,7 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
 
   type FormField = keyof FormSchemaType;
 
-  const isPromotionPrice = watch("promotion_price");
+  const isPromotion = watch("isPromotion");
 
   const setCustomValue = (id: FormField, value: any) => {
     setValue(id, value, {
@@ -143,6 +145,10 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
           setCustomValue("active", fetchedProduct.active);
           setCustomValue("price", fetchedProduct.price);
           setCustomValue("promotion_price", fetchedProduct.promotion_price);
+          setCustomValue(
+            "isPromotion",
+            Number(fetchedProduct.promotion_price) > 0
+          );
           setCustomValue("user_id", fetchedProduct.user_id);
 
           if (fetchedProduct.images) {
@@ -180,8 +186,10 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
   }, [session?.user?.accessToken, productEditModal.itemId]);
 
   const onUpdate = async (data: z.infer<typeof formSchema>) => {
+    if (loading) return;
+    setLoading(true);
+
     try {
-      setLoading(true);
       const uploadedImagesUrls: string[] = [];
 
       // Verifique se data.images não é null ou undefined antes de iterar
@@ -214,7 +222,7 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
           images: [...uploadedImagesUrls, ...(product?.images || [])],
           currency: data.currency,
           price: Number(data.price),
-          promotion_price: isPromotionPrice
+          promotion_price: data.isPromotion
             ? Number(data.promotion_price)
             : null,
           user_id: session?.user?.user?.id,
@@ -234,6 +242,15 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
       toast.error((error as Error).message);
     }
   };
+
+  //   useEffect(() => {
+  //   if (category?.image_url === "") {
+  //     setFilePreview(null);
+  //   }
+  //   if (category?.image_url !== "") {
+  //     setFilePreview(category?.image_url);
+  //   }
+  // }, [category]);
 
   return (
     <Modal
@@ -347,8 +364,38 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                     </div>
                   </div>
 
+                  <div className="mb-3">
+                    <h1 className="font-bold">
+                      Deseja adicionar preço promocional no produto?
+                    </h1>
+                  </div>
+
+                  <div className="mb-5">
+                    <FormField
+                      control={form.control}
+                      name="isPromotion"
+                      render={({ field }) => (
+                        <FormItem>
+                          <div className="flex flex-col">
+                            <FormControl>
+                              <div className="flex flex-row items-center">
+                                <Checkbox
+                                  color="blue"
+                                  className="w-5 h-5"
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                />
+                              </div>
+                            </FormControl>
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
                   <div className="flex flex-row mb-5">
-                    {isPromotionPrice && (
+                    {isPromotion && (
                       <div className="w-full mb-5 lg:mb-0 lg:mr-5">
                         <FormField
                           control={form.control}
@@ -558,7 +605,11 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                 </div>
 
                 <div className="mt-12">
-                  <Button size="lg" className="w-full" type="submit">
+                  <Button
+                    size="lg"
+                    className={`w-full ${loading && "cursor-not-allowed"}`}
+                    type="submit"
+                  >
                     {loading ? <Loader /> : "Atualizar"}
                   </Button>
                 </div>
