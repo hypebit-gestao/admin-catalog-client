@@ -49,19 +49,28 @@ interface ProductRegisterProps {
   onClose: () => void;
 }
 
-const formSchema = z.object({
-  name: z.string().min(1, "Nome do produto é obrigatório"),
-  description: z.string().min(1, "Descrição do produto é obrigatório"),
-  category_id: z.string().min(1, "Categoria do produto é obrigatório"),
-  images: z.any(),
-  featured: z.boolean(),
-  active: z.boolean(),
-  currency: z.string(),
-  isPromotion: z.boolean(),
-  promotion_price: z.string(),
-  price: z.string().min(1, "Preço do produto é obrigatório"),
-  user_id: z.string().min(1, "Usuário do produto é obrigatório"),
-});
+const formSchema = z
+  .object({
+    name: z.string().min(1, "Nome do produto é obrigatório"),
+    description: z.string().min(1, "Descrição do produto é obrigatório"),
+    category_id: z.string().nullable(),
+    images: z.any(),
+    featured: z.boolean(),
+    active: z.boolean(),
+    currency: z.string(),
+    isPromotion: z.boolean(),
+    promotion_price: z.string(),
+    price: z.string().min(1, "Preço do produto é obrigatório"),
+    user_name: z.string(),
+  })
+  .refine((data) => Number(data.promotion_price) <= Number(data.price), {
+    message: "O preço promocional não pode ser maior que o preço normal",
+    path: ["promotion_price"],
+  })
+  .refine((data) => Number(data.price) >= Number(data.promotion_price), {
+    message: "O preço normal não pode ser menor que o preço promocional",
+    path: ["price"],
+  });
 
 const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
   const { data: session } = useSession();
@@ -89,7 +98,7 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
       isPromotion: false,
       price: "",
       promotion_price: "",
-      user_id: session?.user?.user?.name,
+      user_name: session?.user?.user?.name,
     },
   });
 
@@ -134,7 +143,10 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
     getCategories();
   }, [session?.user?.accessToken]);
 
+  console.log("Session: ", session?.user?.user?.id);
+
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    console.log("Data: ", data);
     if (loading) return;
     setLoading(true);
 
@@ -161,7 +173,8 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                 .POST(
                   {
                     name: data.name,
-                    category_id: data.category_id,
+                    category_id:
+                      data.category_id !== "" ? data.category_id : null,
                     images: uploadedImagesUrls,
                     currency: "brl",
                     price: Number(data.price),
@@ -173,7 +186,7 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                   },
                   session?.user?.accessToken
                 )
-                .then(() => {
+                .then((res) => {
                   useProductRegisterModal.setState({ isRegister: true });
                   toast.success(`${data.name} criado com sucesso`);
                   setLoading(false);
@@ -192,7 +205,7 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
         .POST(
           {
             name: data.name,
-            category_id: data.category_id,
+            category_id: data.category_id !== "" ? data.category_id : null,
             images: null,
             currency: "brl",
             price: Number(data.price),
@@ -204,7 +217,7 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
           },
           session?.user?.accessToken
         )
-        .then(() => {
+        .then((res) => {
           useProductRegisterModal.setState({ isRegister: true });
           toast.success(`${data.name} criado com sucesso`);
           setLoading(false);
@@ -273,8 +286,14 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                         <FormItem>
                           <FormLabel>Categoria</FormLabel>
                           <Select
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
+                            onValueChange={(value) => {
+                              if (value === "null") {
+                                field.onChange(null);
+                              } else {
+                                field.onChange(value);
+                              }
+                            }}
+                            defaultValue={"null"}
                           >
                             <FormControl>
                               <SelectTrigger>
@@ -282,6 +301,10 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent className="z-[300]">
+                              <SelectItem value={"null"}>
+                                Sem categoria
+                              </SelectItem>
+
                               {categories.map((category, index) => (
                                 <SelectItem
                                   key={index}
@@ -292,7 +315,6 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                               ))}
                             </SelectContent>
                           </Select>
-
                           <FormMessage />
                         </FormItem>
                       )}
@@ -301,7 +323,7 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                   <div className="w-full">
                     <FormField
                       control={form.control}
-                      name="user_id"
+                      name="user_name"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Usuário</FormLabel>

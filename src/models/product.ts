@@ -5,7 +5,7 @@ export interface Product {
   category?: {
     name: string;
   };
-  category_id: string | undefined;
+  category_id: string | null;
   user_id: string | undefined;
   featured: boolean;
   active: boolean;
