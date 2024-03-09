@@ -51,19 +51,28 @@ interface ProductRegisterProps {
   onClose: () => void;
 }
 
-const formSchema = z.object({
-  name: z.string().min(1, "Nome do produto é obrigatório"),
-  description: z.string().min(1, "Descrição do produto é obrigatório"),
-  category_id: z.string().min(1, "Categoria do produto é obrigatório"),
-  images: z.any(),
-  featured: z.boolean(),
-  active: z.boolean(),
-  currency: z.string(),
-  price: z.string().min(1, "Preço do produto é obrigatório"),
-  isPromotion: z.boolean(),
-  promotion_price: z.string(),
-  user_id: z.string().min(1, "Usuário do produto é obrigatório"),
-});
+const formSchema = z
+  .object({
+    name: z.string(),
+    description: z.string(),
+    category_id: z.string().nullable(),
+    images: z.any(),
+    featured: z.boolean(),
+    active: z.boolean(),
+    currency: z.string(),
+    price: z.string(),
+    isPromotion: z.boolean(),
+    promotion_price: z.string(),
+    user_id: z.string(),
+  })
+  .refine((data) => Number(data.promotion_price) <= Number(data.price), {
+    message: "O preço promocional não pode ser maior que o preço normal",
+    path: ["promotion_price"],
+  })
+  .refine((data) => Number(data.price) >= Number(data.promotion_price), {
+    message: "O preço normal não pode ser menor que o preço promocional",
+    path: ["price"],
+  });
 
 const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
   const { data: session } = useSession();
@@ -79,6 +88,8 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
   const router = useRouter();
   const [filePreviews, setFilePreviews] = useState<any[]>([]);
   const productEditModal = useEditProductModal();
+
+  console.log("Loading: ", loading);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -217,7 +228,7 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
           id: product?.id,
           name: data.name,
           description: data.description,
-          category_id: data.category_id,
+          category_id: data.category_id !== "" ? data.category_id : null,
           images: [...uploadedImagesUrls, ...(product?.images || [])],
           currency: data.currency,
           price: Number(data.price),
@@ -230,10 +241,10 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
         },
         session?.user?.accessToken
       );
-
+      setLoading(false);
       useEditProductModal.setState({ isUpdate: true });
       toast.success(`${data.name} atualizado com sucesso`);
-      setLoading(false);
+
       productEditModal.onClose();
       router.refresh();
     } catch (error) {
@@ -303,8 +314,18 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                           <FormItem>
                             <FormLabel>Categoria</FormLabel>
                             <Select
-                              onValueChange={field.onChange}
-                              defaultValue={field.value}
+                              onValueChange={(value) => {
+                                if (value === "null") {
+                                  field.onChange(null);
+                                } else {
+                                  field.onChange(value);
+                                }
+                              }}
+                              defaultValue={
+                                field.value === null
+                                  ? "null"
+                                  : (field.value as any)
+                              }
                             >
                               <FormControl>
                                 <SelectTrigger>
@@ -312,6 +333,10 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent className="z-[300]">
+                                <SelectItem value={"null"}>
+                                  Sem categoria
+                                </SelectItem>
+
                                 {categories.map((category, index) => (
                                   <SelectItem
                                     key={index}
@@ -322,7 +347,6 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                                 ))}
                               </SelectContent>
                             </Select>
-
                             <FormMessage />
                           </FormItem>
                         )}

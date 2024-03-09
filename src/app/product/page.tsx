@@ -167,7 +167,9 @@ const Product = () => {
                           </div>
                         </div>
                         <div className="rounded-xl bg-green-primary text-white p-2">
-                          {product.category?.name}
+                          {product?.category_id === null
+                            ? "Sem categoria"
+                            : product.category?.name}
                         </div>
                       </div>
                     </div>
