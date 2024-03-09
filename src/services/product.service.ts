@@ -6,7 +6,7 @@ export const useProductService = () => {
     data: Product,
     session: string | any
   ): Promise<Product | undefined> => {
-    const response = await fetchWrapper<Product>(`product`, {
+    const response: any = await fetchWrapper<Product>(`product`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -15,10 +15,9 @@ export const useProductService = () => {
       body: JSON.stringify(data),
     });
 
-    if (!response) {
-      console.error("Sem resposta do servidor");
+    if (response.error) {
+      throw new Error(response.message);
     }
-
     return response;
   };
 

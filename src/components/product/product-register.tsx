@@ -123,8 +123,7 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
 
     const getCategories = async () => {
       const fetchedCategories = await categoryService.GETALL(
-        session?.user.accessToken,
-        session?.user?.user?.id
+        session?.user.accessToken
       );
       if (fetchedCategories) {
         setCategories(fetchedCategories);
@@ -138,27 +137,28 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     if (loading) return;
     setLoading(true);
-    try {
-      const uploadedImagesUrls: string[] = []; // Array para armazenar as URLs dos arquivos
 
-      if (data.images.length > 0) {
-        for (let i = 0; i < data.images.length; i++) {
-          const file = data.images[i];
+    const uploadedImagesUrls: string[] = []; // Array para armazenar as URLs dos arquivos
 
-          await uploadService
-            .POST({
-              file,
-              folderName: session?.user?.user?.name,
-            })
-            .then(async (res: any) => {
-              res?.map((item: any) => {
-                if (item?.imageUrl) {
-                  uploadedImagesUrls.push(item.imageUrl);
-                }
-              });
+    if (data.images.length > 0) {
+      for (let i = 0; i < data.images.length; i++) {
+        const file = data.images[i];
 
-              if (i === data.images.length - 1) {
-                await productService.POST(
+        await uploadService
+          .POST({
+            file,
+            folderName: session?.user?.user?.name,
+          })
+          .then(async (res: any) => {
+            res?.map((item: any) => {
+              if (item?.imageUrl) {
+                uploadedImagesUrls.push(item.imageUrl);
+              }
+            });
+
+            if (i === data.images.length - 1) {
+              await productService
+                .POST(
                   {
                     name: data.name,
                     category_id: data.category_id,
@@ -172,12 +172,24 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                     description: data.description,
                   },
                   session?.user?.accessToken
-                );
-              }
-            });
-        }
-      } else {
-        await productService.POST(
+                )
+                .then(() => {
+                  useProductRegisterModal.setState({ isRegister: true });
+                  toast.success(`${data.name} criado com sucesso`);
+                  setLoading(false);
+                  productRegisterModal.onClose();
+                  router.refresh();
+                })
+                .catch((err) => {
+                  setLoading(false);
+                  toast.error(err.message);
+                });
+            }
+          });
+      }
+    } else {
+      await productService
+        .POST(
           {
             name: data.name,
             category_id: data.category_id,
@@ -191,17 +203,18 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
             description: data.description,
           },
           session?.user?.accessToken
-        );
-      }
-
-      useProductRegisterModal.setState({ isRegister: true });
-      toast.success(`${data.name} criado com sucesso`);
-      setLoading(false);
-      productRegisterModal.onClose();
-      router.refresh();
-    } catch (error) {
-      setLoading(false);
-      toast.error((error as Error).message);
+        )
+        .then(() => {
+          useProductRegisterModal.setState({ isRegister: true });
+          toast.success(`${data.name} criado com sucesso`);
+          setLoading(false);
+          productRegisterModal.onClose();
+          router.refresh();
+        })
+        .catch((err) => {
+          setLoading(false);
+          toast.error(err.message);
+        });
     }
   };
 
@@ -272,9 +285,9 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                               {categories.map((category, index) => (
                                 <SelectItem
                                   key={index}
-                                  value={category.category?.id as string}
+                                  value={category?.id as string}
                                 >
-                                  {category.category?.name}
+                                  {category?.name}
                                 </SelectItem>
                               ))}
                             </SelectContent>

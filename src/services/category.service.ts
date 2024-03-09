@@ -1,3 +1,4 @@
+import { NextResponse } from "next/server";
 import { fetchWrapper } from "../utils/functions/fetch";
 import { Category } from "@/models/category";
 
@@ -6,7 +7,7 @@ export const useCategoryService = () => {
     data: Category,
     session: string | any
   ): Promise<Category | undefined> => {
-    const response = await fetchWrapper<Category>(`category`, {
+    const response: any = await fetchWrapper<Category>(`category`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -14,52 +15,25 @@ export const useCategoryService = () => {
       },
       body: JSON.stringify(data),
     });
-
-    if (!response) {
-      console.error("Sem resposta do servidor");
+    if (response.error) {
+      throw new Error(response.message);
     }
-
-    return response;
-  };
-
-  const POSTUSERCATEGORY = async (
-    data: Category,
-    session: string | any
-  ): Promise<Category | undefined> => {
-    const response = await fetchWrapper<Category>(`userCategory`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `${session}`,
-      },
-      body: JSON.stringify(data),
-    });
-
-    if (!response) {
-      console.error("Sem resposta do servidor");
-    }
-
     return response;
   };
 
   const GETALL = async (
-    session: string | any,
-    userId: string | undefined
+    session: string | any
   ): Promise<Category[] | undefined> => {
-    const response = await fetchWrapper<Category[]>(
-      `userCategory/user/${userId}`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `${session}`,
-        },
-      }
-    );
+    const response: any = await fetchWrapper<Category[]>(`category`, {
+      method: "GET",
+      headers: {
+        Authorization: `${session}`,
+      },
+    });
 
-    if (!response) {
-      console.error("Sem resposta do servidor");
+    if (response.error) {
+      throw new Error(response.message);
     }
-
     return response;
   };
 
@@ -82,18 +56,14 @@ export const useCategoryService = () => {
   };
 
   const COUNTCATEGORIES = async (
-    user_id: string | undefined,
     session: string | any
   ): Promise<number | undefined> => {
-    const response = await fetchWrapper<number>(
-      `userCategory/count/${user_id}`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `${session}`,
-        },
-      }
-    );
+    const response = await fetchWrapper<number>(`category/count`, {
+      method: "GET",
+      headers: {
+        Authorization: `${session}`,
+      },
+    });
 
     if (!response) {
       console.error("Sem resposta do servidor");
@@ -142,7 +112,7 @@ export const useCategoryService = () => {
 
   return {
     POST,
-    POSTUSERCATEGORY,
+
     GETALL,
     GETBYID,
     COUNTCATEGORIES,

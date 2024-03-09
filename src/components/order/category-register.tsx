@@ -72,7 +72,7 @@ const CategoryRegister = ({ isOpen, onClose }: CategoryRegisterProps) => {
           })
           .then(async (res: ReturnUpload | undefined) => {
             if (Array.isArray(res) && res.length > 0 && res[0].imageUrl) {
-              const categoryResponse = await categoryService.POST(
+              await categoryService.POST(
                 {
                   name: data.name,
                   description: data.description,
@@ -81,20 +81,10 @@ const CategoryRegister = ({ isOpen, onClose }: CategoryRegisterProps) => {
                 },
                 session?.user?.accessToken
               );
-
-              if (categoryResponse) {
-                await categoryService.POSTUSERCATEGORY(
-                  {
-                    user_id: session?.user?.user?.id,
-                    category_id: categoryResponse.id,
-                  },
-                  session?.user?.accessToken
-                );
-              }
             }
           });
       } else {
-        const categoryResponse = await categoryService.POST(
+        await categoryService.POST(
           {
             name: data.name,
             description: data.description,
@@ -102,16 +92,6 @@ const CategoryRegister = ({ isOpen, onClose }: CategoryRegisterProps) => {
           },
           session?.user?.accessToken
         );
-
-        if (categoryResponse) {
-          await categoryService.POSTUSERCATEGORY(
-            {
-              user_id: session?.user?.user?.id,
-              category_id: categoryResponse.id,
-            },
-            session?.user?.accessToken
-          );
-        }
       }
 
       useCategoryRegisterModal.setState({ isRegister: true });
