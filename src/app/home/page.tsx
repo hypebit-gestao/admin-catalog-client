@@ -68,7 +68,7 @@ const Home = () => {
           ) : (
             <>
               <h1 className="text-white text-xl">Categorias </h1>
-              <h3 className="text-white text-2xl mt-5">{countCategories}</h3>
+              <h3 className="text-white text-2xl mt-5">0</h3>
             </>
           )}
         </div>
