@@ -69,16 +69,17 @@ const CategoryRegister = ({ isOpen, onClose }: CategoryRegisterProps) => {
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     if (loading) return;
     setLoading(true);
-    try {
-      if (data.image_url) {
-        await uploadService
-          .POST({
-            file: data.image_url,
-            folderName: data.name,
-          })
-          .then(async (res: ReturnUpload | undefined) => {
-            if (Array.isArray(res) && res.length > 0 && res[0].imageUrl) {
-              const categoryResponse = await categoryService.POST(
+
+    if (data.image_url) {
+      await uploadService
+        .POST({
+          file: data.image_url,
+          folderName: data.name,
+        })
+        .then(async (res: ReturnUpload | undefined) => {
+          if (Array.isArray(res) && res.length > 0 && res[0].imageUrl) {
+            await categoryService
+              .POST(
                 {
                   name: data.name,
                   description: data.description,
@@ -86,48 +87,41 @@ const CategoryRegister = ({ isOpen, onClose }: CategoryRegisterProps) => {
                   image_url: res[0].imageUrl,
                 },
                 session?.user?.accessToken
-              );
-
-              if (categoryResponse) {
-                await categoryService.POSTUSERCATEGORY(
-                  {
-                    user_id: session?.user?.user?.id,
-                    category_id: categoryResponse.id,
-                  },
-                  session?.user?.accessToken
-                );
-              }
-            }
-          });
-      } else {
-        const categoryResponse = await categoryService.POST(
+              )
+              .then((res) => {
+                useCategoryRegisterModal.setState({ isRegister: true });
+                toast.success(`${data.name} criado com sucesso`);
+                setLoading(false);
+                categoryRegisterModal.onClose();
+                router.refresh();
+              })
+              .catch((err) => {
+                setLoading(false);
+                toast.error(err.message);
+              });
+          }
+        });
+    } else {
+      await categoryService
+        .POST(
           {
             name: data.name,
             description: data.description,
             user_id: session?.user?.user?.id,
           },
           session?.user?.accessToken
-        );
-
-        if (categoryResponse) {
-          await categoryService.POSTUSERCATEGORY(
-            {
-              user_id: session?.user?.user?.id,
-              category_id: categoryResponse.id,
-            },
-            session?.user?.accessToken
-          );
-        }
-      }
-
-      useCategoryRegisterModal.setState({ isRegister: true });
-      toast.success(`${data.name} criado com sucesso`);
-      setLoading(false);
-      categoryRegisterModal.onClose();
-      router.refresh();
-    } catch (error) {
-      setLoading(false);
-      toast.error((error as Error).message);
+        )
+        .then((res) => {
+          useCategoryRegisterModal.setState({ isRegister: true });
+          toast.success(`${data.name} criado com sucesso`);
+          setLoading(false);
+          categoryRegisterModal.onClose();
+          router.refresh();
+        })
+        .catch((err) => {
+          setLoading(false);
+          toast.error(err.message);
+        });
     }
   };
 

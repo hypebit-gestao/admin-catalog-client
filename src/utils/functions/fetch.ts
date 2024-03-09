@@ -7,10 +7,6 @@ export async function fetchWrapper<T = unknown>(
     init
   );
 
-  if (!data.ok) {
-    return;
-  }
-
   const text = await data.text();
   let result;
   if (text.length) {

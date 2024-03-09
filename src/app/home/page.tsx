@@ -30,7 +30,6 @@ const Home = () => {
 
     const getCountCategories = async () => {
       const categoriesCount = await categoryService.COUNTCATEGORIES(
-        session?.user?.user?.id,
         session?.user.accessToken
       );
       if (categoriesCount === 0) {
@@ -45,8 +44,6 @@ const Home = () => {
     getCountProducts();
     getCountCategories();
   }, [session?.user?.accessToken]);
-
-  console.log("COUNT: ", countProducts);
 
   return (
     <ContentMain title="Home">
