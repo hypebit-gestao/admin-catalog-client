@@ -167,8 +167,7 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
 
     const getCategories = async () => {
       const fetchedCategories = await categoryService.GETALL(
-        session?.user.accessToken,
-        session?.user?.user?.id
+        session?.user.accessToken
       );
       if (fetchedCategories) {
         setCategories(fetchedCategories);
@@ -299,9 +298,9 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                                 {categories.map((category, index) => (
                                   <SelectItem
                                     key={index}
-                                    value={category.category?.id as string}
+                                    value={category?.id as string}
                                   >
-                                    {category.category?.name}
+                                    {category?.name}
                                   </SelectItem>
                                 ))}
                               </SelectContent>
