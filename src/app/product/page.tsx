@@ -117,7 +117,7 @@ const Product = () => {
             <Loader color="text-green-primary" />
           ) : (
             <>
-              <div className="grid grid-cols-1 lg:grid-cols-3 2xl:grid-cols-3 lg:gap-x-6 gap-y-12">
+              <div className="grid grid-cols-1 lg:grid-cols-3 2xl:grid-cols-4 lg:gap-x-5 gap-y-12">
                 {products?.map((product, index) => (
                   <div key={index} className=" shadow-xl">
                     <div className=" rounded-lg ">

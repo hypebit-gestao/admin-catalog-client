@@ -62,7 +62,7 @@ const formSchema = z
     currency: z.string(),
     price: z.string(),
     isPromotion: z.boolean(),
-    promotion_price: z.string(),
+    promotion_price: z.any(),
     user_id: z.string(),
   })
   .refine((data) => Number(data.promotion_price) <= Number(data.price), {
@@ -283,7 +283,7 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                     Informações do produto
                   </h1>
                   <div className="flex flex-row mb-5">
-                    <div className="w-full mr-5">
+                    <div className="w-full ">
                       <FormField
                         control={form.control}
                         name="name"
@@ -418,8 +418,29 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                   </div>
 
                   <div className="flex flex-row mb-5">
+                    <div className={`w-full ${isPromotion && "lg:mr-5"}`}>
+                      <FormField
+                        control={form.control}
+                        name="price"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-blue-primary">
+                              Preço
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                placeholder="Insira o preço do produto"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                     {isPromotion && (
-                      <div className="w-full mb-5 lg:mb-0 lg:mr-5">
+                      <div className="w-full mb-5 lg:mb-0 ">
                         <FormField
                           control={form.control}
                           name="promotion_price"
@@ -441,27 +462,6 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                         />
                       </div>
                     )}
-                    <div className="w-full">
-                      <FormField
-                        control={form.control}
-                        name="price"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-blue-primary">
-                              Preço
-                            </FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                placeholder="Insira o preço do produto"
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
                   </div>
                   <div className="flex flex-row mb-5">
                     <div className="w-full">
