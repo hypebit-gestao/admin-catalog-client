@@ -61,10 +61,12 @@ const PasswordReset = () => {
     }
   };
   return (
-    <div className="min-h-screen w-full flex justify-center items-center">
+    <div className="min-h-screen w-full flex justify-center items-center bg-green-primary">
       <div className="flex flex-col w-[30%] items-center">
-        <h1 className="font-bold text-3xl mb-6">Redefinição de Senha</h1>
-        <div className="rounded-xl shadow-xl  w-full p-6">
+        <h1 className="font-bold text-3xl mb-6 text-white">
+          Redefinição de Senha
+        </h1>
+        <div className="rounded-xl shadow-xl  w-full p-6 bg-white">
           <div className=" w-full">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className=" w-full">
@@ -79,7 +81,11 @@ const PasswordReset = () => {
                             Escolha sua nova senha
                           </FormLabel>
                           <FormControl>
-                            <Input placeholder="Senha" {...field} />
+                            <Input
+                              type="password"
+                              placeholder="Senha"
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -96,7 +102,11 @@ const PasswordReset = () => {
                             Confirme sua senha
                           </FormLabel>
                           <FormControl>
-                            <Input placeholder="Senha" {...field} />
+                            <Input
+                              type="password"
+                              placeholder="Senha"
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>

@@ -18,6 +18,8 @@ import { User } from "@/models/user";
 import { useUserService } from "@/services/user.service";
 import { useProductService } from "@/services/product.service";
 import useProductDeleteModal from "@/utils/hooks/product/useDeleteProductModal";
+import useEditProductModal from "@/utils/hooks/product/useEditProductModal";
+import useProductRegisterModal from "@/utils/hooks/product/useRegisterProductModal";
 
 interface ProductDeleteProps {
   isOpen: boolean;
@@ -39,6 +41,12 @@ const ProductDelete = ({ isOpen, onClose }: ProductDeleteProps) => {
     onClose();
     toast.success("Produto excluído com sucesso");
   };
+
+  useEffect(() => {
+    useProductRegisterModal.setState({ isRegister: false });
+    useEditProductModal.setState({ isUpdate: false });
+    useProductDeleteModal.setState({ isDelete: false });
+  }, [isOpen]);
 
   return (
     <Modal

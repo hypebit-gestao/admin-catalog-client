@@ -63,7 +63,7 @@ bg-neutral/70
         md:w-4/6
         lg:w-3/6
         xl:w-[40%]
-        3xl:w-[50%]
+    
         ${personWidth}
         my-6
         mx-auto

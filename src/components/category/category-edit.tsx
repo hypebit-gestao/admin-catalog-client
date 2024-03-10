@@ -29,6 +29,8 @@ import { Textarea } from "../ui/textarea";
 import useCategoryUpdateModal from "@/utils/hooks/category/useUpdateCategoryModal";
 import { Category } from "@/models/category";
 import Loader from "../loader";
+import useCategoryRegisterModal from "@/utils/hooks/category/useRegisterCategoryModal";
+import useCategoryDeleteModal from "@/utils/hooks/category/useDeleteCategoryModal";
 
 interface CategoryUpdateProps {
   isOpen: boolean;
@@ -109,6 +111,12 @@ const CategoryEdit = ({ isOpen, onClose }: CategoryUpdateProps) => {
       toast.error((error as Error).message);
     }
   };
+
+  useEffect(() => {
+    useCategoryRegisterModal.setState({ isRegister: false });
+    useCategoryUpdateModal.setState({ isUpdate: false });
+    useCategoryDeleteModal.setState({ isDelete: false });
+  }, [isOpen]);
 
   return (
     <Modal

@@ -43,6 +43,8 @@ import Image from "next/image";
 import { Checkbox } from "../ui/checkbox";
 import { Textarea } from "../ui/textarea";
 import Loader from "../loader";
+import useProductDeleteModal from "@/utils/hooks/product/useDeleteProductModal";
+import useEditProductModal from "@/utils/hooks/product/useEditProductModal";
 
 interface ProductRegisterProps {
   isOpen: boolean;
@@ -143,10 +145,7 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
     getCategories();
   }, [session?.user?.accessToken]);
 
-  console.log("Session: ", session?.user?.user?.id);
-
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
-    console.log("Data: ", data);
     if (loading) return;
     setLoading(true);
 
@@ -234,6 +233,12 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
   const { setValue, watch } = form;
 
   const isPromotion = watch("isPromotion");
+
+  useEffect(() => {
+    useProductRegisterModal.setState({ isRegister: false });
+    useEditProductModal.setState({ isUpdate: false });
+    useProductDeleteModal.setState({ isDelete: false });
+  }, [isOpen]);
 
   return (
     <Modal

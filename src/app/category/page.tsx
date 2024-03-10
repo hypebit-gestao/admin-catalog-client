@@ -78,22 +78,20 @@ const Category = () => {
     useCategoryUpdateModal.setState({ itemId: id });
   };
   const ActionsRenderer = (props: any) => {
-    // const isSemCategoria = props.data.category.name === "Sem Categoria";
-
     return (
       <div className="flex flex-row justify-center items-center">
         <>
           <button
             className="text-blue-500 hover:text-blue-600 transition-all duration-200 mr-4"
             onClick={() => {
-              handleEdit(props.data.category?.id);
+              handleEdit(props.data?.id);
             }}
           >
             <MdEdit className="" size={36} />
           </button>
           <button
             className="text-red-500 hover:text-red-600 transition-all duration-200"
-            onClick={() => handleDelete(props.data.category?.id)}
+            onClick={() => handleDelete(props.data?.id)}
           >
             <MdDelete className="" size={36} />
           </button>
