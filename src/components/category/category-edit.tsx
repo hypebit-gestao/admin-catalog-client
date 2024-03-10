@@ -33,6 +33,8 @@ import { useUploadService } from "@/services/upload.service";
 import { ReturnUpload } from "@/models/upload";
 import Image from "next/image";
 import { TiDelete } from "react-icons/ti";
+import useCategoryRegisterModal from "@/utils/hooks/category/useRegisterCategoryModal";
+import useCategoryDeleteModal from "@/utils/hooks/category/useDeleteCategoryModal";
 
 interface CategoryUpdateProps {
   isOpen: boolean;
@@ -156,13 +158,10 @@ const CategoryEdit = ({ isOpen, onClose }: CategoryUpdateProps) => {
   };
 
   useEffect(() => {
-    if (category?.image_url === "") {
-      setFilePreview(null);
-    }
-    if (category?.image_url !== "") {
-      setFilePreview(category?.image_url);
-    }
-  }, [category]);
+    useCategoryRegisterModal.setState({ isRegister: false });
+    useCategoryUpdateModal.setState({ isUpdate: false });
+    useCategoryDeleteModal.setState({ isDelete: false });
+  }, [isOpen]);
 
   return (
     <Modal

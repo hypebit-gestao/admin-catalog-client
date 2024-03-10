@@ -13,6 +13,8 @@ import { Category } from "@/models/category";
 import useCategoryDeleteModal from "@/utils/hooks/category/useDeleteCategoryModal";
 import { Button } from "../ui/button";
 import toast from "react-hot-toast";
+import useCategoryRegisterModal from "@/utils/hooks/category/useRegisterCategoryModal";
+import useCategoryUpdateModal from "@/utils/hooks/category/useUpdateCategoryModal";
 
 interface CategoryDeleteProps {
   isOpen: boolean;
@@ -26,11 +28,19 @@ const CategoryDelete = ({ isOpen, onClose }: CategoryDeleteProps) => {
   const categoryDelete = useCategoryDeleteModal();
   const [category, setCategory] = useState<Category>();
 
+  console.log("categoryDelete", categoryDelete);
+
   const handleDelete = () => {
     categoryService.DELETE(categoryDelete.itemId, session?.user.accessToken);
     onClose();
     toast.success("Categoria excluída com sucesso");
   };
+
+  useEffect(() => {
+    useCategoryRegisterModal.setState({ isRegister: false });
+    useCategoryUpdateModal.setState({ isUpdate: false });
+    useCategoryDeleteModal.setState({ isDelete: false });
+  }, [isOpen]);
 
   return (
     <Modal

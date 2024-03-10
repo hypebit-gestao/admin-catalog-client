@@ -57,22 +57,19 @@ const ForgotPassword = ({ isOpen, onClose }: ForgotPasswordProps) => {
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      personWidth="xl:w-[25%]"
+      personWidth="xl:w-[28%]  "
       body={
         <>
-          <div className="flex flex-col justify-center items-center">
+          <div className="flex flex-col justify-center items-center xl:text-xl">
             <div className="my-4 ">
               <h1 className="text-2xl font-bold">Esqueceu sua Senha?</h1>
               <p>
                 Digite seu e-mail para receber um link para redefinir sua senha
               </p>
             </div>
-            <div className=" w-full">
+            <div className="w-full">
               <Form {...form}>
-                <form
-                  onSubmit={form.handleSubmit(onSubmit)}
-                  className=" w-full"
-                >
+                <form onSubmit={form.handleSubmit(onSubmit)} className="w-full">
                   <div>
                     <div className="w-full">
                       <FormField

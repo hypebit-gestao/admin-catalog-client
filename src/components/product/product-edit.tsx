@@ -45,6 +45,7 @@ import useEditProductModal from "@/utils/hooks/product/useEditProductModal";
 import { Product } from "@/models/product";
 import Loader from "../loader";
 import { Textarea } from "../ui/textarea";
+import useProductDeleteModal from "@/utils/hooks/product/useDeleteProductModal";
 
 interface ProductRegisterProps {
   isOpen: boolean;
@@ -88,8 +89,6 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
   const router = useRouter();
   const [filePreviews, setFilePreviews] = useState<any[]>([]);
   const productEditModal = useEditProductModal();
-
-  console.log("Loading: ", loading);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -178,6 +177,7 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
         session?.user.accessToken
       );
       if (fetchedUser) {
+        setLoading(false);
         setUsers(fetchedUser);
       }
     };
@@ -187,6 +187,7 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
         session?.user.accessToken
       );
       if (fetchedCategories) {
+        setLoading(false);
         setCategories(fetchedCategories);
       }
     };
@@ -253,14 +254,11 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
     }
   };
 
-  //   useEffect(() => {
-  //   if (category?.image_url === "") {
-  //     setFilePreview(null);
-  //   }
-  //   if (category?.image_url !== "") {
-  //     setFilePreview(category?.image_url);
-  //   }
-  // }, [category]);
+  useEffect(() => {
+    useProductRegisterModal.setState({ isRegister: false });
+    useEditProductModal.setState({ isUpdate: false });
+    useProductDeleteModal.setState({ isDelete: false });
+  }, [isOpen]);
 
   return (
     <Modal

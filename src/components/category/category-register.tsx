@@ -32,6 +32,8 @@ import { Textarea } from "../ui/textarea";
 import { useUploadService } from "@/services/upload.service";
 import { ReturnUpload } from "@/models/upload";
 import Loader from "../loader";
+import useCategoryUpdateModal from "@/utils/hooks/category/useUpdateCategoryModal";
+import useCategoryDeleteModal from "@/utils/hooks/category/useDeleteCategoryModal";
 
 interface CategoryRegisterProps {
   isOpen: boolean;
@@ -155,6 +157,12 @@ const CategoryRegister = ({ isOpen, onClose }: CategoryRegisterProps) => {
     if (isOpen) {
       resetForm();
     }
+  }, [isOpen]);
+
+  useEffect(() => {
+    useCategoryRegisterModal.setState({ isRegister: false });
+    useCategoryUpdateModal.setState({ isUpdate: false });
+    useCategoryDeleteModal.setState({ isDelete: false });
   }, [isOpen]);
 
   return (
