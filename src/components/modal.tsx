@@ -9,6 +9,7 @@ interface ModalProps {
   onClose: () => void;
   body?: React.ReactElement;
   footer?: string;
+  personWidth?: string;
 }
 
 const Modal: React.FC<ModalProps> = ({
@@ -17,6 +18,7 @@ const Modal: React.FC<ModalProps> = ({
   body,
   footer,
   header,
+  personWidth,
 }) => {
   const [showModal, setShowModal] = useState(isOpen);
 
@@ -62,6 +64,7 @@ bg-neutral/70
         lg:w-3/6
         xl:w-[40%]
         3xl:w-[50%]
+        ${personWidth}
         my-6
         mx-auto
         lg:h-auto

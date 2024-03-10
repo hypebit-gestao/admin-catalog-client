@@ -20,15 +20,17 @@ import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Loader from "@/components/loader";
+import useForgotPasswordModal from "@/utils/hooks/forgotPasswordModal";
 
 const formSchema = z.object({
-  email: z.string().email().min(1),
-  password: z.string().min(4),
+  email: z.string().email().min(1, "Email é obrigatório"),
+  password: z.string().min(4, "Senha é obrigatório"),
 });
 
 export default function Home() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const forgotPasswordModal = useForgotPasswordModal();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -61,48 +63,57 @@ export default function Home() {
         <h1 className="text-center font-bold text-blue-primary text-2xl">
           LOGIN
         </h1>
-        <div className="my-5 w-full flex justify-center">
+        <div className="mt-5 w-full flex justify-center">
           <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(onSubmit)}
-              className="space-y-8 w-full"
-            >
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <>
-                    <FormItem>
-                      <FormLabel>E-mail</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Insira o e-mail" {...field} />
-                      </FormControl>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="w-full">
+              <div className="mb-5">
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <>
+                      <FormItem>
+                        <FormLabel>E-mail</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Insira o e-mail" {...field} />
+                        </FormControl>
 
-                      <FormMessage />
-                    </FormItem>
-                  </>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <>
-                    <FormItem>
-                      <FormLabel>Senha</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="password"
-                          placeholder="Insira a senha"
-                          {...field}
-                        />
-                      </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    </>
+                  )}
+                />
+              </div>
+              <div className="mb-3">
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <>
+                      <FormItem>
+                        <FormLabel>Senha</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="password"
+                            placeholder="Insira a senha"
+                            {...field}
+                          />
+                        </FormControl>
 
-                      <FormMessage />
-                    </FormItem>
-                  </>
-                )}
-              />
+                        <FormMessage />
+                      </FormItem>
+                    </>
+                  )}
+                />
+              </div>
+              <div className="mb-7">
+                <button
+                  type="button"
+                  onClick={() => forgotPasswordModal.onOpen()}
+                >
+                  <h1 className="text-md">Esqueceu a senha?</h1>
+                </button>
+              </div>
               <div className="w-full flex justify-center">
                 <Button
                   className="bg-[#081c15] w-full lg:w-[70%]"

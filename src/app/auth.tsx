@@ -23,7 +23,7 @@ const Auth: React.FC<Props> = ({ children }) => {
     );
   }
 
-  if (status !== "authenticated") {
+  if (status !== "authenticated" && !pathname?.includes("password_reset")) {
     return (
       <>
         <Login />

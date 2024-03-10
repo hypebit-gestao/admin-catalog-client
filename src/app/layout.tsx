@@ -16,6 +16,8 @@ import useProfileModal from "@/utils/hooks/user/useProfileModal";
 import UserProfile from "@/components/user/user-profile";
 import UserEdit from "@/components/user/user-edit";
 import useEditUserModal from "@/utils/hooks/user/useEditUserModal";
+import ForgotPassword from "@/components/forgot-password";
+import useForgotPasswordModal from "@/utils/hooks/forgotPasswordModal";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -32,6 +34,7 @@ export default function RootLayout({
   const userDelete = useUserDeleteModal();
   const userEdit = useEditUserModal();
   const profileModal = useProfileModal();
+  const forgotPasswordModal = useForgotPasswordModal();
   return (
     <html lang="en">
       <AuthProvider>
@@ -40,6 +43,10 @@ export default function RootLayout({
           <UserProfile
             isOpen={profileModal.isOpen}
             onClose={profileModal.onClose}
+          />
+          <ForgotPassword
+            isOpen={forgotPasswordModal.isOpen}
+            onClose={forgotPasswordModal.onClose}
           />
           <UserEdit isOpen={userEdit.isOpen} onClose={userEdit.onClose} />
           <Header />
