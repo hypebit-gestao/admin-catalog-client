@@ -163,6 +163,7 @@ const CategoryRegister = ({ isOpen, onClose }: CategoryRegisterProps) => {
     useCategoryRegisterModal.setState({ isRegister: false });
     useCategoryUpdateModal.setState({ isUpdate: false });
     useCategoryDeleteModal.setState({ isDelete: false });
+    setFilePreview(null);
   }, [isOpen]);
 
   return (
