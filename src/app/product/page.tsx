@@ -63,8 +63,6 @@ const Product = () => {
     productDeleteModal.isDelete,
   ]);
 
-  console.log("Register: ", productRegisterModal.isRegister);
-
   const handleDelete = (id: string | undefined) => {
     useProductDeleteModal.setState({ itemId: id });
     productDeleteModal.onOpen();

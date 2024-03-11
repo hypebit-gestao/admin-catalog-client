@@ -238,6 +238,7 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
     useProductRegisterModal.setState({ isRegister: false });
     useEditProductModal.setState({ isUpdate: false });
     useProductDeleteModal.setState({ isDelete: false });
+    setFilePreviews([]);
   }, [isOpen]);
 
   return (
