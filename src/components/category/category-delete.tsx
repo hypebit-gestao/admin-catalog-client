@@ -28,8 +28,6 @@ const CategoryDelete = ({ isOpen, onClose }: CategoryDeleteProps) => {
   const categoryDelete = useCategoryDeleteModal();
   const [category, setCategory] = useState<Category>();
 
-  console.log("categoryDelete", categoryDelete);
-
   const handleDelete = () => {
     categoryService.DELETE(categoryDelete.itemId, session?.user.accessToken);
     onClose();

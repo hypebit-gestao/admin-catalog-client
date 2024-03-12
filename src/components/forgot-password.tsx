@@ -37,7 +37,6 @@ const ForgotPassword = ({ isOpen, onClose }: ForgotPasswordProps) => {
   });
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
-    console.log("Data: ", data.email);
     if (loading) return;
     setLoading(true);
     await authService

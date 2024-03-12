@@ -76,7 +76,7 @@ const CategoryRegister = ({ isOpen, onClose }: CategoryRegisterProps) => {
       await uploadService
         .POST({
           file: data.image_url,
-          folderName: data.name,
+          folderName: session?.user?.user?.name,
         })
         .then(async (res: ReturnUpload | undefined) => {
           if (Array.isArray(res) && res.length > 0 && res[0].imageUrl) {
