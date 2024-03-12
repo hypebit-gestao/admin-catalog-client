@@ -402,7 +402,7 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                           <FormControl>
                             <Input
                               placeholder="Preço do produto"
-                              currencyProps={{
+                              currencyConfig={{
                                 prefix: "R$",
                                 decimalSeparator: ",",
                                 groupSeparator: ".",
@@ -417,8 +417,6 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                                 name: any,
                                 values: any
                               ) => setValue("price", values.float)}
-                              as
-                              any
                             />
                           </FormControl>
                           <FormMessage />
@@ -439,7 +437,7 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                             <FormControl>
                               <Input
                                 placeholder="Insira o preço promocional"
-                                currencyProps={{
+                                currencyConfig={{
                                   prefix: "R$",
                                   decimalSeparator: ",",
                                   groupSeparator: ".",
@@ -454,8 +452,6 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                                   name: any,
                                   values: any
                                 ) => setValue("promotion_price", values.float)}
-                                as
-                                any
                               />
                             </FormControl>
                             <FormMessage />

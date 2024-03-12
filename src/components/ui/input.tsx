@@ -6,6 +6,7 @@ import CurrencyInput from "react-currency-input-field";
 export interface InputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {
   currencyConfig?: CurrencyConfig;
+  onValueChange?: (value: any, name: string, values: any) => void;
 }
 
 interface CurrencyConfig {
@@ -20,14 +21,14 @@ interface CurrencyConfig {
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, currencyProps, onValueChange, ...props }: any, ref) => {
+  ({ className, type, currencyConfig, onValueChange, ...props }: any, ref) => {
     const handleValueChange = (value: any, name: string, values: any) => {
       if (onValueChange) {
         onValueChange(value, name, values);
       }
     };
 
-    if (currencyProps) {
+    if (currencyConfig) {
       // Passando a propriedade onValueChange diretamente para o CurrencyInput
       return (
         <CurrencyInput
@@ -37,7 +38,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           )}
           ref={ref as React.MutableRefObject<any>} // Type assertion to allow compatibility
           onValueChange={handleValueChange}
-          {...currencyProps}
+          {...currencyConfig}
           {...props}
         />
       );
