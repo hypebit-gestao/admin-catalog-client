@@ -190,9 +190,7 @@ const UserEdit = ({ isOpen, onClose }: UserEditProps) => {
         );
 
         if (fetchedAddress) {
-          console.log("ENTREI AK: ", user?.address_id);
           if (fetchedAddress.id === user?.address_id) {
-            console.log("ENTREI EMBAIXO");
             setAddress(fetchedAddress);
             setValue("cep", fetchedAddress.cep);
             setValue("street", fetchedAddress.street);

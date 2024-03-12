@@ -657,7 +657,6 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
 
                 <div className="mt-12">
                   <Button
-                    onClick={() => console.log("entrei ak")}
                     size="lg"
                     className={`w-full ${loading && "cursor-not-allowed"}`}
                     type="submit"
