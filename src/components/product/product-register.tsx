@@ -389,8 +389,29 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                   />
                 </div>
                 <div className="flex flex-col lg:flex-row mb-5">
+                  <div className="w-full lg:mr-5">
+                    <FormField
+                      control={form.control}
+                      name="price"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-blue-primary">
+                            Preço
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              placeholder="Insira o preço do produto"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                   {isPromotion && (
-                    <div className="w-full mb-5 lg:mb-0 lg:mr-5">
+                    <div className="w-full mb-5 lg:mb-0">
                       <FormField
                         control={form.control}
                         name="promotion_price"
@@ -412,27 +433,6 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                       />
                     </div>
                   )}
-                  <div className="w-full">
-                    <FormField
-                      control={form.control}
-                      name="price"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-blue-primary">
-                            Preço
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              placeholder="Insira o preço do produto"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
                 </div>
                 <div className="flex flex-row mb-5">
                   <div className="w-full">
