@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import Modal from "../modal";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { set, useForm } from "react-hook-form";
 import * as z from "zod";
 
 import {
@@ -45,6 +45,7 @@ import { Textarea } from "../ui/textarea";
 import Loader from "../loader";
 import useProductDeleteModal from "@/utils/hooks/product/useDeleteProductModal";
 import useEditProductModal from "@/utils/hooks/product/useEditProductModal";
+import CurrencyInput from "react-currency-input-field";
 
 interface ProductRegisterProps {
   isOpen: boolean;
@@ -61,8 +62,8 @@ const formSchema = z
     active: z.boolean(),
     currency: z.string(),
     isPromotion: z.boolean(),
-    promotion_price: z.string(),
-    price: z.string().min(1, "Preço do produto é obrigatório"),
+    promotion_price: z.number(),
+    price: z.number().min(1, "Preço do produto é obrigatório"),
     user_name: z.string(),
   })
   .refine((data) => Number(data.promotion_price) <= Number(data.price), {
@@ -98,8 +99,8 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
       featured: false,
       active: true,
       isPromotion: false,
-      price: "",
-      promotion_price: "",
+      price: 0,
+      promotion_price: 0,
       user_name: session?.user?.user?.name,
     },
   });
@@ -400,9 +401,24 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                           </FormLabel>
                           <FormControl>
                             <Input
-                              type="number"
-                              placeholder="Insira o preço do produto"
-                              {...field}
+                              placeholder="Preço do produto"
+                              currencyProps={{
+                                prefix: "R$",
+                                decimalSeparator: ",",
+                                groupSeparator: ".",
+                                intlConfig: {
+                                  locale: "pt-BR",
+                                  currency: "BRL",
+                                },
+                                decimalsLimit: 2,
+                              }}
+                              onValueChange={(
+                                value: any,
+                                name: any,
+                                values: any
+                              ) => setValue("price", values.float)}
+                              as
+                              any
                             />
                           </FormControl>
                           <FormMessage />
@@ -422,9 +438,24 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                             </FormLabel>
                             <FormControl>
                               <Input
-                                type="number"
                                 placeholder="Insira o preço promocional"
-                                {...field}
+                                currencyProps={{
+                                  prefix: "R$",
+                                  decimalSeparator: ",",
+                                  groupSeparator: ".",
+                                  intlConfig: {
+                                    locale: "pt-BR",
+                                    currency: "BRL",
+                                  },
+                                  decimalsLimit: 2,
+                                }}
+                                onValueChange={(
+                                  value: any,
+                                  name: any,
+                                  values: any
+                                ) => setValue("promotion_price", values.float)}
+                                as
+                                any
                               />
                             </FormControl>
                             <FormMessage />
