@@ -62,7 +62,7 @@ const formSchema = z
     featured: z.boolean(),
     active: z.boolean(),
     currency: z.string(),
-    price: z.string(),
+    price: z.number(),
     isPromotion: z.boolean(),
     promotion_price: z.any(),
     user_id: z.string(),
@@ -101,7 +101,7 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
       currency: "",
       featured: false,
       active: true,
-      price: "",
+      price: 0,
       isPromotion: false,
       promotion_price: "",
       user_id: session?.user?.user?.name,
@@ -428,9 +428,24 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                             </FormLabel>
                             <FormControl>
                               <Input
-                                type="number"
-                                placeholder="Insira o preço do produto"
-                                {...field}
+                                placeholder="Preço do produto"
+                                currencyProps={{
+                                  prefix: "R$",
+                                  decimalSeparator: ",",
+                                  groupSeparator: ".",
+                                  intlConfig: {
+                                    locale: "pt-BR",
+                                    currency: "BRL",
+                                  },
+                                  decimalsLimit: 2,
+                                }}
+                                onValueChange={(
+                                  value: any,
+                                  name: any,
+                                  values: any
+                                ) => setValue("price", values.float)}
+                                as
+                                any
                               />
                             </FormControl>
                             <FormMessage />
@@ -450,9 +465,26 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                               </FormLabel>
                               <FormControl>
                                 <Input
-                                  type="number"
                                   placeholder="Insira o preço promocional"
-                                  {...field}
+                                  currencyProps={{
+                                    prefix: "R$",
+                                    decimalSeparator: ",",
+                                    groupSeparator: ".",
+                                    intlConfig: {
+                                      locale: "pt-BR",
+                                      currency: "BRL",
+                                    },
+                                    decimalsLimit: 2,
+                                  }}
+                                  onValueChange={(
+                                    value: any,
+                                    name: any,
+                                    values: any
+                                  ) =>
+                                    setValue("promotion_price", values.float)
+                                  }
+                                  as
+                                  any
                                 />
                               </FormControl>
                               <FormMessage />
