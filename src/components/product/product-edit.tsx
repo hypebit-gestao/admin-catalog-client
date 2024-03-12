@@ -46,6 +46,7 @@ import { Product } from "@/models/product";
 import Loader from "../loader";
 import { Textarea } from "../ui/textarea";
 import useProductDeleteModal from "@/utils/hooks/product/useDeleteProductModal";
+import NumberFormat from "react-number-format";
 
 interface ProductRegisterProps {
   isOpen: boolean;
