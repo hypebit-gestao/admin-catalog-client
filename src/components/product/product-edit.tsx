@@ -115,7 +115,6 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
   type FormField = keyof FormSchemaType;
 
   const isPromotion = watch("isPromotion");
-  const price = watch("price");
 
   const setCustomValue = (id: FormField, value: any) => {
     setValue(id, value, {
@@ -155,8 +154,11 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
           setCustomValue("currency", fetchedProduct.currency);
           setCustomValue("featured", fetchedProduct.featured);
           setCustomValue("active", fetchedProduct.active);
-          setCustomValue("price", fetchedProduct.price);
-          setCustomValue("promotion_price", fetchedProduct.promotion_price);
+          setCustomValue("price", Number(fetchedProduct.price));
+          setCustomValue(
+            "promotion_price",
+            Number(fetchedProduct.promotion_price)
+          );
           setCustomValue(
             "isPromotion",
             Number(fetchedProduct.promotion_price) > 0
@@ -430,6 +432,7 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                             <FormControl>
                               <Input
                                 placeholder="Preço do produto"
+                                defaultValue={watch("price")}
                                 currencyConfig={{
                                   prefix: "R$",
                                   decimalSeparator: ",",
@@ -465,6 +468,7 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                               <FormControl>
                                 <Input
                                   placeholder="Insira o preço promocional"
+                                  defaultValue={watch("promotion_price")}
                                   currencyConfig={{
                                     prefix: "R$",
                                     decimalSeparator: ",",

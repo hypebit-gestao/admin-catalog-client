@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Modal from "../modal";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -29,6 +29,10 @@ import { Textarea } from "../ui/textarea";
 import useCategoryUpdateModal from "@/utils/hooks/category/useUpdateCategoryModal";
 import { Category } from "@/models/category";
 import Loader from "../loader";
+import { useUploadService } from "@/services/upload.service";
+import { ReturnUpload } from "@/models/upload";
+import Image from "next/image";
+import { TiDelete } from "react-icons/ti";
 import useCategoryRegisterModal from "@/utils/hooks/category/useRegisterCategoryModal";
 import useCategoryDeleteModal from "@/utils/hooks/category/useDeleteCategoryModal";
 
@@ -40,21 +44,34 @@ interface CategoryUpdateProps {
 const formSchema = z.object({
   name: z.string().min(1, "Nome da categoria é obrigatório"),
   description: z.string().min(1, "Descrição da categoria é obrigatório"),
+  image_url: z.any(),
 });
 
 const CategoryEdit = ({ isOpen, onClose }: CategoryUpdateProps) => {
   const { data: session } = useSession();
   const router = useRouter();
+  const inputFileRef = useRef<any>(null);
+  const [filePreview, setFilePreview] = useState<any>(null);
   const categoryService = useCategoryService();
+  const uploadService = useUploadService();
   const categoryEditModal = useCategoryUpdateModal();
   const [category, setCategory] = useState<Category>();
   const [loading, setLoading] = useState(false);
+
+  const handleDeleteFile = () => {
+    if (inputFileRef.current) {
+      inputFileRef.current.value = "";
+    }
+    setCustomValue("image_url", "");
+    setFilePreview(null);
+  };
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
       description: "",
+      image_url: "",
     },
   });
 
@@ -85,6 +102,10 @@ const CategoryEdit = ({ isOpen, onClose }: CategoryUpdateProps) => {
           setCategory(fetchedCategory);
           setCustomValue("name", fetchedCategory.name);
           setCustomValue("description", fetchedCategory.description);
+          setCustomValue("image_url", fetchedCategory.image_url);
+          if (fetchedCategory.image_url) {
+            setFilePreview(fetchedCategory.image_url);
+          }
           setLoading(false);
         }
       }
@@ -94,20 +115,44 @@ const CategoryEdit = ({ isOpen, onClose }: CategoryUpdateProps) => {
   }, [session?.user.accessToken, categoryEditModal.itemId]);
 
   const onUpdate = async (data: z.infer<typeof formSchema>) => {
+    if (loading) return;
+    setLoading(true);
     try {
-      await categoryService.PUT(
-        {
-          ...data,
-          id: category?.id,
-        },
-        session?.user.accessToken
-      );
+      if (data?.image_url) {
+        await uploadService
+          .POST({
+            file: data.image_url,
+            folderName: data.name,
+          })
+          .then(async (res: ReturnUpload | undefined) => {
+            if (Array.isArray(res) && res.length > 0 && res[0].imageUrl) {
+              await categoryService.PUT(
+                {
+                  ...data,
+                  id: category?.id,
+                  image_url: res[0].imageUrl,
+                },
+                session?.user.accessToken
+              );
+            }
+          });
+      } else {
+        await categoryService.PUT(
+          {
+            ...data,
+            id: category?.id,
+          },
+          session?.user.accessToken
+        );
+      }
 
       useCategoryUpdateModal.setState({ isUpdate: true });
       toast.success(`${data.name} criado com sucesso`);
+      setLoading(false);
       categoryEditModal.onClose();
       router.refresh();
     } catch (error) {
+      setLoading(false);
       toast.error((error as Error).message);
     }
   };
@@ -188,8 +233,80 @@ const CategoryEdit = ({ isOpen, onClose }: CategoryUpdateProps) => {
                 </div>
 
                 <div className="mt-12">
-                  <Button size="lg" className="w-full" type="submit">
-                    Atualizar
+                  <h1 className="my-4 font-semibold text-green-primary">
+                    Informações adicionais
+                  </h1>
+
+                  <div className="flex flex-col lg:flex-row ">
+                    <div className="w-full ">
+                      <FormField
+                        control={form.control}
+                        name="image_url"
+                        render={({
+                          field: { value, onChange, ...fieldProps },
+                        }) => (
+                          <FormItem>
+                            <FormLabel>Logo da Loja</FormLabel>
+                            <FormControl>
+                              <Input
+                                {...fieldProps}
+                                ref={inputFileRef}
+                                placeholder="Logo da Loja"
+                                type="file"
+                                accept="image/*, application/pdf"
+                                onChange={(event) => {
+                                  onChange(
+                                    event.target.files && event.target.files[0]
+                                  );
+                                  if (event.target.files) {
+                                    if (event.target.files[0]) {
+                                      const reader = new FileReader();
+
+                                      reader.onloadend = () => {
+                                        setFilePreview(reader.result);
+                                      };
+
+                                      reader.readAsDataURL(
+                                        event.target.files[0]
+                                      );
+                                    }
+                                  }
+                                }}
+                              />
+                            </FormControl>
+                            {filePreview && (
+                              <div className="relative mt-3 w-[300px] ">
+                                <div
+                                  className="absolute top-0 right-0 cursor-pointer"
+                                  onClick={handleDeleteFile}
+                                >
+                                  <TiDelete color="red" size={24} />
+                                </div>
+
+                                <Image
+                                  className=""
+                                  src={filePreview}
+                                  alt="Preview"
+                                  width={300}
+                                  height={300}
+                                />
+                              </div>
+                            )}
+
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-12">
+                  <Button
+                    size="lg"
+                    className={`w-full ${loading && "cursor-not-allowed"}`}
+                    type="submit"
+                  >
+                    {loading ? <Loader /> : "Atualizar"}
                   </Button>
                 </div>
               </form>
