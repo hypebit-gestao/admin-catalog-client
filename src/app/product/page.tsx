@@ -73,6 +73,13 @@ const Product = () => {
     productEditModal.onOpen();
   };
 
+  function truncate(str: string, num: number) {
+    if (str.length <= num) {
+      return str;
+    }
+    return str.slice(0, num) + "...";
+  }
+
   return (
     <>
       <ProductDelete
@@ -117,12 +124,12 @@ const Product = () => {
             <Loader color="text-green-primary" />
           ) : (
             <>
-              <div className="grid grid-cols-1 lg:grid-cols-3 2xl:grid-cols-4 lg:gap-x-5 gap-y-12">
+              <div className="grid grid-cols-1 lg:grid-cols-3 2xl:grid-cols-4 lg:gap-x-12 gap-y-12">
                 {products?.map((product, index) => (
-                  <div key={index} className=" shadow-xl">
-                    <div className=" rounded-lg ">
+                  <div className="relative flex flex-col mt-6 text-gray-700 bg-white shadow-md bg-clip-border rounded-xl">
+                    <div className="rounded-lg">
                       {product.images && product.images.length > 0 ? (
-                        <div className=" w-full h-[300px] rounded-lg ">
+                        <div className=" w-full h-[200px] rounded-lg border border-gray-200">
                           <Image
                             className="w-full h-full object-cover object-center rounded-lg "
                             src={`${
@@ -137,7 +144,7 @@ const Product = () => {
                         </div>
                       ) : (
                         <Image
-                          className="h-[300px] w-full"
+                          className="h-[200px] w-full"
                           src="https://www.pallenz.co.nz/assets/camaleon_cms/image-not-found-4a963b95bf081c3ea02923dceaeb3f8085e1a654fc54840aac61a57a60903fef.png"
                           alt="Shoes"
                           width={1920}
@@ -146,34 +153,97 @@ const Product = () => {
                         />
                       )}
                     </div>
-                    <div className="card-body bg-white">
-                      <h2 className="font-bold text-2xl text-green-primary truncate">
-                        {product.name}
-                      </h2>
-                      <p className="text-[#2c6e49]">{product.description}</p>
-                      <div className="card-actions justify-between">
-                        <div className="flex flex-row items-center">
-                          <div
-                            onClick={() => handleEdit(product && product.id)}
-                            className="mr-3 cursor-pointer"
-                          >
-                            <MdEdit color="blue" size={32} />
-                          </div>
-                          <div
-                            onClick={() => handleDelete(product && product.id)}
-                            className="cursor-pointer"
-                          >
-                            <MdDelete color="red" size={32} />
-                          </div>
+                    <div className="p-2">
+                      <h5 className="block mb-2 font-sans text-xl antialiased font-semibold leading-snug tracking-normal text-blue-gray-900 truncate">
+                        {product?.name}
+                      </h5>
+                      <p className="block font-sans text-base antialiased font-light leading-relaxed text-inherit text-ellipsis">
+                        {truncate(product?.description, 60)}
+                      </p>
+                    </div>
+                    <div className="p-2 mt-auto flex flex-row items-center justify-between">
+                      <button
+                        className="align-middle select-none font-sans font-bold text-center uppercase transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none text-xs py-3 px-3 rounded-lg bg-gray-900 text-white shadow-md shadow-gray-900/10 hover:shadow-lg hover:shadow-gray-900/20 focus:opacity-[0.85] focus:shadow-none active:opacity-[0.85] active:shadow-none"
+                        type="button"
+                      >
+                        {product?.category_id === null
+                          ? "Sem categoria"
+                          : product.category?.name}
+                      </button>
+                      <div className="flex flex-row items-center">
+                        <div
+                          onClick={() => handleEdit(product && product.id)}
+                          className="mr-3 cursor-pointer"
+                        >
+                          <MdEdit color="blue" size={24} />
                         </div>
-                        <div className="rounded-xl bg-green-primary text-white p-2">
-                          {product?.category_id === null
-                            ? "Sem categoria"
-                            : product.category?.name}
+                        <div
+                          onClick={() => handleDelete(product && product.id)}
+                          className="cursor-pointer"
+                        >
+                          <MdDelete color="red" size={24} />
                         </div>
                       </div>
                     </div>
                   </div>
+                  // <div key={index} className="shadow-xl">
+                  //   <div className=" rounded-lg ">
+                  // {product.images && product.images.length > 0 ? (
+                  //   <div className=" w-full h-[200px] rounded-lg border border-gray-200">
+                  //     <Image
+                  //       className="w-full h-full object-cover object-center rounded-lg "
+                  //       src={`${
+                  //         product?.images?.length > 0
+                  //           ? product?.images[0]
+                  //           : ""
+                  //       }`}
+                  //       alt="Shoes"
+                  //       width={450}
+                  //       height={300}
+                  //     />
+                  //   </div>
+                  // ) : (
+                  //   <Image
+                  //     className="h-[200px] w-full"
+                  //     src="https://www.pallenz.co.nz/assets/camaleon_cms/image-not-found-4a963b95bf081c3ea02923dceaeb3f8085e1a654fc54840aac61a57a60903fef.png"
+                  //     alt="Shoes"
+                  //     width={1920}
+                  //     height={1080}
+                  //     objectFit="cover"
+                  //   />
+                  // )}
+                  //   </div>
+                  //   <div className=" bg-white px-4 pt-4  border border-red-900">
+                  //     <h2 className="font-bold text-xl text-green-primary truncate">
+                  //       {product.name}
+                  //     </h2>
+
+                  //     <div className="max-h-[100px]">
+                  //       <p className="text-[#2c6e49] ">{product.description}</p>
+                  //     </div>
+                  //     <div className="border border-red-900">
+                  //       <div className="flex flex-row items-center justify-end">
+                  // <div
+                  //   onClick={() => handleEdit(product && product.id)}
+                  //   className="mr-3 cursor-pointer"
+                  // >
+                  //   <MdEdit color="blue" size={32} />
+                  // </div>
+                  // <div
+                  //   onClick={() => handleDelete(product && product.id)}
+                  //   className="cursor-pointer"
+                  // >
+                  //   <MdDelete color="red" size={32} />
+                  // </div>
+                  //       </div>
+                  //       {/* <div className="rounded-xl bg-green-primary text-white p-2">
+                  //         {product?.category_id === null
+                  //           ? "Sem categoria"
+                  //           : product.category?.name}
+                  //       </div> */}
+                  //     </div>
+                  //   </div>
+                  // </div>
                 ))}
               </div>
             </>
