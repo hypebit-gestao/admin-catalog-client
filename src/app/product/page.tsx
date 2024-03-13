@@ -126,7 +126,10 @@ const Product = () => {
             <>
               <div className="grid grid-cols-1 lg:grid-cols-3 2xl:grid-cols-4 lg:gap-x-12 gap-y-12">
                 {products?.map((product, index) => (
-                  <div className="relative flex flex-col mt-6 text-gray-700 bg-white shadow-md bg-clip-border rounded-xl">
+                  <div
+                    key={index}
+                    className="relative flex flex-col mt-6 text-gray-700 bg-white shadow-md bg-clip-border rounded-xl"
+                  >
                     <div className="rounded-lg">
                       {product.images && product.images.length > 0 ? (
                         <div className=" w-full h-[200px] rounded-lg border border-gray-200">
