@@ -431,8 +431,9 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                             </FormLabel>
                             <FormControl>
                               <Input
+                                {...field}
                                 placeholder="Preço do produto"
-                                defaultValue={watch("price")}
+                                // defaultValue={watch("price")}
                                 currencyConfig={{
                                   prefix: "R$",
                                   decimalSeparator: ",",
@@ -468,7 +469,8 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                               <FormControl>
                                 <Input
                                   placeholder="Insira o preço promocional"
-                                  defaultValue={watch("promotion_price")}
+                                  {...field}
+                                  // defaultValue={watch("promotion_price")}
                                   currencyConfig={{
                                     prefix: "R$",
                                     decimalSeparator: ",",

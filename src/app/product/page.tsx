@@ -119,8 +119,6 @@ const Product = () => {
     return str.slice(0, num) + "...";
   }
 
-  console.log("Filter: ", filterCategory);
-
   return (
     <>
       <ProductDelete
@@ -181,7 +179,7 @@ const Product = () => {
           </Form>
         </div>
 
-        <div className="my-5">
+        <div className="mt-5 mb-16">
           {loading === true ? (
             <Loader color="text-green-primary" />
           ) : (
