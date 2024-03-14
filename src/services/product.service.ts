@@ -41,14 +41,18 @@ export const useProductService = () => {
 
   const GETBYUSERID = async (
     user_id: string | undefined,
+    category: string | null,
     session: string | any
   ): Promise<Product[] | undefined> => {
-    const response = await fetchWrapper<Product[]>(`product/user/${user_id}`, {
-      method: "GET",
-      headers: {
-        Authorization: `${session}`,
-      },
-    });
+    const response = await fetchWrapper<Product[]>(
+      `product/user/${user_id}?category=${category}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `${session}`,
+        },
+      }
+    );
 
     if (!response) {
       console.error("Sem resposta do servidor");

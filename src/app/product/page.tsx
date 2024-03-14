@@ -25,28 +25,56 @@ import { Product } from "@/models/product";
 import ProductRegister from "@/components/product/product-register";
 import useProductRegisterModal from "@/utils/hooks/product/useRegisterProductModal";
 import Image from "next/image";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 
 import { MdDelete, MdEdit } from "react-icons/md";
 import ProductEdit from "@/components/product/product-edit";
 import useEditProductModal from "@/utils/hooks/product/useEditProductModal";
 import ProductDelete from "@/components/product/product-delete";
 import useProductDeleteModal from "@/utils/hooks/product/useDeleteProductModal";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useCategoryService } from "@/services/category.service";
+import { Category } from "@/models/category";
 
 const Product = () => {
   const [loading, setLoading] = useState(false);
   const { data: session } = useSession();
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const userService = useUserService();
   const productService = useProductService();
+  const categoryService = useCategoryService();
   const productRegisterModal = useProductRegisterModal();
   const productEditModal = useEditProductModal();
   const productDeleteModal = useProductDeleteModal();
+  const [filterCategory, setFilterCategory] = useState<string | null>("");
+
+  const form = useForm<z.infer<any>>({
+    defaultValues: {
+      category_id: null,
+    },
+  });
 
   useEffect(() => {
     setLoading(true);
     const getProducts = async () => {
       const fetchedProduct = await productService.GETBYUSERID(
         session?.user?.user?.id,
+        filterCategory === "all" ? "" : filterCategory,
         session?.user.accessToken
       );
       if (fetchedProduct) {
@@ -55,12 +83,23 @@ const Product = () => {
       }
     };
 
+    const getCategories = async () => {
+      const fetchedCategories = await categoryService.GETALL(
+        session?.user.accessToken
+      );
+      if (fetchedCategories) {
+        setCategories(fetchedCategories);
+      }
+    };
+
     getProducts();
+    getCategories();
   }, [
     session?.user?.accessToken,
     productRegisterModal.isRegister,
     productEditModal.isUpdate,
     productDeleteModal.isDelete,
+    filterCategory,
   ]);
 
   const handleDelete = (id: string | undefined) => {
@@ -79,6 +118,8 @@ const Product = () => {
     }
     return str.slice(0, num) + "...";
   }
+
+  console.log("Filter: ", filterCategory);
 
   return (
     <>
@@ -104,22 +145,43 @@ const Product = () => {
             className="text-blue-primary cursor-pointer  hover:opacity-70 transition-all duration-200"
           />
         </div>
-        {/* <div className="bg-black w-[450px] h-[450px]">
-                    <div style={{ width: "100%", height: "100%" }}>
-                      <Image
-                        src={`${
-                              product?.images?.length > 0
-                                ? product?.images[0]
-                                : ""
-                            }`}
-                        alt={product.name}
-                        width={1920}
-                        height={1080}
-                        objectFit="cover" // Adiciona a propriedade object-fit com o valor cover
-                      />
-                    </div>
-                  </div> */}
-        <div className="my-10 ">
+
+        <div className="w-[15%]">
+          <Form {...form}>
+            <FormField
+              control={form.control}
+              name="category"
+              render={({ field }) => (
+                <FormItem>
+                  <Select
+                    onValueChange={(value) => {
+                      console.log("Value: ", value);
+                      setFilterCategory(value as string);
+                    }}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Filtre pela categoria" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent className="z-[300]">
+                      <SelectItem value={`all`}>Todos</SelectItem>
+
+                      {categories.map((category, index) => (
+                        <SelectItem key={index} value={category?.id as string}>
+                          {category?.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </Form>
+        </div>
+
+        <div className="my-5">
           {loading === true ? (
             <Loader color="text-green-primary" />
           ) : (
