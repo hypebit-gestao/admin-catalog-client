@@ -199,6 +199,8 @@ const UserRegister = ({ isOpen, onClose }: UserRegisterProps) => {
                     image_url: res[0].imageUrl,
                     address_id: addressResponse.id,
                     user_type: 1,
+                    shipping_taxes: null,
+                    shipping_type: null,
                     status: "ACTIVE",
                   },
                   session?.user?.accessToken
@@ -218,6 +220,8 @@ const UserRegister = ({ isOpen, onClose }: UserRegisterProps) => {
               image_url: null,
               address_id: addressResponse.id,
               user_type: 1,
+              shipping_taxes: null,
+              shipping_type: null,
               status: "ACTIVE",
             },
             session?.user?.accessToken

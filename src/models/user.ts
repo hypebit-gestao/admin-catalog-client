@@ -10,8 +10,8 @@ export interface User {
   address_id: string | undefined;
   phone: string;
   status: string;
-  shipping_type: string | undefined;
-  shipping_taxes: number | undefined;
+  shipping_type: string | undefined | null;
+  shipping_taxes: number | undefined | null;
   image_url?: string | null;
 }
 
