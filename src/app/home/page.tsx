@@ -29,21 +29,18 @@ const Home = () => {
     };
 
     const getCountCategories = async () => {
-      const categoriesCount = await categoryService.COUNTCATEGORIES(
-        session?.user.accessToken
-      );
-      if (categoriesCount === 0) {
-        setLoading(false);
-        setCountCategories(0);
-      } else {
-        setLoading(false);
-        setCountCategories(categoriesCount);
-      }
+      await categoryService
+        .COUNTCATEGORIES(session?.user.accessToken)
+        .then((res) => {
+          console.log("RES: ", res);
+        });
     };
 
     getCountProducts();
     getCountCategories();
   }, [session?.user?.accessToken]);
+
+  // console.log("CountCat: ", countCategories);
 
   return (
     <ContentMain title="Home">
@@ -54,7 +51,7 @@ const Home = () => {
           ) : (
             <>
               <h1 className="text-white text-xl">Produtos </h1>
-              <h3 className="text-white text-2xl mt-5">{countProducts}</h3>
+              {/* <h3 className="text-white text-2xl mt-5">{countProducts}</h3> */}
             </>
           )}
         </div>
@@ -68,7 +65,7 @@ const Home = () => {
           ) : (
             <>
               <h1 className="text-white text-xl">Categorias </h1>
-              <h3 className="text-white text-2xl mt-5">{countCategories}</h3>
+              {/* <h3 className="text-white text-2xl mt-5">{countCategories}</h3> */}
             </>
           )}
         </div>

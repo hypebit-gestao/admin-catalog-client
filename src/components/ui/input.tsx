@@ -2,8 +2,6 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 import CurrencyInput from "react-currency-input-field";
-import { MdEmail } from "react-icons/md";
-import { IconType } from "react-icons/lib";
 
 export interface InputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -67,7 +65,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             <input
               type={type}
               className={cn(
-                `flex h-9 ${height} w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 pl-12`,
+                `flex h-9 ${height} w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 ${
+                  icon ? "pl-12" : ""
+                }`,
                 className
               )}
               ref={ref}
