@@ -21,9 +21,14 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Loader from "@/components/loader";
 import useForgotPasswordModal from "@/utils/hooks/forgotPasswordModal";
+import Image from "next/image";
+import logo from "../../public/images/logo.png";
+import { MdEmail, MdPassword, MdSecurity } from "react-icons/md";
+import { CiLock } from "react-icons/ci";
+import { TfiEmail } from "react-icons/tfi";
 
 const formSchema = z.object({
-  email: z.string().email().min(1, "Email é obrigatório"),
+  email: z.string().email("E-mail inválido").min(1, "E-mail é obrigatório"),
   password: z.string().min(4, "Senha é obrigatório"),
 });
 
@@ -59,13 +64,21 @@ export default function Home() {
 
   return (
     <main className="bg-[#081c15] min-h-screen flex justify-center items-center">
-      <div className="bg-[#f2f4f3] flex flex-col items-center justify-center rounded-lg p-6 w-[90%] lg:w-1/3">
-        <h1 className="text-center font-bold text-blue-primary text-2xl">
-          LOGIN
-        </h1>
+      <div className=" w-[60%] h-screen hidden xl:flex items-center justify-center">
+        <h1 className="text-4xl font-bold text-white">Catálogo Place</h1>
+      </div>
+      <div className="w-[95%] xl:w-1/2  shadow-xl bg-white px-6 py-12 h-screen overflow-auto">
+        <div className="flex justify-center">
+          <Image
+            src={logo}
+            alt="Logo do Catálogo Place"
+            width={100}
+            height={100}
+          />
+        </div>
         <div className="mt-5 w-full flex justify-center">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="w-full">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="w-[70%]">
               <div className="mb-5">
                 <FormField
                   control={form.control}
@@ -75,7 +88,16 @@ export default function Home() {
                       <FormItem>
                         <FormLabel>E-mail</FormLabel>
                         <FormControl>
-                          <Input placeholder="Insira o e-mail" {...field} />
+                          <Input
+                            icon={
+                              <>
+                                <TfiEmail size={20} color="#000" />
+                              </>
+                            }
+                            height="h-12"
+                            placeholder="Insira seu e-mail"
+                            {...field}
+                          />
                         </FormControl>
 
                         <FormMessage />
@@ -84,6 +106,7 @@ export default function Home() {
                   )}
                 />
               </div>
+
               <div className="mb-3">
                 <FormField
                   control={form.control}
@@ -94,8 +117,14 @@ export default function Home() {
                         <FormLabel>Senha</FormLabel>
                         <FormControl>
                           <Input
+                            icon={
+                              <>
+                                <CiLock size={20} color="#000" />
+                              </>
+                            }
                             type="password"
-                            placeholder="Insira a senha"
+                            height="h-12"
+                            placeholder="Insira sua senha"
                             {...field}
                           />
                         </FormControl>
@@ -116,11 +145,11 @@ export default function Home() {
               </div>
               <div className="w-full flex justify-center">
                 <Button
-                  className="bg-[#081c15] w-full lg:w-[70%]"
+                  className="bg-[#081c15] w-full "
                   size={"lg"}
                   type="submit"
                 >
-                  {loading ? <Loader /> : "Entrar"}
+                  {loading ? <Loader /> : "ACESSAR"}
                 </Button>
               </div>
             </form>

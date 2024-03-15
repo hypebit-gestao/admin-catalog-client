@@ -2,11 +2,15 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 import CurrencyInput from "react-currency-input-field";
+import { MdEmail } from "react-icons/md";
+import { IconType } from "react-icons/lib";
 
 export interface InputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {
   currencyConfig?: CurrencyConfig;
   onValueChange?: (value: any, name: string, values: any) => void;
+  height?: string;
+  icon?: React.ReactNode;
 }
 
 interface CurrencyConfig {
@@ -21,7 +25,18 @@ interface CurrencyConfig {
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, currencyConfig, onValueChange, ...props }: any, ref) => {
+  (
+    {
+      className,
+      type,
+      currencyConfig,
+      onValueChange,
+      height,
+      icon,
+      ...props
+    }: any,
+    ref
+  ) => {
     const handleValueChange = (value: any, name: string, values: any) => {
       if (onValueChange) {
         onValueChange(value, name, values);
@@ -44,15 +59,22 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       );
     } else {
       return (
-        <input
-          type={type}
-          className={cn(
-            "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
-            className
-          )}
-          ref={ref}
-          {...props}
-        />
+        <>
+          <div className="relative w-full">
+            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              {icon}
+            </div>
+            <input
+              type={type}
+              className={cn(
+                `flex h-9 ${height} w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 pl-12`,
+                className
+              )}
+              ref={ref}
+              {...props}
+            />
+          </div>
+        </>
       );
     }
   }

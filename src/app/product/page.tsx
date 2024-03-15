@@ -153,7 +153,6 @@ const Product = () => {
                 <FormItem>
                   <Select
                     onValueChange={(value) => {
-                      console.log("Value: ", value);
                       setFilterCategory(value as string);
                     }}
                   >
