@@ -7,6 +7,7 @@ import {
   MdCategory,
   MdOutlineProductionQuantityLimits,
   MdRequestPage,
+  MdSettings,
 } from "react-icons/md";
 import { useSession } from "next-auth/react";
 
@@ -35,6 +36,11 @@ const Sidebar = () => {
           />
         }
         <MenuItem href="/order" label="Pedidos" icon={MdRequestPage} />
+        <MenuItem
+          href="/configurations"
+          label="Configurações"
+          icon={MdSettings}
+        />
       </ul>
     </aside>
   );

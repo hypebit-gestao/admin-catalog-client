@@ -244,6 +244,8 @@ const UserEdit = ({ isOpen, onClose }: UserEditProps) => {
                   address_id: user?.address_id,
                   image_url: res[0].imageUrl,
                   id: user?.id,
+                  shipping_taxes: user?.shipping_taxes,
+                  shipping_type: user?.shipping_type,
                 },
                 session?.user?.accessToken
               );
@@ -258,6 +260,8 @@ const UserEdit = ({ isOpen, onClose }: UserEditProps) => {
             status: "ACTIVE",
             address_id: user?.address_id,
             id: user?.id,
+            shipping_taxes: user?.shipping_taxes,
+            shipping_type: user?.shipping_type,
           },
           session?.user.accessToken
         );

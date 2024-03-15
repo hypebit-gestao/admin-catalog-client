@@ -10,5 +10,13 @@ export interface User {
   address_id: string | undefined;
   phone: string;
   status: string;
+  shipping_type: string | undefined;
+  shipping_taxes: number | undefined;
   image_url?: string | null;
+}
+
+export interface UserShippingPut {
+  id?: string;
+  shipping_type: string | undefined;
+  shipping_taxes: number | undefined;
 }
