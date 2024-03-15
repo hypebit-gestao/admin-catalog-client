@@ -64,7 +64,7 @@ const formSchema = z
     currency: z.string(),
     price: z.number(),
     isPromotion: z.boolean(),
-    promotion_price: z.any(),
+    promotion_price: z.number(),
     user_id: z.string(),
   })
   .refine((data) => Number(data.promotion_price) <= Number(data.price), {
@@ -103,7 +103,7 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
       active: true,
       price: 0,
       isPromotion: false,
-      promotion_price: "",
+      promotion_price: 0,
       user_id: session?.user?.user?.name,
     },
   });
@@ -431,7 +431,7 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                             </FormLabel>
                             <FormControl>
                               <Input
-                                {...field}
+                                // {...field}
                                 placeholder="Preço do produto"
                                 // defaultValue={watch("price")}
                                 currencyConfig={{
@@ -444,11 +444,9 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                                   },
                                   decimalsLimit: 2,
                                 }}
-                                onValueChange={(
-                                  value: any,
-                                  name: any,
-                                  values: any
-                                ) => setValue("price", values.float)}
+                                onValueChange={(value: any) =>
+                                  setCustomValue("price", Number(value))
+                                }
                               />
                             </FormControl>
                             <FormMessage />
@@ -469,7 +467,7 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                               <FormControl>
                                 <Input
                                   placeholder="Insira o preço promocional"
-                                  {...field}
+                                  // {...field}
                                   // defaultValue={watch("promotion_price")}
                                   currencyConfig={{
                                     prefix: "R$",
@@ -481,12 +479,11 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                                     },
                                     decimalsLimit: 2,
                                   }}
-                                  onValueChange={(
-                                    value: any,
-                                    name: any,
-                                    values: any
-                                  ) =>
-                                    setValue("promotion_price", values.float)
+                                  onValueChange={(value: any) =>
+                                    setCustomValue(
+                                      "promotion_price",
+                                      Number(value)
+                                    )
                                   }
                                 />
                               </FormControl>
