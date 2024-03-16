@@ -35,51 +35,56 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     }: any,
     ref
   ) => {
-    const handleValueChange = (value: any, name: string, values: any) => {
-      if (onValueChange) {
-        onValueChange(value, name, values);
-      }
-    };
-
-    if (currencyConfig) {
-      // Passando a propriedade onValueChange diretamente para o CurrencyInput
-      return (
-        <CurrencyInput
-          className={cn(
-            "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
-            className
-          )}
-          ref={ref as React.MutableRefObject<any>} // Type assertion to allow compatibility
-          onValueChange={handleValueChange}
-          {...currencyConfig}
-          {...props}
-        />
-      );
-    } else {
-      return (
-        <>
-          <div className="relative w-full">
-            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-              {icon}
-            </div>
-            <input
-              type={type}
-              className={cn(
-                `flex h-9 ${height} w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 ${
-                  icon ? "pl-12" : ""
-                }`,
-                className
-              )}
-              ref={ref}
-              {...props}
-            />
+    return (
+      <>
+        <div className="relative w-full">
+          <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+            {icon}
           </div>
-        </>
-      );
-    }
+          <input
+            type={type}
+            className={cn(
+              `flex h-9 ${height} w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 ${
+                icon ? "pl-12" : ""
+              }`,
+              className
+            )}
+            ref={ref}
+            {...props}
+          />
+        </div>
+      </>
+    );
   }
 );
 
 Input.displayName = "Input";
 
-export { Input };
+const InputCurrency = React.forwardRef<HTMLInputElement, InputProps>(
+  (
+    { className, type, value, onChange, onBlur, height, icon, placeholder },
+    ref
+  ) => {
+    return (
+      <CurrencyInput
+        type={type}
+        className={cn(
+          `flex h-9 ${height} w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 ${
+            icon ? "pl-12" : ""
+          }`,
+          className
+        )}
+        ref={ref}
+        value={value}
+        onChange={onChange}
+        onBlur={onBlur}
+        intlConfig={{ locale: "pt-BR", currency: "BRL" }}
+        placeholder={placeholder}
+      />
+    );
+  }
+);
+
+InputCurrency.displayName = "InputCurrency";
+
+export { Input, InputCurrency };

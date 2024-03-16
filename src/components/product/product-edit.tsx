@@ -16,7 +16,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { Input, InputCurrency } from "@/components/ui/input";
 import { Button } from "../ui/button";
 import { Address } from "@/models/address";
 import { useAddressService } from "@/services/address.service";
@@ -430,24 +430,17 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                               Preço
                             </FormLabel>
                             <FormControl>
-                              <Input
-                                // {...field}
+                              <InputCurrency
                                 placeholder="Preço do produto"
-                                // defaultValue={watch("price")}
-                                value={watch("price")}
-                                currencyConfig={{
-                                  prefix: "R$",
-                                  decimalSeparator: ",",
-                                  groupSeparator: ".",
-                                  intlConfig: {
-                                    locale: "pt-BR",
-                                    currency: "BRL",
-                                  },
-                                  decimalsLimit: 2,
+                                value={field.value}
+                                onChange={(e: any) => {
+                                  const value = e.target.value;
+                                  form.setValue(
+                                    "price",
+                                    Number(value.replace(/[^\d]/g, ""))
+                                  );
                                 }}
-                                onValueChange={(value: any) =>
-                                  setCustomValue("price", Number(value))
-                                }
+                                onBlur={field.onBlur}
                               />
                             </FormControl>
                             <FormMessage />
@@ -466,27 +459,17 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                                 Preço Promocional
                               </FormLabel>
                               <FormControl>
-                                <Input
+                                <InputCurrency
                                   placeholder="Insira o preço promocional"
-                                  // {...field}
-                                  // defaultValue={watch("promotion_price")}
-                                  value={watch("promotion_price")}
-                                  currencyConfig={{
-                                    prefix: "R$",
-                                    decimalSeparator: ",",
-                                    groupSeparator: ".",
-                                    intlConfig: {
-                                      locale: "pt-BR",
-                                      currency: "BRL",
-                                    },
-                                    decimalsLimit: 2,
-                                  }}
-                                  onValueChange={(value: any) =>
-                                    setCustomValue(
+                                  value={field.value}
+                                  onChange={(e: any) => {
+                                    const value = e.target.value;
+                                    form.setValue(
                                       "promotion_price",
-                                      Number(value)
-                                    )
-                                  }
+                                      Number(value.replace(/[^\d]/g, ""))
+                                    );
+                                  }}
+                                  onBlur={field.onBlur}
                                 />
                               </FormControl>
                               <FormMessage />
