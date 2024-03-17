@@ -79,6 +79,9 @@ const InputCurrency = React.forwardRef<HTMLInputElement, InputProps>(
         onChange={onChange}
         onBlur={onBlur}
         intlConfig={{ locale: "pt-BR", currency: "BRL" }}
+        decimalSeparator=","
+        groupSeparator="."
+        decimalsLimit={2}
         placeholder={placeholder}
       />
     );

@@ -16,7 +16,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { Input, InputCurrency } from "@/components/ui/input";
 import { Button } from "../ui/button";
 import { Address } from "@/models/address";
 import { useAddressService } from "@/services/address.service";
@@ -400,7 +400,19 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                             Preço
                           </FormLabel>
                           <FormControl>
-                            <Input
+                            <InputCurrency
+                              placeholder="Preço do produto"
+                              value={field.value}
+                              onChange={(e: any) => {
+                                const value = e.target.value;
+                                form.setValue(
+                                  "price",
+                                  Number(value.replace(/[^\d]/g, ""))
+                                );
+                              }}
+                              onBlur={field.onBlur}
+                            />
+                            {/* <Input
                               placeholder="Preço do produto"
                               currencyConfig={{
                                 prefix: "R$",
@@ -417,7 +429,7 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                                 name: any,
                                 values: any
                               ) => setValue("price", values.float)}
-                            />
+                            /> */}
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -435,23 +447,17 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                               Preço Promocional
                             </FormLabel>
                             <FormControl>
-                              <Input
+                              <InputCurrency
                                 placeholder="Insira o preço promocional"
-                                currencyConfig={{
-                                  prefix: "R$",
-                                  decimalSeparator: ",",
-                                  groupSeparator: ".",
-                                  intlConfig: {
-                                    locale: "pt-BR",
-                                    currency: "BRL",
-                                  },
-                                  decimalsLimit: 2,
+                                value={field.value}
+                                onChange={(e: any) => {
+                                  const value = e.target.value;
+                                  form.setValue(
+                                    "promotion_price",
+                                    Number(value.replace(/[^\d]/g, ""))
+                                  );
                                 }}
-                                onValueChange={(
-                                  value: any,
-                                  name: any,
-                                  values: any
-                                ) => setValue("promotion_price", values.float)}
+                                onBlur={field.onBlur}
                               />
                             </FormControl>
                             <FormMessage />
