@@ -154,10 +154,10 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
           setCustomValue("currency", fetchedProduct.currency);
           setCustomValue("featured", fetchedProduct.featured);
           setCustomValue("active", fetchedProduct.active);
-          setCustomValue("price", Number(fetchedProduct.price));
+          setCustomValue("price", fetchedProduct.price.toString());
           setCustomValue(
             "promotion_price",
-            Number(fetchedProduct.promotion_price)
+            fetchedProduct.promotion_price?.toString()
           );
           setCustomValue(
             "isPromotion",
