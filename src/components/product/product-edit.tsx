@@ -47,6 +47,7 @@ import Loader from "../loader";
 import { Textarea } from "../ui/textarea";
 import useProductDeleteModal from "@/utils/hooks/product/useDeleteProductModal";
 import NumberFormat from "react-number-format";
+import { LuMoveDown, LuMoveUp } from "react-icons/lu";
 
 interface ProductRegisterProps {
   isOpen: boolean;
@@ -139,6 +140,24 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
 
     setFilePreviews(newPreviews);
     setProduct({ ...(product as Product), images: updatedImages });
+  };
+
+  const handleMoveUp = (index: any) => {
+    const newPreviews = [...filePreviews];
+    const temp = newPreviews[index];
+    newPreviews[index] = newPreviews[index - 1];
+    newPreviews[index - 1] = temp;
+    setFilePreviews(newPreviews);
+    setProduct({ ...(product as Product), images: newPreviews });
+  };
+
+  const handleMoveDown = (index: any) => {
+    const newPreviews = [...filePreviews];
+    const temp = newPreviews[index];
+    newPreviews[index] = newPreviews[index + 1];
+    newPreviews[index + 1] = temp;
+    setFilePreviews(newPreviews);
+    setProduct({ ...(product as Product), images: newPreviews });
   };
 
   useEffect(() => {
@@ -540,7 +559,7 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                                 multiple
                               />
                             </FormControl>
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                            <div className="flex flex-col">
                               {filePreviews.map((preview, index) => (
                                 <div
                                   key={index}
@@ -554,13 +573,42 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                                   </div>
 
                                   {typeof preview === "string" ? (
-                                    <Image
-                                      className="w-[300px] h-[300px]"
-                                      src={preview}
-                                      alt={`Preview ${index + 1}`}
-                                      width={300}
-                                      height={300}
-                                    />
+                                    <>
+                                      <div className="flex flex-row items-center w-fulll">
+                                        <Image
+                                          className="w-[300px] h-[300px]"
+                                          src={preview}
+                                          alt={`Preview ${index + 1}`}
+                                          width={300}
+                                          height={300}
+                                        />
+                                        <div className="flex flex-col ml-8">
+                                          {index < filePreviews.length - 1 && (
+                                            <div className="mb-5 cursor-pointer">
+                                              <LuMoveDown
+                                                onClick={() =>
+                                                  handleMoveDown(index)
+                                                }
+                                                size={24}
+                                                color="#2c6e49"
+                                              />
+                                            </div>
+                                          )}
+
+                                          {index > 0 && (
+                                            <div className="cursor-pointer">
+                                              <LuMoveUp
+                                                onClick={() =>
+                                                  handleMoveUp(index)
+                                                }
+                                                size={24}
+                                                color="#2c6e49"
+                                              />
+                                            </div>
+                                          )}
+                                        </div>
+                                      </div>
+                                    </>
                                   ) : (
                                     <Image
                                       className="w-[300px] h-[300px]"

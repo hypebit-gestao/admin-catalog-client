@@ -126,6 +126,38 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
     setFilePreviews(newPreviews);
   };
 
+  const handleMoveDown = (index: any) => {
+    const newPreviews = [...filePreviews];
+    const temp = newPreviews[index];
+    newPreviews[index] = newPreviews[index + 1];
+    newPreviews[index + 1] = temp;
+    setFilePreviews(newPreviews);
+
+    setValue(
+      "images",
+      newPreviews.map((preview) => preview.file)
+    );
+  };
+
+  const handleMoveUp = (index: any) => {
+    const newPreviews = [...filePreviews];
+    const temp = newPreviews[index];
+    newPreviews[index] = newPreviews[index - 1];
+    newPreviews[index - 1] = temp;
+    setFilePreviews(newPreviews);
+    setValue(
+      "images",
+      newPreviews.map((preview) => preview.file)
+    );
+  };
+
+  useEffect(() => {
+    useProductRegisterModal.setState({ isRegister: false });
+    useEditProductModal.setState({ isUpdate: false });
+    useProductDeleteModal.setState({ isDelete: false });
+    setFilePreviews([]);
+  }, [isOpen]);
+
   useEffect(() => {
     const getUser = async () => {
       const fetchedUser = await userService.GETBYID(
@@ -151,6 +183,8 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
   }, [session?.user?.accessToken]);
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    // console.log("Data: ", data);
+    // return;
     if (loading) return;
     setLoading(true);
 
@@ -238,29 +272,6 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
   const { setValue, watch } = form;
 
   const isPromotion = watch("isPromotion");
-
-  const handleMoveUp = (index: any) => {
-    const newPreviews = [...filePreviews];
-    const temp = newPreviews[index];
-    newPreviews[index] = newPreviews[index - 1];
-    newPreviews[index - 1] = temp;
-    setFilePreviews(newPreviews);
-  };
-
-  const handleMoveDown = (index: any) => {
-    const newPreviews = [...filePreviews];
-    const temp = newPreviews[index];
-    newPreviews[index] = newPreviews[index + 1];
-    newPreviews[index + 1] = temp;
-    setFilePreviews(newPreviews);
-  };
-
-  useEffect(() => {
-    useProductRegisterModal.setState({ isRegister: false });
-    useEditProductModal.setState({ isUpdate: false });
-    useProductDeleteModal.setState({ isDelete: false });
-    setFilePreviews([]);
-  }, [isOpen]);
 
   return (
     <Modal
