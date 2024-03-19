@@ -29,6 +29,7 @@ import { useProductService } from "@/services/product.service";
 import { useCategoryService } from "@/services/category.service";
 import { Category } from "@/models/category";
 import { User } from "@/models/user";
+import { TbCurrencyReal } from "react-icons/tb";
 import {
   Select,
   SelectContent,
@@ -46,6 +47,7 @@ import Loader from "../loader";
 import useProductDeleteModal from "@/utils/hooks/product/useDeleteProductModal";
 import useEditProductModal from "@/utils/hooks/product/useEditProductModal";
 import CurrencyInput from "react-currency-input-field";
+import { IoMdCash } from "react-icons/io";
 
 interface ProductRegisterProps {
   isOpen: boolean;
@@ -262,7 +264,7 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                   Informações do produto
                 </h1>
                 <div className="flex flex-row mb-5">
-                  <div className="w-full mr-5">
+                  <div className="w-full">
                     <FormField
                       control={form.control}
                       name="name"
@@ -390,7 +392,7 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                   />
                 </div>
                 <div className="flex flex-col lg:flex-row mb-5">
-                  <div className="w-full lg:mr-5">
+                  <div className={`w-full ${isPromotion && "lg:mr-5"}`}>
                     <FormField
                       control={form.control}
                       name="price"
@@ -402,34 +404,9 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                           <FormControl>
                             <InputCurrency
                               placeholder="Preço do produto"
-                              value={field.value}
-                              onChange={(e: any) => {
-                                const value = e.target.value;
-                                form.setValue(
-                                  "price",
-                                  Number(value.replace(/[^\d]/g, ""))
-                                );
-                              }}
-                              onBlur={field.onBlur}
+                              type="number"
+                              {...field}
                             />
-                            {/* <Input
-                              placeholder="Preço do produto"
-                              currencyConfig={{
-                                prefix: "R$",
-                                decimalSeparator: ",",
-                                groupSeparator: ".",
-                                intlConfig: {
-                                  locale: "pt-BR",
-                                  currency: "BRL",
-                                },
-                                decimalsLimit: 2,
-                              }}
-                              onValueChange={(
-                                value: any,
-                                name: any,
-                                values: any
-                              ) => setValue("price", values.float)}
-                            /> */}
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -448,16 +425,9 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                             </FormLabel>
                             <FormControl>
                               <InputCurrency
-                                placeholder="Insira o preço promocional"
-                                value={field.value}
-                                onChange={(e: any) => {
-                                  const value = e.target.value;
-                                  form.setValue(
-                                    "promotion_price",
-                                    Number(value.replace(/[^\d]/g, ""))
-                                  );
-                                }}
-                                onBlur={field.onBlur}
+                                placeholder="Preço Promocional"
+                                type="number"
+                                {...field}
                               />
                             </FormControl>
                             <FormMessage />

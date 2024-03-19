@@ -432,15 +432,8 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                             <FormControl>
                               <InputCurrency
                                 placeholder="Preço do produto"
-                                value={field.value}
-                                onChange={(e: any) => {
-                                  const value = e.target.value;
-                                  form.setValue(
-                                    "price",
-                                    Number(value.replace(/[^\d]/g, ""))
-                                  );
-                                }}
-                                onBlur={field.onBlur}
+                                type="number"
+                                {...field}
                               />
                             </FormControl>
                             <FormMessage />
@@ -460,16 +453,9 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                               </FormLabel>
                               <FormControl>
                                 <InputCurrency
-                                  placeholder="Insira o preço promocional"
-                                  value={field.value}
-                                  onChange={(e: any) => {
-                                    const value = e.target.value;
-                                    form.setValue(
-                                      "promotion_price",
-                                      Number(value.replace(/[^\d]/g, ""))
-                                    );
-                                  }}
-                                  onBlur={field.onBlur}
+                                  placeholder="Preço Promocional"
+                                  type="number"
+                                  {...field}
                                 />
                               </FormControl>
                               <FormMessage />
