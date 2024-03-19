@@ -30,6 +30,8 @@ import { useCategoryService } from "@/services/category.service";
 import { Category } from "@/models/category";
 import { User } from "@/models/user";
 import { TbCurrencyReal } from "react-icons/tb";
+import { LuMoveDown, LuMoveUp } from "react-icons/lu";
+
 import {
   Select,
   SelectContent,
@@ -236,6 +238,22 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
   const { setValue, watch } = form;
 
   const isPromotion = watch("isPromotion");
+
+  const handleMoveUp = (index: any) => {
+    const newPreviews = [...filePreviews];
+    const temp = newPreviews[index];
+    newPreviews[index] = newPreviews[index - 1];
+    newPreviews[index - 1] = temp;
+    setFilePreviews(newPreviews);
+  };
+
+  const handleMoveDown = (index: any) => {
+    const newPreviews = [...filePreviews];
+    const temp = newPreviews[index];
+    newPreviews[index] = newPreviews[index + 1];
+    newPreviews[index + 1] = temp;
+    setFilePreviews(newPreviews);
+  };
 
   useEffect(() => {
     useProductRegisterModal.setState({ isRegister: false });
@@ -507,7 +525,7 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                               multiple
                             />
                           </FormControl>
-                          <div className="grid grid-cols-2 gap-4">
+                          <div className="flex flex-col ">
                             {filePreviews.map((preview, index) => (
                               <div
                                 key={index}
@@ -520,17 +538,42 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                                   <TiDelete color="red" size={24} />
                                 </div>
 
-                                {preview.file.type.startsWith("image") ? (
-                                  <Image
-                                    className="w-[300px] h-[300px]"
-                                    src={preview.preview}
-                                    alt={`Preview ${index + 1}`}
-                                    width={300}
-                                    height={300}
-                                  />
-                                ) : (
-                                  <p>Arquivo selecionado: {preview.preview}</p>
-                                )}
+                                <div className="flex flex-row items-center">
+                                  {preview.file.type.startsWith("image") ? (
+                                    <Image
+                                      className="w-[300px] h-[300px]"
+                                      src={preview.preview}
+                                      alt={`Preview ${index + 1}`}
+                                      width={300}
+                                      height={300}
+                                    />
+                                  ) : (
+                                    <p>
+                                      Arquivo selecionado: {preview.preview}
+                                    </p>
+                                  )}
+                                  <div className="flex flex-col ml-8">
+                                    {index < filePreviews.length - 1 && (
+                                      <div className="mb-5 cursor-pointer">
+                                        <LuMoveDown
+                                          onClick={() => handleMoveDown(index)}
+                                          size={24}
+                                          color="#2c6e49"
+                                        />
+                                      </div>
+                                    )}
+
+                                    {index > 0 && (
+                                      <div className="cursor-pointer">
+                                        <LuMoveUp
+                                          onClick={() => handleMoveUp(index)}
+                                          size={24}
+                                          color="#2c6e49"
+                                        />
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
                               </div>
                             ))}
                           </div>
