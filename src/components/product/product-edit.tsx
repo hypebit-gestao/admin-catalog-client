@@ -62,9 +62,9 @@ const formSchema = z
     featured: z.boolean(),
     active: z.boolean(),
     currency: z.string(),
-    price: z.number(),
+    price: z.string(),
     isPromotion: z.boolean(),
-    promotion_price: z.number(),
+    promotion_price: z.string(),
     user_id: z.string(),
   })
   .refine((data) => Number(data.promotion_price) <= Number(data.price), {
@@ -101,9 +101,9 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
       currency: "",
       featured: false,
       active: true,
-      price: 0,
+      price: "",
       isPromotion: false,
-      promotion_price: 0,
+      promotion_price: "",
       user_id: session?.user?.user?.name,
     },
   });

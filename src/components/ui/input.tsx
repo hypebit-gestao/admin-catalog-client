@@ -62,7 +62,16 @@ Input.displayName = "Input";
 
 const InputCurrency = React.forwardRef<HTMLInputElement, InputProps>(
   (
-    { className, type, currencyConfig, onValueChange, height, icon, ...props },
+    {
+      className,
+      type,
+      currencyConfig,
+      onValueChange,
+      onChange,
+      height,
+      icon,
+      ...props
+    },
     ref
   ) => {
     return (
@@ -71,6 +80,7 @@ const InputCurrency = React.forwardRef<HTMLInputElement, InputProps>(
           R$
         </div>
         <input
+          onChange={onChange}
           type={type}
           className={cn(
             `flex h-9 ${height} w-full rounded-r-md   border border-input bg-transparent pl-14 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 

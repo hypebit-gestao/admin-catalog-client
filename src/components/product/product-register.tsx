@@ -64,8 +64,8 @@ const formSchema = z
     active: z.boolean(),
     currency: z.string(),
     isPromotion: z.boolean(),
-    promotion_price: z.number(),
-    price: z.number().min(1, "Preço do produto é obrigatório"),
+    promotion_price: z.string(),
+    price: z.string().min(1, "Preço do produto é obrigatório"),
     user_name: z.string(),
   })
   .refine((data) => Number(data.promotion_price) <= Number(data.price), {
@@ -101,8 +101,8 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
       featured: false,
       active: true,
       isPromotion: false,
-      price: 0,
-      promotion_price: 0,
+      price: "",
+      promotion_price: "",
       user_name: session?.user?.user?.name,
     },
   });

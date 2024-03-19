@@ -31,9 +31,7 @@ const Home = () => {
     const getCountCategories = async () => {
       await categoryService
         .COUNTCATEGORIES(session?.user.accessToken)
-        .then((res) => {
-          console.log("RES: ", res);
-        });
+        .then((res) => {});
     };
 
     getCountProducts();
