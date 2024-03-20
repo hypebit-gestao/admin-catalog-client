@@ -2,7 +2,7 @@ export interface Category {
   id?: string;
   name?: string;
   category_id?: string;
-  description?: string;
+
   user?: {
     name: string;
   };

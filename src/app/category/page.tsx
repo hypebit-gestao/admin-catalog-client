@@ -124,11 +124,7 @@ const Category = () => {
       filter: true,
       floatingFilter: true,
     },
-    {
-      field: "description",
-      flex: 1,
-      headerName: "Descrição",
-    },
+
     {
       field: "actions",
       headerName: "Ações",
@@ -163,11 +159,7 @@ const Category = () => {
           filter: true,
           floatingFilter: true,
         },
-        {
-          field: "description",
-          flex: 1,
-          headerName: "Descrição",
-        },
+
         {
           field: "actions",
           headerName: "Ações",
@@ -237,7 +229,7 @@ const Category = () => {
                       <h2 className="font-bold text-2xl text-green-primary truncate">
                         {category.name}
                       </h2>
-                      <p className="text-[#2c6e49]">{category?.description}</p>
+                      {/* <p className="text-[#2c6e49]">{category?.description}</p> */}
                       <div className="card-actions justify-between">
                         <div className="flex flex-row items-center">
                           <div
