@@ -73,7 +73,6 @@ const CategoryRegister = ({ isOpen, onClose }: CategoryRegisterProps) => {
               await categoryService.POST(
                 {
                   name: data.name,
-                  description: null,
                   user_id: session?.user?.user?.id,
                   image_url: res[0].imageUrl,
                 },
@@ -85,7 +84,6 @@ const CategoryRegister = ({ isOpen, onClose }: CategoryRegisterProps) => {
         await categoryService.POST(
           {
             name: data.name,
-            description: null,
             user_id: session?.user?.user?.id,
           },
           session?.user?.accessToken
