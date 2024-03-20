@@ -42,7 +42,6 @@ interface CategoryRegisterProps {
 
 const formSchema = z.object({
   name: z.string().min(1, "Nome da categoria é obrigatório"),
-  description: z.string().min(1, "Descrição da categoria é obrigatório"),
   image_url: z
     .any()
     .refine((value) => value !== "", "Imagem da categoria é obrigatória"),
@@ -63,7 +62,6 @@ const CategoryRegister = ({ isOpen, onClose }: CategoryRegisterProps) => {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
-      description: "",
       image_url: "",
     },
   });
@@ -84,7 +82,6 @@ const CategoryRegister = ({ isOpen, onClose }: CategoryRegisterProps) => {
               .POST(
                 {
                   name: data.name,
-                  description: data.description,
                   user_id: session?.user?.user?.id,
                   image_url: res[0].imageUrl,
                 },
@@ -108,7 +105,6 @@ const CategoryRegister = ({ isOpen, onClose }: CategoryRegisterProps) => {
         .POST(
           {
             name: data.name,
-            description: data.description,
             user_id: session?.user?.user?.id,
           },
           session?.user?.accessToken
@@ -207,32 +203,9 @@ const CategoryRegister = ({ isOpen, onClose }: CategoryRegisterProps) => {
                     />
                   </div>
                 </div>
-                <div className="flex flex-row">
-                  <div className="w-full">
-                    <FormField
-                      control={form.control}
-                      name="description"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-blue-primary">
-                            Descrição
-                          </FormLabel>
-                          <FormControl>
-                            <Textarea
-                              placeholder="Descrição da Categoria"
-                              className="resize-none"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
               </div>
 
-              <div className="mt-12">
+              <div className="mt-8">
                 <h1 className="my-4 font-semibold text-green-primary">
                   Informações adicionais
                 </h1>

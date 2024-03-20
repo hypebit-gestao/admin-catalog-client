@@ -39,7 +39,6 @@ interface CategoryRegisterProps {
 
 const formSchema = z.object({
   name: z.string().min(1, "Nome da categoria é obrigatório"),
-  description: z.string().min(1, "Descrição da categoria é obrigatório"),
   image_url: z.any(),
 });
 
@@ -57,7 +56,6 @@ const CategoryRegister = ({ isOpen, onClose }: CategoryRegisterProps) => {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
-      description: "",
       image_url: "",
     },
   });
@@ -75,7 +73,7 @@ const CategoryRegister = ({ isOpen, onClose }: CategoryRegisterProps) => {
               await categoryService.POST(
                 {
                   name: data.name,
-                  description: data.description,
+                  description: null,
                   user_id: session?.user?.user?.id,
                   image_url: res[0].imageUrl,
                 },
@@ -87,7 +85,7 @@ const CategoryRegister = ({ isOpen, onClose }: CategoryRegisterProps) => {
         await categoryService.POST(
           {
             name: data.name,
-            description: data.description,
+            description: null,
             user_id: session?.user?.user?.id,
           },
           session?.user?.accessToken
@@ -157,29 +155,6 @@ const CategoryRegister = ({ isOpen, onClose }: CategoryRegisterProps) => {
                           <FormControl>
                             <Input
                               placeholder="Insira o nome da categoria"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
-                <div className="flex flex-row">
-                  <div className="w-full">
-                    <FormField
-                      control={form.control}
-                      name="description"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-blue-primary">
-                            Descrição
-                          </FormLabel>
-                          <FormControl>
-                            <Textarea
-                              placeholder="Descrição da Categoria"
-                              className="resize-none"
                               {...field}
                             />
                           </FormControl>
