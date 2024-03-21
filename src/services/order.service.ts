@@ -80,7 +80,7 @@ export const useOrderService = () => {
   };
 
   const DELETE = async (id: string, session: string | any): Promise<void> => {
-    await fetchWrapper<User[]>(`user/${id}`, {
+    await fetchWrapper<Order[]>(`order/${id}`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",

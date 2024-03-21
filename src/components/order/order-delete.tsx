@@ -5,32 +5,36 @@ import Modal from "../modal";
 
 import { useSession } from "next-auth/react";
 
-import { useCategoryService } from "@/services/category.service";
+import { useOrderService } from "../../services/order.service";
 
 import { useRouter } from "next/navigation";
 import { MdDelete } from "react-icons/md";
-import { Category } from "@/models/category";
-import useCategoryDeleteModal from "@/utils/hooks/category/useDeleteCategoryModal";
+import { Order } from "../../models/order";
+import useOrderDeleteModal from "../../utils/hooks/order/useDeleteOrderModal";
+
 import { Button } from "../ui/button";
 import toast from "react-hot-toast";
 
-interface CategoryDeleteProps {
+interface OrderDeleteProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-const CategoryDelete = ({ isOpen, onClose }: CategoryDeleteProps) => {
+const OrderDelete = ({ isOpen, onClose }: OrderDeleteProps) => {
   const { data: session } = useSession();
   const router = useRouter();
-  const categoryService = useCategoryService();
-  const categoryDelete = useCategoryDeleteModal();
-  const [category, setCategory] = useState<Category>();
+  const orderService = useOrderService();
+  const orderDelete = useOrderDeleteModal();
 
   const handleDelete = () => {
-    categoryService.DELETE(categoryDelete.itemId, session?.user.accessToken);
+    orderService.DELETE(orderDelete.itemId, session?.user?.accessToken);
     onClose();
-    toast.success("Categoria excluída com sucesso");
+    toast.success("Pedido excluído com sucesso");
   };
+
+  useEffect(() => {
+    useOrderDeleteModal.setState({ isDelete: false });
+  }, [isOpen]);
 
   return (
     <Modal
@@ -39,7 +43,7 @@ const CategoryDelete = ({ isOpen, onClose }: CategoryDeleteProps) => {
       header={
         <>
           <h1 className="text-primary-blue font-bold text-xl">
-            Excluir categoria
+            Excluir pedido
           </h1>
         </>
       }
@@ -48,21 +52,21 @@ const CategoryDelete = ({ isOpen, onClose }: CategoryDeleteProps) => {
           <div className="flex flex-col justify-center items-center">
             <MdDelete size={100} color="red" />
             <div className="my-4 text-lg">
-              <p>Deseja mesmo excluir essa categoria?</p>
+              <p>Deseja mesmo excluir esse pedido?</p>
             </div>
             <div className="flex flex-row items-center my-6">
               <Button
                 size={"lg"}
                 onClick={() => {
+                  useOrderDeleteModal.setState({ isDelete: true });
                   handleDelete();
-                  useCategoryDeleteModal.setState({ isDelete: true });
                 }}
                 className="bg-red-600 hover:bg-red-700 mr-5 w-full"
               >
                 Excluir
               </Button>
               <Button
-                onClick={() => categoryDelete.onClose()}
+                onClick={() => orderDelete.onClose()}
                 size={"lg"}
                 variant={"outline"}
               >
@@ -76,4 +80,4 @@ const CategoryDelete = ({ isOpen, onClose }: CategoryDeleteProps) => {
   );
 };
 
-export default CategoryDelete;
+export default OrderDelete;
