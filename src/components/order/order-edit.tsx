@@ -121,6 +121,10 @@ const OrderEdit = ({ isOpen, onClose }: CategoryUpdateProps) => {
     }
   };
 
+  useEffect(() => {
+    useEditOrderModal.setState({ isUpdate: false });
+  }, [isOpen]);
+
   return (
     <Modal
       isOpen={isOpen}

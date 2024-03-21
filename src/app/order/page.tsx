@@ -29,6 +29,8 @@ import { useOrderService } from "@/services/order.service";
 import { Order } from "@/models/order";
 import OrderEdit from "@/components/order/order-edit";
 import useEditOrderModal from "@/utils/hooks/order/useEditOrderModal";
+import OrderDelete from "@/components/order/order-delete";
+import useOrderDeleteModal from "@/utils/hooks/order/useDeleteOrderModal";
 
 const Order = () => {
   const [loading, setLoading] = useState(false);
@@ -38,8 +40,9 @@ const Order = () => {
   const categoryService = useCategoryService();
   const orderService = useOrderService();
   const categoryRegisterModal = useCategoryRegisterModal();
-  const categoryEditModal = useCategoryUpdateModal();
+
   const orderEditModal = useEditOrderModal();
+  const orderDeleteModal = useOrderDeleteModal();
   const categoryDeleteModal = useCategoryDeleteModal();
 
   useEffect(() => {
@@ -60,6 +63,7 @@ const Order = () => {
     session?.user?.accessToken,
     categoryRegisterModal.isRegister,
     orderEditModal.isUpdate,
+    orderDeleteModal.isDelete,
     categoryDeleteModal.isDelete,
   ]);
 
@@ -76,8 +80,8 @@ const Order = () => {
   }, []);
 
   const handleDelete = (id: string | undefined) => {
-    useCategoryDeleteModal.setState({ itemId: id });
-    categoryDeleteModal.onOpen();
+    useOrderDeleteModal.setState({ itemId: id });
+    orderDeleteModal.onOpen();
   };
 
   const handleEdit = (id: string | undefined) => {
@@ -98,7 +102,7 @@ const Order = () => {
           </button>
           <button
             className="text-red-500 hover:text-red-600 transition-all duration-200"
-            onClick={() => handleDelete(props.data.category?.id)}
+            onClick={() => handleDelete(props.data.id)}
           >
             <MdDelete className="" size={36} />
           </button>
@@ -213,18 +217,15 @@ const Order = () => {
 
   return (
     <>
-      <CategoryDelete
-        isOpen={categoryDeleteModal.isOpen}
-        onClose={categoryDeleteModal.onClose}
-      />
       <OrderEdit
         isOpen={orderEditModal.isOpen}
         onClose={orderEditModal.onClose}
       />
-      <CategoryRegister
-        isOpen={categoryRegisterModal.isOpen}
-        onClose={categoryRegisterModal.onClose}
+      <OrderDelete
+        isOpen={orderDeleteModal.isOpen}
+        onClose={orderDeleteModal.onClose}
       />
+
       <ContentMain title="Pedidos">
         <div className="my-10 ">
           {loading === true ? (
