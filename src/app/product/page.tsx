@@ -119,6 +119,11 @@ const Product = () => {
     return str.slice(0, num) + "...";
   }
 
+  const formatter = new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
+
   return (
     <>
       <ProductDelete
@@ -221,6 +226,11 @@ const Product = () => {
                       </h5>
                       <p className="block font-sans text-base antialiased font-light leading-relaxed text-inherit text-ellipsis">
                         {truncate(product?.description, 60)}
+                      </p>
+                    </div>
+                    <div className="p-2">
+                      <p className="font-bold">
+                        {formatter.format(product?.price)}
                       </p>
                     </div>
                     <div className="p-2 mt-auto flex flex-row items-center justify-between">

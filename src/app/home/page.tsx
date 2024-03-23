@@ -6,9 +6,11 @@ import ContentMain from "@/components/content-main";
 import { useCategoryService } from "@/services/category.service";
 import { useProductService } from "@/services/product.service";
 import Loader from "@/components/loader";
+import { useRouter } from "next/navigation";
 
 const Home = () => {
   const { data: session } = useSession();
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [countProducts, setCountProducts] = useState(0);
   const [countCategories, setCountCategories] = useState<number | undefined>(0);
@@ -43,7 +45,10 @@ const Home = () => {
   return (
     <ContentMain title="Home">
       <div className="grid grid-cols-1 lg:grid-cols-2 w-full gap-y-8 lg:gap-64 mt-12">
-        <div className="bg-green-primary p-4 rounded-lg flex flex-col justify-center items-center ">
+        <div
+          onClick={() => router.push("/product")}
+          className="bg-green-primary p-4 rounded-lg flex flex-col justify-center items-center cursor-pointer"
+        >
           {loading ? (
             <Loader />
           ) : (
@@ -57,7 +62,10 @@ const Home = () => {
           <h1 className="text-white text-xl">Pedidos </h1>
           <h3 className="text-white text-2xl mt-5">4</h3>
         </div> */}
-        <div className="bg-green-primary p-4 rounded-lg flex flex-col justify-center items-center ">
+        <div
+          onClick={() => router.push("/category")}
+          className="bg-green-primary p-4 rounded-lg flex flex-col justify-center items-center cursor-pointer"
+        >
           {loading ? (
             <Loader />
           ) : (

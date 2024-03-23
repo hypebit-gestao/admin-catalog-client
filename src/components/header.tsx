@@ -35,14 +35,9 @@ const Header = () => {
         </h1>
       </div>
       <div className="flex items-center">
-        <div className="mr-6 flex">
+        <div onClick={onLogout} className="mr-6 flex cursor-pointer">
           <h3 className="mr-4 text-white">Sair</h3>
-          <CgLogOut
-            className="cursor-pointer"
-            onClick={onLogout}
-            size={28}
-            color="white"
-          />
+          <CgLogOut className="cursor-pointer" size={28} color="white" />
         </div>
         <div onClick={() => profileModal.onOpen()} className="cursor-pointer">
           <Avatar className="bg-white p-2 w-auto h-auto">
