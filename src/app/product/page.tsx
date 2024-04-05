@@ -149,7 +149,7 @@ const Product = () => {
           />
         </div>
 
-        <div className="w-[15%]">
+        <div className="w-[25%]">
           <Form {...form}>
             <FormField
               control={form.control}

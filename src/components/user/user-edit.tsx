@@ -235,36 +235,40 @@ const UserEdit = ({ isOpen, onClose }: UserEditProps) => {
           })
           .then(async (res: ReturnUpload | undefined) => {
             if (Array.isArray(res) && res.length > 0 && res[0].imageUrl) {
-              await userService.PUT(
-                {
-                  ...data,
-                  user_type: 1,
-                  status: "ACTIVE",
-                  payer_id: 0,
-                  address_id: user?.address_id,
-                  image_url: res[0].imageUrl,
-                  id: user?.id,
-                  shipping_taxes: user?.shipping_taxes,
-                  shipping_type: user?.shipping_type,
-                },
-                session?.user?.accessToken
-              );
+              if (user?.id) {
+                await userService.PUT(
+                  {
+                    id: user?.id,
+                    ...data,
+                    user_type: 1,
+                    status: "ACTIVE",
+                    payer_id: user?.payer_id,
+                    address_id: user?.address_id,
+                    image_url: res[0].imageUrl,
+                    shipping_taxes: user?.shipping_taxes,
+                    shipping_type: user?.shipping_type,
+                  },
+                  session?.user?.accessToken
+                );
+              }
             }
           });
       } else {
-        await userService.PUT(
-          {
-            ...data,
-            user_type: 1,
-            payer_id: 0,
-            status: "ACTIVE",
-            address_id: user?.address_id,
-            id: user?.id,
-            shipping_taxes: user?.shipping_taxes,
-            shipping_type: user?.shipping_type,
-          },
-          session?.user.accessToken
-        );
+        if (user?.id) {
+          await userService.PUT(
+            {
+              id: user?.id,
+              ...data,
+              user_type: 1,
+              payer_id: user?.payer_id,
+              status: "ACTIVE",
+              address_id: user?.address_id,
+              shipping_taxes: user?.shipping_taxes,
+              shipping_type: user?.shipping_type,
+            },
+            session?.user.accessToken
+          );
+        }
       }
       useEditUserModal.setState({ isUpdate: true });
       toast.success(`${data.name} atualizado com sucesso`);
