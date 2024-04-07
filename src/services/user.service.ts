@@ -1,5 +1,9 @@
 import { fetchWrapper } from "../utils/functions/fetch";
-import { User, UserShippingPut } from "../models/user";
+import {
+  User,
+  UserPersonalizationColorPut,
+  UserShippingPut,
+} from "../models/user";
 
 export const useUserService = () => {
   const POST = async (
@@ -56,10 +60,14 @@ export const useUserService = () => {
   };
 
   const PUT = async (
-    data: User | UserShippingPut,
+    data: User | UserShippingPut | UserPersonalizationColorPut,
     session: string | any
-  ): Promise<User | UserShippingPut | undefined> => {
-    const response = await fetchWrapper<User | UserShippingPut>(`user`, {
+  ): Promise<
+    User | UserShippingPut | UserPersonalizationColorPut | undefined
+  > => {
+    const response = await fetchWrapper<
+      User | UserShippingPut | UserPersonalizationColorPut
+    >(`user`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",

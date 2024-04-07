@@ -13,10 +13,16 @@ export interface User {
   shipping_type: string | undefined | null;
   shipping_taxes: number | undefined | null;
   image_url?: string | null;
+  background_color?: string | null;
 }
 
 export interface UserShippingPut {
   id?: string;
   shipping_type: string | undefined;
   shipping_taxes: number | undefined;
+}
+
+export interface UserPersonalizationColorPut {
+  id?: string;
+  background_color: string | null;
 }
