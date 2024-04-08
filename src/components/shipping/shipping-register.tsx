@@ -23,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { Input } from "@/components/ui/input";
+import { Input, InputCurrency } from "@/components/ui/input";
 import { Button } from "../ui/button";
 
 import { useSession } from "next-auth/react";
@@ -43,6 +43,7 @@ import useCategoryUpdateModal from "@/utils/hooks/category/useUpdateCategoryModa
 import useCategoryDeleteModal from "@/utils/hooks/category/useDeleteCategoryModal";
 import { useUserService } from "@/services/user.service";
 import useShippingRegisterModal from "@/utils/hooks/shipping/useRegisterShippingModal";
+import { User } from "@/models/user";
 
 interface ShippingRegisterProps {
   isOpen: boolean;
@@ -51,7 +52,7 @@ interface ShippingRegisterProps {
 
 const formSchema = z.object({
   shipping_type: z.string().min(1, "Tipo do frete é obrigatório"),
-  shipping_taxes: z.number(),
+  shipping_taxes: z.string(),
 });
 
 const ShippingRegister = ({ isOpen, onClose }: ShippingRegisterProps) => {
@@ -60,7 +61,7 @@ const ShippingRegister = ({ isOpen, onClose }: ShippingRegisterProps) => {
   const inputFileRef = useRef<any>(null);
   const [loading, setLoading] = useState(false);
   const [filePreview, setFilePreview] = useState<any>(null);
-
+  const [user, setUser] = useState<User>();
   const categoryService = useCategoryService();
   const userService = useUserService();
   const uploadService = useUploadService();
@@ -70,9 +71,23 @@ const ShippingRegister = ({ isOpen, onClose }: ShippingRegisterProps) => {
     resolver: zodResolver(formSchema),
     defaultValues: {
       shipping_type: "",
-      shipping_taxes: 0,
+      shipping_taxes: "",
     },
   });
+
+  useEffect(() => {
+    const getUser = async () => {
+      const fetchedUser = await userService.GETBYID(
+        session?.user?.user?.id,
+        session?.user.accessToken
+      );
+      if (fetchedUser) {
+        setUser(fetchedUser);
+      }
+    };
+
+    getUser();
+  }, [isOpen]);
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     if (loading) return;
@@ -83,7 +98,7 @@ const ShippingRegister = ({ isOpen, onClose }: ShippingRegisterProps) => {
         {
           id: session?.user?.user?.id,
           shipping_type: data.shipping_type,
-          shipping_taxes: data.shipping_taxes,
+          shipping_taxes: Number(data.shipping_taxes),
         },
         session?.user.accessToken
       )
@@ -93,7 +108,6 @@ const ShippingRegister = ({ isOpen, onClose }: ShippingRegisterProps) => {
         toast.success("Frete cadastrado com sucesso");
       })
       .catch((err) => {
-        console.log(err);
         setLoading(false);
       });
   };
@@ -130,6 +144,13 @@ const ShippingRegister = ({ isOpen, onClose }: ShippingRegisterProps) => {
 
   const shippingType = watch("shipping_type");
 
+  useEffect(() => {
+    if (user) {
+      setCustomValue("shipping_type", String(user.shipping_type));
+      setCustomValue("shipping_taxes", String(user.shipping_taxes));
+    }
+  }, [user, isOpen]);
+
   return (
     <Modal
       isOpen={isOpen}
@@ -155,8 +176,8 @@ const ShippingRegister = ({ isOpen, onClose }: ShippingRegisterProps) => {
                       <FormItem>
                         <FormLabel>Tipo de frete</FormLabel>
                         <Select
+                          defaultValue={String(shippingType)}
                           onValueChange={field.onChange}
-                          defaultValue={"2"}
                         >
                           <FormControl>
                             <SelectTrigger>
@@ -186,23 +207,10 @@ const ShippingRegister = ({ isOpen, onClose }: ShippingRegisterProps) => {
                             Taxa de Entrega
                           </FormLabel>
                           <FormControl>
-                            <Input
+                            <InputCurrency
                               placeholder="Valor da taxa"
-                              currencyConfig={{
-                                prefix: "R$",
-                                decimalSeparator: ",",
-                                groupSeparator: ".",
-                                intlConfig: {
-                                  locale: "pt-BR",
-                                  currency: "BRL",
-                                },
-                                decimalsLimit: 2,
-                              }}
-                              onValueChange={(
-                                value: any,
-                                name: any,
-                                values: any
-                              ) => setValue("shipping_taxes", values.float)}
+                              type="number"
+                              {...field}
                             />
                           </FormControl>
                           <FormMessage />

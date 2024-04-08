@@ -15,24 +15,10 @@ import Loader from "@/components/loader";
 
 import UserRegister from "@/components/user/user-register";
 
-import useCategoryRegisterModal from "@/utils/hooks/category/useRegisterCategoryModal";
-import { useCategoryService } from "@/services/category.service";
-import { Category } from "@/models/category";
-import CategoryRegister from "@/components/category/category-register";
-import { MdDelete, MdEdit } from "react-icons/md";
-import useCategoryUpdateModal from "@/utils/hooks/category/useUpdateCategoryModal";
-import CategoryEdit from "@/components/category/category-edit";
-import useCategoryDeleteModal from "@/utils/hooks/category/useDeleteCategoryModal";
-import CategoryDelete from "@/components/category/category-delete";
-import Image from "next/image";
-import { useOrderService } from "@/services/order.service";
-import { Order } from "@/models/order";
-import OrderEdit from "@/components/order/order-edit";
-import useEditOrderModal from "@/utils/hooks/order/useEditOrderModal";
 import { Button } from "@/components/ui/button";
 import useShippingRegisterModal from "@/utils/hooks/shipping/useRegisterShippingModal";
 import ShippingRegister from "@/components/shipping/shipping-register";
-import usePersonalizationStoreModal from "@/utils/hooks/shipping copy/usePersonalizationStoreModal";
+import usePersonalizationStoreModal from "@/utils/hooks/pesonalization-store/usePersonalizationStoreModal";
 import PersonalizationStore from "@/components/personalization_store/personalization-store";
 
 const Configurations = () => {
