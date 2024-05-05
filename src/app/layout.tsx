@@ -18,6 +18,8 @@ import UserEdit from "@/components/user/user-edit";
 import useEditUserModal from "@/utils/hooks/user/useEditUserModal";
 import ForgotPassword from "@/components/forgot-password";
 import useForgotPasswordModal from "@/utils/hooks/forgotPasswordModal";
+import RenewalSubscription from "@/components/renewal-subscription";
+import useRenewalSubscriptionModal from "@/utils/hooks/renewalSubscriptionModal";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -35,6 +37,7 @@ export default function RootLayout({
   const userEdit = useEditUserModal();
   const profileModal = useProfileModal();
   const forgotPasswordModal = useForgotPasswordModal();
+  const renewalSubscriptionModal = useRenewalSubscriptionModal();
   return (
     <html lang="en">
       <AuthProvider>
@@ -47,6 +50,10 @@ export default function RootLayout({
           <ForgotPassword
             isOpen={forgotPasswordModal.isOpen}
             onClose={forgotPasswordModal.onClose}
+          />
+          <RenewalSubscription
+            isOpen={renewalSubscriptionModal.isOpen}
+            onClose={renewalSubscriptionModal.onClose}
           />
           <UserEdit isOpen={userEdit.isOpen} onClose={userEdit.onClose} />
           <Header />

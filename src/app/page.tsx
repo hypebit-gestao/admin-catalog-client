@@ -26,6 +26,7 @@ import logo from "../../public/images/logo.png";
 import { MdEmail, MdPassword, MdSecurity } from "react-icons/md";
 import { CiLock } from "react-icons/ci";
 import { TfiEmail } from "react-icons/tfi";
+import useRenewalSubscriptionModal from "@/utils/hooks/renewalSubscriptionModal";
 
 const formSchema = z.object({
   email: z.string().email("E-mail inválido").min(1, "E-mail é obrigatório"),
@@ -36,6 +37,7 @@ export default function Home() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const forgotPasswordModal = useForgotPasswordModal();
+  const renewalSubscriptionModal = useRenewalSubscriptionModal();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -57,7 +59,14 @@ export default function Home() {
         toast.success("Logado com sucesso");
       } else {
         setLoading(false);
-        toast.error(callback.error);
+        if (callback.error === "33") {
+          toast.error(
+            "Conta inativa. Entre em contato com o suporte para obter assistência."
+          );
+          renewalSubscriptionModal.onOpen();
+        } else {
+          toast.error(callback.error);
+        }
       }
     });
   };
