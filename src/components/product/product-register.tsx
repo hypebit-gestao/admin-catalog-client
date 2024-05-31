@@ -182,10 +182,8 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
     getUser();
     getCategories();
   }, [session?.user?.accessToken]);
-  console.log("FIles: ", filePreviews);
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     data.images = filePreviews.map((preview) => preview.file);
-    console.log("Data: ", data);
 
     if (loading) return;
     setLoading(true);
@@ -539,7 +537,6 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                               multiple
                             />
                           </FormControl>
-                          {console.log("filePreviews", filePreviews)}
                           <div className="flex flex-row items-center w-full gap-6 ">
                             {filePreviews.map((preview, index) => (
                               <div

@@ -229,14 +229,8 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
     getCategories();
   }, [session?.user?.accessToken, productEditModal.itemId]);
 
-  console.log(
-    "FIlePreviews: ",
-    filePreviews.map((preview) => preview)
-  );
-
   const onUpdate = async (data: z.infer<typeof formSchema>) => {
     data.images = filePreviews.map((preview) => preview);
-    console.log("Data: ", data);
     if (loading) return;
     setLoading(true);
 
@@ -244,25 +238,43 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
       const uploadedImagesUrls: string[] = [];
 
       // Verifique se data.images não é null ou undefined antes de iterar
-      if (data.images && filePreviews?.length !== product?.images?.length) {
+      if (data.images) {
         // Upload files
         for (let i = 0; i < data.images.length; i++) {
           const file = data.images[i];
-          const res: any = await uploadService.POST({
-            file,
-            folderName: session?.user?.user?.name,
-          });
+          let res;
+
+          if (file?.file?.size !== undefined) {
+            res = await uploadService.POST({
+              file: file?.file,
+              folderName: session?.user?.user?.name,
+            });
+          }
 
           if (Array.isArray(res) && res.length > 0) {
             uploadedImagesUrls.push(res[0].imageUrl);
           } else {
-            console.error(
-              "A resposta do serviço de upload não tem a estrutura esperada:",
-              res
-            );
           }
         }
       }
+      await productService.PUT(
+        {
+          id: product?.id,
+          name: data.name,
+          description: data.description,
+          category_id: data.category_id !== "" ? data.category_id : null,
+          images: [...uploadedImagesUrls, ...(product?.images || [])],
+          currency: data.currency,
+          price: Number(data.price),
+          promotion_price: data.isPromotion
+            ? Number(data.promotion_price)
+            : null,
+          user_id: session?.user?.user?.id,
+          featured: data.featured,
+          active: data.active,
+        },
+        session?.user?.accessToken
+      );
 
       setLoading(false);
       useEditProductModal.setState({ isUpdate: true });
@@ -572,7 +584,7 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                                     <>
                                       <div className="flex flex-col items-center w-full ">
                                         <Image
-                                          className="w-[100px] h-[100px]"
+                                          className="w-[100px] h-[100px] border border-gray-200 rounded-md"
                                           src={
                                             typeof preview === "string"
                                               ? preview
