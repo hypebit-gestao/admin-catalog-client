@@ -80,7 +80,7 @@ export const useProductService = () => {
   };
 
   const PUT = async (
-    data: Product,
+    data: Product | any,
     session: string | any
   ): Promise<Product | undefined> => {
     const response = await fetchWrapper<Product>(`product`, {

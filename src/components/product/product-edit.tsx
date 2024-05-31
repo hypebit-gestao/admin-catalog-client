@@ -47,7 +47,8 @@ import Loader from "../loader";
 import { Textarea } from "../ui/textarea";
 import useProductDeleteModal from "@/utils/hooks/product/useDeleteProductModal";
 import NumberFormat from "react-number-format";
-import { LuMoveDown, LuMoveUp } from "react-icons/lu";
+import { LuMoveDown, LuMoveLeft, LuMoveRight, LuMoveUp } from "react-icons/lu";
+import { IoMdAdd } from "react-icons/io";
 
 interface ProductRegisterProps {
   isOpen: boolean;
@@ -142,22 +143,24 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
     setProduct({ ...(product as Product), images: updatedImages });
   };
 
-  const handleMoveUp = (index: any) => {
+  const handleMoveUp = async (index: any) => {
     const newPreviews = [...filePreviews];
     const temp = newPreviews[index];
     newPreviews[index] = newPreviews[index - 1];
     newPreviews[index - 1] = temp;
     setFilePreviews(newPreviews);
-    setProduct({ ...(product as Product), images: newPreviews });
+
+    // setProduct({ ...(product as Product), images: newPreviews });
   };
 
-  const handleMoveDown = (index: any) => {
+  const handleMoveDown = async (index: any) => {
     const newPreviews = [...filePreviews];
     const temp = newPreviews[index];
     newPreviews[index] = newPreviews[index + 1];
     newPreviews[index + 1] = temp;
     setFilePreviews(newPreviews);
-    setProduct({ ...(product as Product), images: newPreviews });
+
+    // setProduct({ ...(product as Product), images: newPreviews });
   };
 
   useEffect(() => {
@@ -190,8 +193,10 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
           setCustomValue("user_id", fetchedProduct.user_id);
 
           if (fetchedProduct.images) {
-            setFilePreviews(fetchedProduct.images);
+            const previews = fetchedProduct.images.map((image) => image);
+            setFilePreviews(previews as any);
           }
+
           setLoading(false);
         }
       }
@@ -224,7 +229,14 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
     getCategories();
   }, [session?.user?.accessToken, productEditModal.itemId]);
 
+  console.log(
+    "FIlePreviews: ",
+    filePreviews.map((preview) => preview)
+  );
+
   const onUpdate = async (data: z.infer<typeof formSchema>) => {
+    data.images = filePreviews.map((preview) => preview);
+    console.log("Data: ", data);
     if (loading) return;
     setLoading(true);
 
@@ -232,7 +244,7 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
       const uploadedImagesUrls: string[] = [];
 
       // Verifique se data.images não é null ou undefined antes de iterar
-      if (data.images) {
+      if (data.images && filePreviews?.length !== product?.images?.length) {
         // Upload files
         for (let i = 0; i < data.images.length; i++) {
           const file = data.images[i];
@@ -252,24 +264,6 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
         }
       }
 
-      await productService.PUT(
-        {
-          id: product?.id,
-          name: data.name,
-          description: data.description,
-          category_id: data.category_id !== "" ? data.category_id : null,
-          images: [...uploadedImagesUrls, ...(product?.images || [])],
-          currency: data.currency,
-          price: Number(data.price),
-          promotion_price: data.isPromotion
-            ? Number(data.promotion_price)
-            : null,
-          user_id: session?.user?.user?.id,
-          featured: data.featured,
-          active: data.active,
-        },
-        session?.user?.accessToken
-      );
       setLoading(false);
       useEditProductModal.setState({ isUpdate: true });
       toast.success(`${data.name} atualizado com sucesso`);
@@ -530,6 +524,7 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                             <FormControl>
                               <Input
                                 {...fieldProps}
+                                id="images"
                                 placeholder="Imagens"
                                 type="file"
                                 accept="image/*, application/pdf"
@@ -559,11 +554,11 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                                 multiple
                               />
                             </FormControl>
-                            <div className="flex flex-col">
+                            <div className="flex flex-row items-center w-full gap-6 ">
                               {filePreviews.map((preview, index) => (
                                 <div
                                   key={index}
-                                  className="relative mt-3 w-auto lg:w-[300px]"
+                                  className="relative mt-3 w-auto lg:w-[100px]"
                                 >
                                   <div
                                     className="absolute top-0 right-0 cursor-pointer"
@@ -572,20 +567,25 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                                     <TiDelete color="red" size={24} />
                                   </div>
 
-                                  {typeof preview === "string" ? (
+                                  {typeof preview === "string" ||
+                                  typeof preview === "object" ? (
                                     <>
-                                      <div className="flex flex-row items-center w-fulll">
+                                      <div className="flex flex-col items-center w-full ">
                                         <Image
-                                          className="w-[300px] h-[300px]"
-                                          src={preview}
+                                          className="w-[100px] h-[100px]"
+                                          src={
+                                            typeof preview === "string"
+                                              ? preview
+                                              : preview?.preview
+                                          }
                                           alt={`Preview ${index + 1}`}
-                                          width={300}
-                                          height={300}
+                                          width={100}
+                                          height={100}
                                         />
-                                        <div className="flex flex-col ml-8">
+                                        <div className="flex flex-col">
                                           {index < filePreviews.length - 1 && (
-                                            <div className="mb-5 cursor-pointer">
-                                              <LuMoveDown
+                                            <div className="cursor-pointer">
+                                              <LuMoveRight
                                                 onClick={() =>
                                                   handleMoveDown(index)
                                                 }
@@ -597,7 +597,7 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
 
                                           {index > 0 && (
                                             <div className="cursor-pointer">
-                                              <LuMoveUp
+                                              <LuMoveLeft
                                                 onClick={() =>
                                                   handleMoveUp(index)
                                                 }
@@ -611,15 +611,30 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                                     </>
                                   ) : (
                                     <Image
-                                      className="w-[300px] h-[300px]"
+                                      className="w-[100px] h-[100px]"
                                       src={URL.createObjectURL(preview.file)}
                                       alt={`Preview ${index + 1}`}
-                                      width={300}
-                                      height={300}
+                                      width={100}
+                                      height={100}
                                     />
                                   )}
                                 </div>
                               ))}
+                              {filePreviews.length > 0 && (
+                                <button
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    const inputImages =
+                                      document.getElementById("images");
+                                    if (inputImages) {
+                                      inputImages.click();
+                                    }
+                                  }}
+                                  className="px-3 bg-green-primary rounded-md h-[40px]"
+                                >
+                                  <IoMdAdd size={24} color="#fff" />
+                                </button>
+                              )}
                             </div>
                             <FormMessage />
                           </FormItem>

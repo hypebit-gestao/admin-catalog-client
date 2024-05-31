@@ -30,7 +30,7 @@ import { useCategoryService } from "@/services/category.service";
 import { Category } from "@/models/category";
 import { User } from "@/models/user";
 import { TbCurrencyReal } from "react-icons/tb";
-import { LuMoveDown, LuMoveUp } from "react-icons/lu";
+import { LuMoveDown, LuMoveLeft, LuMoveRight, LuMoveUp } from "react-icons/lu";
 
 import {
   Select,
@@ -49,7 +49,7 @@ import Loader from "../loader";
 import useProductDeleteModal from "@/utils/hooks/product/useDeleteProductModal";
 import useEditProductModal from "@/utils/hooks/product/useEditProductModal";
 import CurrencyInput from "react-currency-input-field";
-import { IoMdCash } from "react-icons/io";
+import { IoMdAdd, IoMdCash } from "react-icons/io";
 
 interface ProductRegisterProps {
   isOpen: boolean;
@@ -90,6 +90,7 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
   const [users, setUsers] = useState<User>();
   const productRegisterModal = useProductRegisterModal();
   const router = useRouter();
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [filePreviews, setFilePreviews] = useState<any[]>([]);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -181,10 +182,11 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
     getUser();
     getCategories();
   }, [session?.user?.accessToken]);
-
+  console.log("FIles: ", filePreviews);
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
-    // console.log("Data: ", data);
-    // return;
+    data.images = filePreviews.map((preview) => preview.file);
+    console.log("Data: ", data);
+
     if (loading) return;
     setLoading(true);
 
@@ -507,11 +509,11 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                           <FormControl>
                             <Input
                               {...fieldProps}
+                              id="images"
                               placeholder="Imagens"
                               type="file"
                               accept="image/*, application/pdf"
                               onChange={(event: any) => {
-                                onChange(event.target.files);
                                 const files = event.target.files;
 
                                 if (files && files.length > 0) {
@@ -531,16 +533,18 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                                     ...filePreviews,
                                     ...newPreviews,
                                   ]);
+                                  // onChange(event.target.files);
                                 }
                               }}
                               multiple
                             />
                           </FormControl>
-                          <div className="flex flex-col ">
+                          {console.log("filePreviews", filePreviews)}
+                          <div className="flex flex-row items-center w-full gap-6 ">
                             {filePreviews.map((preview, index) => (
                               <div
                                 key={index}
-                                className="relative mt-3 w-[300px]"
+                                className="relative mt-3 w-[100px]"
                               >
                                 <div
                                   className="absolute top-0 right-0 cursor-pointer"
@@ -549,24 +553,25 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                                   <TiDelete color="red" size={24} />
                                 </div>
 
-                                <div className="flex flex-row items-center">
+                                <div className="flex flex-col items-center w-full ">
                                   {preview.file.type.startsWith("image") ? (
                                     <Image
-                                      className="w-[300px] h-[300px]"
+                                      className="w-[100px] h-[100px] border border-gray-200 rounded-md"
                                       src={preview.preview}
                                       alt={`Preview ${index + 1}`}
-                                      width={300}
-                                      height={300}
+                                      width={100}
+                                      height={100}
                                     />
                                   ) : (
                                     <p>
                                       Arquivo selecionado: {preview.preview}
                                     </p>
                                   )}
-                                  <div className="flex flex-col ml-8">
+
+                                  <div className="flex flex-col">
                                     {index < filePreviews.length - 1 && (
-                                      <div className="mb-5 cursor-pointer">
-                                        <LuMoveDown
+                                      <div className="cursor-pointer">
+                                        <LuMoveRight
                                           onClick={() => handleMoveDown(index)}
                                           size={24}
                                           color="#2c6e49"
@@ -576,7 +581,7 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
 
                                     {index > 0 && (
                                       <div className="cursor-pointer">
-                                        <LuMoveUp
+                                        <LuMoveLeft
                                           onClick={() => handleMoveUp(index)}
                                           size={24}
                                           color="#2c6e49"
@@ -587,6 +592,21 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                                 </div>
                               </div>
                             ))}
+                            {filePreviews.length > 0 && (
+                              <button
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  const inputImages =
+                                    document.getElementById("images");
+                                  if (inputImages) {
+                                    inputImages.click();
+                                  }
+                                }}
+                                className="px-3 bg-green-primary rounded-md h-[40px]"
+                              >
+                                <IoMdAdd size={24} color="#fff" />
+                              </button>
+                            )}
                           </div>
                           <FormMessage />
                         </FormItem>
