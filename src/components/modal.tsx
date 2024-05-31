@@ -87,7 +87,7 @@ bg-neutral/70
                 scrollbar-none
             translate
             max-h-[70vh]
-            md:max-h-[60vh]
+            md:max-h-[95vh]
             lg:h-auto
             md:h-auto
             border-0
