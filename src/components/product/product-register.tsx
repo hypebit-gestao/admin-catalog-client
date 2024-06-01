@@ -323,8 +323,6 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
     })),
   ];
 
-  console.log("Sizes: ", sizeIds);
-
   return (
     <Modal
       isOpen={isOpen}

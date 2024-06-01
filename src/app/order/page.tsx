@@ -1,10 +1,8 @@
 "use client";
 
-import * as z from "zod";
 import { useSession } from "next-auth/react";
 import React, { useEffect, useState } from "react";
 
-import { IoIosAddCircle } from "react-icons/io";
 import ContentMain from "@/components/content-main";
 import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles//ag-grid.css";
@@ -13,29 +11,23 @@ import { AG_GRID_LOCALE_PT_BR } from "@/utils/locales/ag-grid";
 import { RowNode } from "ag-grid-community";
 import Loader from "@/components/loader";
 
-import UserRegister from "@/components/user/user-register";
-
 import useCategoryRegisterModal from "@/utils/hooks/category/useRegisterCategoryModal";
 import { useCategoryService } from "@/services/category.service";
 import { Category } from "@/models/category";
-import CategoryRegister from "@/components/category/category-register";
 import { MdDelete, MdEdit } from "react-icons/md";
-import useCategoryUpdateModal from "@/utils/hooks/category/useUpdateCategoryModal";
-import CategoryEdit from "@/components/category/category-edit";
 import useCategoryDeleteModal from "@/utils/hooks/category/useDeleteCategoryModal";
-import CategoryDelete from "@/components/category/category-delete";
-import Image from "next/image";
 import { useOrderService } from "@/services/order.service";
-import { Order } from "@/models/order";
+import { Order as OrderModel } from "@/models/order";
 import OrderEdit from "@/components/order/order-edit";
 import useEditOrderModal from "@/utils/hooks/order/useEditOrderModal";
 import OrderDelete from "@/components/order/order-delete";
 import useOrderDeleteModal from "@/utils/hooks/order/useDeleteOrderModal";
+import ExportToExcel from "@/utils/tools/excelExport";
 
 const Order = () => {
   const [loading, setLoading] = useState(false);
   const { data: session } = useSession();
-  const [rowData, setRowData] = useState<Category[]>([]);
+  const [rowData, setRowData] = useState<OrderModel[]>([]);
   const [screenWidth, setScreenWidth] = useState(window.innerWidth);
   const categoryService = useCategoryService();
   const orderService = useOrderService();
@@ -54,7 +46,7 @@ const Order = () => {
       );
       if (fetchedOrder) {
         setLoading(false);
-        setRowData(fetchedOrder as Order[]);
+        setRowData(fetchedOrder as OrderModel[]);
       }
     };
 
@@ -174,47 +166,6 @@ const Order = () => {
     },
   ]);
 
-  // useEffect(() => {
-  //   if (screenWidth < 768) {
-  //     setColDefs([
-  //       {
-  //         field: "name",
-  //         flex: 1,
-  //         headerName: "Nome",
-  //         filter: true,
-  //         floatingFilter: true,
-  //       },
-  //       {
-  //         field: "actions",
-  //         headerName: "Ações",
-  //         width: 200,
-  //         cellRenderer: ActionsRenderer,
-  //       },
-  //     ]);
-  //   } else {
-  //     setColDefs([
-  //       {
-  //         field: "category.name",
-  //         flex: 1,
-  //         headerName: "Nome",
-  //         filter: true,
-  //         floatingFilter: true,
-  //       },
-  //       {
-  //         field: "description",
-  //         flex: 1,
-  //         headerName: "Descrição",
-  //       },
-  //       {
-  //         field: "actions",
-  //         headerName: "Ações",
-  //         width: 200,
-  //         cellRenderer: ActionsRenderer,
-  //       },
-  //     ]);
-  //   }
-  // }, [screenWidth]);
-
   return (
     <>
       <OrderEdit
@@ -299,6 +250,29 @@ const Order = () => {
                   paginationPageSize={10}
                   localeText={AG_GRID_LOCALE_PT_BR}
                 />
+                <div>
+                  <ExportToExcel
+                    currencyColumns={[3]}
+                    fileName={"Pedidos"}
+                    className="bg-green-primary text-white px-4 py-3 rounded-md mt-4"
+                    // icon={
+                    //   <Icon.DocumentAttachOutline
+                    //     width={"20px"}
+                    //     height={"20px"}
+                    //     color={"#116d5c"}
+                    //   />
+                    // }
+                    label
+                    excelData={rowData.map((item: OrderModel) => {
+                      return {
+                        "Nome do cliente": item.customer_name,
+                        "Status do pedido": formatterStatus(item.status),
+                        Observação: item.observation,
+                        "Total do pedido": item.total,
+                      };
+                    })}
+                  />
+                </div>
               </div>
             </>
           )}
