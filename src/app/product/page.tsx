@@ -21,7 +21,7 @@ import { User } from "next-auth";
 import UserRegister from "@/components/user/user-register";
 import useUserRegisterModal from "@/utils/hooks/user/useRegisterUserModal";
 import { useProductService } from "@/services/product.service";
-import { Product } from "@/models/product";
+import { Product as ProductModel } from "@/models/product";
 import ProductRegister from "@/components/product/product-register";
 import useProductRegisterModal from "@/utils/hooks/product/useRegisterProductModal";
 import Image from "next/image";
@@ -53,7 +53,7 @@ import { Category } from "@/models/category";
 const Product = () => {
   const [loading, setLoading] = useState(false);
   const { data: session } = useSession();
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<ProductModel[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const userService = useUserService();
   const productService = useProductService();

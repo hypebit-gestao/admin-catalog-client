@@ -267,9 +267,6 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
     getCategories();
   }, [session?.user?.accessToken, productEditModal.itemId]);
 
-  console.log("TAM: ", product?.product_size?.length);
-  console.log("TAMOUTRO: ", form.watch("size_ids")?.length);
-
   const onUpdate = async (data: z.infer<typeof formSchema>) => {
     data.images = filePreviews.map((preview) => preview);
     if (loading) return;
@@ -385,8 +382,6 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
       label: size.size,
     })),
   ];
-
-  console.log("sizeIds: ", watch("size_ids"));
 
   return (
     <Modal
