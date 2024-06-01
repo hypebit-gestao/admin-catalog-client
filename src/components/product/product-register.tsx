@@ -31,9 +31,10 @@ import { Category } from "@/models/category";
 import { User } from "@/models/user";
 import { TbCurrencyReal } from "react-icons/tb";
 import { LuMoveDown, LuMoveLeft, LuMoveRight, LuMoveUp } from "react-icons/lu";
+import Select from "react-select";
 
 import {
-  Select,
+  Select as SelectComponent,
   SelectContent,
   SelectItem,
   SelectTrigger,
@@ -50,6 +51,9 @@ import useProductDeleteModal from "@/utils/hooks/product/useDeleteProductModal";
 import useEditProductModal from "@/utils/hooks/product/useEditProductModal";
 import CurrencyInput from "react-currency-input-field";
 import { IoMdAdd, IoMdCash } from "react-icons/io";
+import { useSizeService } from "@/services/size.service";
+import { Size } from "@/models/size";
+import { useProductSizeService } from "@/services/productSize.service";
 
 interface ProductRegisterProps {
   isOpen: boolean;
@@ -61,11 +65,13 @@ const formSchema = z
     name: z.string().min(1, "Nome do produto é obrigatório"),
     description: z.string().min(1, "Descrição do produto é obrigatório"),
     category_id: z.string().nullable(),
+    size_ids: z.any(),
     images: z.any(),
     featured: z.boolean(),
     active: z.boolean(),
     currency: z.string(),
     isPromotion: z.boolean(),
+    isSize: z.boolean(),
     promotion_price: z.string(),
     price: z.string().min(1, "Preço do produto é obrigatório"),
     user_name: z.string(),
@@ -85,8 +91,11 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
   const userService = useUserService();
   const productService = useProductService();
   const categoryService = useCategoryService();
+  const sizeService = useSizeService();
+  const productSizeService = useProductSizeService();
   const uploadService = useUploadService();
   const [categories, setCategories] = useState<Category[]>([]);
+  const [sizes, setSizes] = useState<Size[]>([]);
   const [users, setUsers] = useState<User>();
   const productRegisterModal = useProductRegisterModal();
   const router = useRouter();
@@ -99,11 +108,13 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
       name: "",
       description: "",
       category_id: "",
+      size_ids: [],
       images: "",
       currency: "",
       featured: false,
       active: true,
       isPromotion: false,
+      isSize: false,
       price: "",
       promotion_price: "",
       user_name: session?.user?.user?.name,
@@ -179,6 +190,14 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
       }
     };
 
+    const getSizes = async () => {
+      const fetchedSizes = await sizeService.GETALL(session?.user.accessToken);
+      if (fetchedSizes) {
+        setSizes(fetchedSizes);
+      }
+    };
+
+    getSizes();
     getUser();
     getCategories();
   }, [session?.user?.accessToken]);
@@ -225,6 +244,17 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                   session?.user?.accessToken
                 )
                 .then((res) => {
+                  if (sizeIds) {
+                    sizeIds?.map((item: any) => {
+                      productSizeService.POST(
+                        {
+                          product_id: res?.id,
+                          size_id: item?.value,
+                        },
+                        session?.user?.accessToken
+                      );
+                    });
+                  }
                   useProductRegisterModal.setState({ isRegister: true });
                   toast.success(`${data.name} criado com sucesso`);
                   setLoading(false);
@@ -256,6 +286,17 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
           session?.user?.accessToken
         )
         .then((res) => {
+          if (sizeIds) {
+            sizeIds?.map((item: any) => {
+              productSizeService.POST(
+                {
+                  product_id: res?.id,
+                  size_id: item?.value,
+                },
+                session?.user?.accessToken
+              );
+            });
+          }
           useProductRegisterModal.setState({ isRegister: true });
           toast.success(`${data.name} criado com sucesso`);
           setLoading(false);
@@ -272,6 +313,17 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
   const { setValue, watch } = form;
 
   const isPromotion = watch("isPromotion");
+  const isSize = watch("isSize");
+  const sizeIds = watch("size_ids");
+
+  const options: any = [
+    ...sizes.map((size) => ({
+      value: size.id,
+      label: size.size,
+    })),
+  ];
+
+  console.log("Sizes: ", sizeIds);
 
   return (
     <Modal
@@ -323,7 +375,7 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Categoria</FormLabel>
-                          <Select
+                          <SelectComponent
                             onValueChange={(value) => {
                               if (value === "null") {
                                 field.onChange(null);
@@ -352,7 +404,7 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                                 </SelectItem>
                               ))}
                             </SelectContent>
-                          </Select>
+                          </SelectComponent>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -365,7 +417,7 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Usuário</FormLabel>
-                          <Select
+                          <SelectComponent
                             onValueChange={field.onChange}
                             defaultValue={session?.user?.user?.name}
                             disabled
@@ -384,7 +436,7 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                                 {session?.user?.user?.name}
                               </SelectItem>
                             </SelectContent>
-                          </Select>
+                          </SelectComponent>
 
                           <FormMessage />
                         </FormItem>
@@ -494,6 +546,121 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                 <h1 className="my-4 font-semibold text-green-primary">
                   Informações adicionais
                 </h1>
+                <div className="mb-3">
+                  <h1 className="font-bold">Seu produto possui tamanho?</h1>
+                </div>
+                <div className="mb-5">
+                  <FormField
+                    control={form.control}
+                    name="isSize"
+                    render={({ field }) => (
+                      <FormItem>
+                        <div className="flex flex-col">
+                          <FormControl>
+                            <div className="flex flex-row items-center">
+                              <Checkbox
+                                color="blue"
+                                className="w-5 h-5"
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </div>
+                          </FormControl>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                {isSize && (
+                  <div className="w-full mb-5">
+                    <FormField
+                      control={form.control}
+                      name="size_ids"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Tamanho</FormLabel>
+                          <Select
+                            styles={{
+                              control: (provided, state) => ({
+                                ...provided,
+                                border: "1px solid #e2e8f0",
+                                borderRadius: "0.375rem",
+                                padding: "0.2rem",
+                                fontSize: "0.875rem",
+                                color: "#374151",
+                                backgroundColor: "#fff",
+                                boxShadow: "none",
+                                "&:hover": {
+                                  cursor: "pointer",
+                                },
+                              }),
+                              option: (provided, state) => ({
+                                ...provided,
+                                backgroundColor: state.isSelected
+                                  ? "#2c6e49"
+                                  : "#fff",
+                                color: state.isSelected ? "#fff" : "#374151",
+                                "&:hover": {
+                                  backgroundColor: "#2c6e49",
+                                  color: "#fff",
+                                },
+                              }),
+                              singleValue: (provided, state) => ({
+                                ...provided,
+                                color: "#374151",
+                              }),
+                              placeholder: (provided, state) => ({
+                                ...provided,
+                                color: "#000",
+                              }),
+                              indicatorSeparator: (provided, state) => ({
+                                ...provided,
+                                display: "none",
+                              }),
+                              dropdownIndicator: (provided, state) => ({
+                                ...provided,
+                                color: "#9ca3af",
+                              }),
+                            }}
+                            // className="flex h-9 w-full items-center justify-between whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1"
+                            isMulti
+                            placeholder="Selecione os tamanhos do produto"
+                            options={options}
+                            {...field}
+                          />
+                          {/* <SelectComponent
+                            onValueChange={(value) => {
+                              if (value === "null") {
+                                field.onChange(null);
+                              } else {
+                                field.onChange(value);
+                              }
+                            }}
+                            defaultValue={"null"}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione os tamanhos do produto" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent className="z-[300]">
+                              {sizes.map((size, index) => (
+                                <SelectItem
+                                  key={index}
+                                  value={size?.id as string}
+                                >
+                                  {size?.size}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </SelectComponent> */}
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                )}
                 <div className="flex flex-row mb-5">
                   <div className="w-full ">
                     <FormField

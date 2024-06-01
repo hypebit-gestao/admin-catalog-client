@@ -9,6 +9,7 @@ import {
   MdRequestPage,
   MdSettings,
 } from "react-icons/md";
+import { TbRulerMeasure } from "react-icons/tb";
 import { useSession } from "next-auth/react";
 
 const Sidebar = () => {
@@ -35,6 +36,8 @@ const Sidebar = () => {
             icon={MdOutlineProductionQuantityLimits}
           />
         }
+
+        {<MenuItem href="/size" label="Tamanhos" icon={TbRulerMeasure} />}
         <MenuItem href="/order" label="Pedidos" icon={MdRequestPage} />
         <MenuItem
           href="/configurations"

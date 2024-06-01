@@ -29,8 +29,9 @@ import { useProductService } from "@/services/product.service";
 import { useCategoryService } from "@/services/category.service";
 import { Category } from "@/models/category";
 import { User } from "@/models/user";
+import Select from "react-select";
 import {
-  Select,
+  Select as SelectComponent,
   SelectContent,
   SelectItem,
   SelectTrigger,
@@ -49,6 +50,9 @@ import useProductDeleteModal from "@/utils/hooks/product/useDeleteProductModal";
 import NumberFormat from "react-number-format";
 import { LuMoveDown, LuMoveLeft, LuMoveRight, LuMoveUp } from "react-icons/lu";
 import { IoMdAdd } from "react-icons/io";
+import { useSizeService } from "@/services/size.service";
+import { Size } from "@/models/size";
+import { useProductSizeService } from "@/services/productSize.service";
 
 interface ProductRegisterProps {
   isOpen: boolean;
@@ -60,12 +64,14 @@ const formSchema = z
     name: z.string(),
     description: z.string(),
     category_id: z.string().nullable(),
+    size_ids: z.any(),
     images: z.any(),
     featured: z.boolean(),
     active: z.boolean(),
     currency: z.string(),
     price: z.string(),
     isPromotion: z.boolean(),
+    isSize: z.boolean(),
     promotion_price: z.string(),
     user_id: z.string(),
   })
@@ -88,10 +94,13 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
   const userService = useUserService();
   const productService = useProductService();
   const categoryService = useCategoryService();
+  const sizeService = useSizeService();
+  const productSizeService = useProductSizeService();
   const uploadService = useUploadService();
   const [categories, setCategories] = useState<Category[]>([]);
   const [users, setUsers] = useState<User>();
   const [product, setProduct] = useState<Product>();
+  const [sizes, setSizes] = useState<Size[]>([]);
   const productRegisterModal = useProductRegisterModal();
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -104,12 +113,14 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
       name: "",
       description: "",
       category_id: "",
+      size_ids: [],
       images: "",
       currency: "",
       featured: false,
       active: true,
       price: "",
       isPromotion: false,
+      isSize: false,
       promotion_price: "",
       user_id: session?.user?.user?.name,
     },
@@ -122,6 +133,7 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
   type FormField = keyof FormSchemaType;
 
   const isPromotion = watch("isPromotion");
+  const isSize = watch("isSize");
 
   const setCustomValue = (id: FormField, value: any) => {
     setValue(id, value, {
@@ -190,6 +202,23 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
             "isPromotion",
             Number(fetchedProduct.promotion_price) > 0
           );
+          const sizes = fetchedProduct.product_size?.map((item) => {
+            return {
+              value: item.size.id,
+              label: item.size.size,
+            };
+          });
+          if (sizes) {
+            setCustomValue("isSize", true);
+            setCustomValue("size_ids", sizes);
+          }
+          // if (fetchedProduct?.product_size?.length > 0) {
+          //   setCustomValue("isSize", true);
+          //   const sizes = fetchedProduct?.product_size.map(
+          //     (size) => size.size.size
+          //   );
+          //   setCustomValue("size_ids", sizes);
+          // }
           setCustomValue("user_id", fetchedProduct.user_id);
 
           if (fetchedProduct.images) {
@@ -225,9 +254,21 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
       }
     };
 
+    const getSizes = async () => {
+      const fetchedSizes = await sizeService.GETALL(session?.user.accessToken);
+      if (fetchedSizes) {
+        setSizes(fetchedSizes);
+      }
+    };
+
+    getSizes();
+
     getUser();
     getCategories();
   }, [session?.user?.accessToken, productEditModal.itemId]);
+
+  console.log("TAM: ", product?.product_size?.length);
+  console.log("TAMOUTRO: ", form.watch("size_ids")?.length);
 
   const onUpdate = async (data: z.infer<typeof formSchema>) => {
     data.images = filePreviews.map((preview) => preview);
@@ -257,24 +298,68 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
           }
         }
       }
-      await productService.PUT(
-        {
-          id: product?.id,
-          name: data.name,
-          description: data.description,
-          category_id: data.category_id !== "" ? data.category_id : null,
-          images: [...uploadedImagesUrls, ...(product?.images || [])],
-          currency: data.currency,
-          price: Number(data.price),
-          promotion_price: data.isPromotion
-            ? Number(data.promotion_price)
-            : null,
-          user_id: session?.user?.user?.id,
-          featured: data.featured,
-          active: data.active,
-        },
-        session?.user?.accessToken
-      );
+      await productService
+        .PUT(
+          {
+            id: product?.id,
+            name: data.name,
+            description: data.description,
+            category_id: data.category_id !== "" ? data.category_id : null,
+            images: [...uploadedImagesUrls, ...(product?.images || [])],
+            currency: data.currency,
+            price: Number(data.price),
+            promotion_price: data.isPromotion
+              ? Number(data.promotion_price)
+              : null,
+            user_id: session?.user?.user?.id,
+            featured: data.featured,
+            active: data.active,
+          },
+          session?.user?.accessToken
+        )
+        .then((res) => {
+          if (
+            form.watch("size_ids")?.length >
+            (product?.product_size?.length ?? 0)
+          ) {
+            const newSize = form
+              .watch("size_ids")
+              ?.filter(
+                (size: any) =>
+                  !product?.product_size?.some(
+                    (item: any) => item.size.id === size.value
+                  )
+              );
+
+            if (newSize) {
+              newSize.map(async (size: any) => {
+                await productSizeService.POST(
+                  {
+                    product_id: product?.id,
+                    size_id: size.value,
+                  },
+                  session?.user?.accessToken
+                );
+              });
+            }
+          } else {
+            const newSize = product?.product_size?.filter(
+              (item) =>
+                !form
+                  .watch("size_ids")
+                  ?.some((size: any) => size.value === item.size.id)
+            );
+
+            if (newSize) {
+              newSize.map(async (size: any) => {
+                await productSizeService.DELETE(
+                  size.id,
+                  session?.user?.accessToken
+                );
+              });
+            }
+          }
+        });
 
       setLoading(false);
       useEditProductModal.setState({ isUpdate: true });
@@ -293,6 +378,15 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
     useEditProductModal.setState({ isUpdate: false });
     useProductDeleteModal.setState({ isDelete: false });
   }, [isOpen]);
+
+  const options: any = [
+    ...sizes.map((size) => ({
+      value: size.id,
+      label: size.size,
+    })),
+  ];
+
+  console.log("sizeIds: ", watch("size_ids"));
 
   return (
     <Modal
@@ -345,7 +439,7 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Categoria</FormLabel>
-                            <Select
+                            <SelectComponent
                               onValueChange={(value) => {
                                 if (value === "null") {
                                   field.onChange(null);
@@ -378,7 +472,7 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                                   </SelectItem>
                                 ))}
                               </SelectContent>
-                            </Select>
+                            </SelectComponent>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -391,7 +485,7 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Usuário</FormLabel>
-                            <Select
+                            <SelectComponent
                               onValueChange={field.onChange}
                               defaultValue={session?.user?.user?.name}
                               disabled
@@ -410,7 +504,7 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                                   {session?.user?.user?.name}
                                 </SelectItem>
                               </SelectContent>
-                            </Select>
+                            </SelectComponent>
 
                             <FormMessage />
                           </FormItem>
@@ -523,6 +617,96 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                   <h1 className="my-4 font-semibold text-green-primary">
                     Informações adicionais
                   </h1>
+                  <div className="mb-3">
+                    <h1 className="font-bold">Seu produto possui tamanho?</h1>
+                  </div>
+                  <div className="mb-5">
+                    <FormField
+                      control={form.control}
+                      name="isSize"
+                      render={({ field }) => (
+                        <FormItem>
+                          <div className="flex flex-col">
+                            <FormControl>
+                              <div className="flex flex-row items-center">
+                                <Checkbox
+                                  color="blue"
+                                  className="w-5 h-5"
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                />
+                              </div>
+                            </FormControl>
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  {isSize && (
+                    <div className="w-full mb-5">
+                      <FormField
+                        control={form.control}
+                        name="size_ids"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Tamanho</FormLabel>
+                            <Select
+                              styles={{
+                                control: (provided, state) => ({
+                                  ...provided,
+                                  border: "1px solid #e2e8f0",
+                                  borderRadius: "0.375rem",
+                                  padding: "0.2rem",
+                                  fontSize: "0.875rem",
+                                  color: "#374151",
+                                  backgroundColor: "#fff",
+                                  boxShadow: "none",
+                                  "&:hover": {
+                                    cursor: "pointer",
+                                  },
+                                }),
+                                option: (provided, state) => ({
+                                  ...provided,
+                                  backgroundColor: state.isSelected
+                                    ? "#2c6e49"
+                                    : "#fff",
+                                  color: state.isSelected ? "#fff" : "#374151",
+                                  "&:hover": {
+                                    backgroundColor: "#2c6e49",
+                                    color: "#fff",
+                                  },
+                                }),
+                                singleValue: (provided, state) => ({
+                                  ...provided,
+                                  color: "#374151",
+                                }),
+                                placeholder: (provided, state) => ({
+                                  ...provided,
+                                  color: "#000",
+                                }),
+                                indicatorSeparator: (provided, state) => ({
+                                  ...provided,
+                                  display: "none",
+                                }),
+                                dropdownIndicator: (provided, state) => ({
+                                  ...provided,
+                                  color: "#9ca3af",
+                                }),
+                              }}
+                              // className="flex h-9 w-full items-center justify-between whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1"
+                              isMulti
+                              placeholder="Selecione os tamanhos do produto"
+                              options={options}
+                              {...field}
+                            />
+
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  )}
                   <div className="flex flex-col lg:flex-row mb-5">
                     <div className="w-full ">
                       <FormField
