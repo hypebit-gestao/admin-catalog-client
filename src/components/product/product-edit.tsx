@@ -288,13 +288,15 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
               folderName: session?.user?.user?.name,
             });
           }
-
           if (Array.isArray(res) && res.length > 0) {
-            uploadedImagesUrls.push(res[0].imageUrl);
+            if (data?.images[i]?.file?.size !== undefined) {
+              data.images[i] = res[0].imageUrl;
+            }
           } else {
           }
         }
       }
+
       await productService
         .PUT(
           {
@@ -302,7 +304,7 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
             name: data.name,
             description: data.description,
             category_id: data.category_id !== "" ? data.category_id : null,
-            images: [...uploadedImagesUrls, ...(product?.images || [])],
+            images: data.images,
             currency: data.currency,
             price: Number(data.price),
             promotion_price: data.isPromotion
