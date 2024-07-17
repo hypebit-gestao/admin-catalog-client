@@ -16,31 +16,19 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../ui/select";
-import { Input } from "@/components/ui/input";
+
+import { Input, InputCurrency } from "@/components/ui/input";
 import { Button } from "../ui/button";
 
 import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
 
-import { useCategoryService } from "@/services/category.service";
-
-import useCategoryRegisterModal from "@/utils/hooks/category/useRegisterCategoryModal";
-import { useRouter } from "next/navigation";
-
-import { useUploadService } from "@/services/upload.service";
 
 import Loader from "../loader";
 
 import { useUserService } from "@/services/user.service";
-import useShippingRegisterModal from "@/utils/hooks/shipping/useRegisterShippingModal";
 import { SketchPicker } from "react-color";
+import { User } from "@/models/user";
 
 interface ShippingRegisterProps {
   isOpen: boolean;
@@ -49,31 +37,33 @@ interface ShippingRegisterProps {
 
 const formSchema = z.object({
   background_color: z.string(),
+  pix_discount: z.string(),
+  credit_discount: z.string(),
+  debit_discount: z.string(),
 });
 
 const PersonalizationStore = ({ isOpen, onClose }: ShippingRegisterProps) => {
   const { data: session } = useSession();
-  const router = useRouter();
-  const inputFileRef = useRef<any>(null);
   const [loading, setLoading] = useState(false);
-  const [filePreview, setFilePreview] = useState<any>(null);
-  const [currentColor, setCurrentColor] = useState("#ff6");
+  const [user, setUser] = useState<User>()
+  const [currentColor, setCurrentColor] = useState(user?.background_color ? user?.background_color : "#ffffff");
 
-  const categoryService = useCategoryService();
   const userService = useUserService();
-  const uploadService = useUploadService();
-  const categoryRegisterModal = useCategoryRegisterModal();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       background_color: "",
+      pix_discount: "",
+      credit_discount: "",
+      debit_discount: "",
     },
   });
 
   const handleOnChange = (color: any) => {
     setCurrentColor(color.hex);
   };
+
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     if (loading) return;
@@ -84,6 +74,9 @@ const PersonalizationStore = ({ isOpen, onClose }: ShippingRegisterProps) => {
         {
           id: session?.user?.user?.id,
           background_color: currentColor,
+          pix_discount: Number(data.pix_discount),
+          credit_discount: Number(data.credit_discount),
+          debit_discount: Number(data.debit_discount),
         },
         session?.user.accessToken
       )
@@ -116,17 +109,33 @@ const PersonalizationStore = ({ isOpen, onClose }: ShippingRegisterProps) => {
     form.reset();
   };
 
+
   useEffect(() => {
-    if (isOpen) {
-      resetForm();
-    }
+    const getUser = async () => {
+      const fetchedUser = await userService.GETBYID(
+        session?.user?.user?.id,
+        session?.user.accessToken
+      );
+      if (fetchedUser) {
+        setUser(fetchedUser);
+      }
+    };
+
+    getUser();
   }, [isOpen]);
 
   useEffect(() => {
-    // useShippingRegisterModal.setState({ isRegister: false });
-    // useCategoryUpdateModal.setState({ isUpdate: false });
-    // useCategoryDeleteModal.setState({ isDelete: false });
+    if (isOpen) {
+      resetForm();
+      if (user) {
+        setCustomValue("background_color", user.background_color);
+        setCustomValue("pix_discount", String(user.pix_discount));
+        setCustomValue("credit_discount", String(user.credit_discount));
+        setCustomValue("debit_discount", String(user.debit_discount));
+      }
+    }
   }, [isOpen]);
+
 
   return (
     <Modal
@@ -163,6 +172,80 @@ const PersonalizationStore = ({ isOpen, onClose }: ShippingRegisterProps) => {
                       </FormItem>
                     )}
                   />
+                </div>
+                <div className="mt-10">
+                <h1 className="my-4 font-semibold text-green-primary">
+                   Financeiro
+                </h1>
+                <div className="flex flex-col lg:flex-row">
+                <div className="w-full lg:mr-5">
+                    <FormField
+                      control={form.control}
+                      name="pix_discount"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-blue-primary">
+                            Desconto no PIX (%)
+                          </FormLabel>
+                          <FormControl>
+                            <InputCurrency
+                            isPercentage
+                              placeholder=""
+                              type="number"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                <div className="w-full lg:mr-5">
+                    <FormField
+                      control={form.control}
+                      name="credit_discount"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-blue-primary">
+                            Desconto no CRÉDITO (%)
+                          </FormLabel>
+                          <FormControl>
+                            <InputCurrency
+                            isPercentage
+                              placeholder=""
+                              type="number"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+              
+                </div>
+                <div className="w-full mt-5">
+                    <FormField
+                      control={form.control}
+                      name="debit_discount"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-blue-primary">
+                            Desconto no DÉBITO (%)
+                          </FormLabel>
+                          <FormControl>
+                            <InputCurrency
+                            isPercentage
+                              placeholder=""
+                              type="number"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                 </div>
               </div>
 
