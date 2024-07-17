@@ -1,6 +1,7 @@
 import { fetchWrapper } from "../utils/functions/fetch";
 import {
   User,
+  UserDiscountsMethods,
   UserPersonalizationColorPut,
   UserShippingPut,
 } from "../models/user";
@@ -60,7 +61,7 @@ export const useUserService = () => {
   };
 
   const PUT = async (
-    data: User | UserShippingPut | UserPersonalizationColorPut,
+    data: User | UserShippingPut | UserPersonalizationColorPut | UserDiscountsMethods,
     session: string | any
   ): Promise<
     User | UserShippingPut | UserPersonalizationColorPut | undefined

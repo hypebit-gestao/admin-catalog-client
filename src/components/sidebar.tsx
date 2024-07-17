@@ -9,6 +9,7 @@ import {
   MdRequestPage,
   MdSettings,
 } from "react-icons/md";
+import { BiSolidCoupon } from "react-icons/bi";
 import { TbRulerMeasure } from "react-icons/tb";
 import { useSession } from "next-auth/react";
 
@@ -37,7 +38,8 @@ const Sidebar = () => {
           />
         }
 
-        {<MenuItem href="/size" label="Tamanhos" icon={TbRulerMeasure} />}
+        {/* <MenuItem href="/coupon" label="Cupons" icon={BiSolidCoupon} /> */}
+        <MenuItem href="/size" label="Tamanhos" icon={TbRulerMeasure} />
         <MenuItem href="/order" label="Pedidos" icon={MdRequestPage} />
         <MenuItem
           href="/configurations"

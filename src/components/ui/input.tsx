@@ -9,6 +9,7 @@ export interface InputProps
   onValueChange?: (value: any, name: string, values: any) => void;
   height?: string;
   icon?: React.ReactNode;
+  isPercentage?: boolean;
 }
 
 interface CurrencyConfig {
@@ -70,6 +71,7 @@ const InputCurrency = React.forwardRef<HTMLInputElement, InputProps>(
       onChange,
       height,
       icon,
+      isPercentage,
       ...props
     },
     ref
@@ -77,7 +79,7 @@ const InputCurrency = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="relative w-full">
         <div className="absolute inset-y-0 left-0 flex items-center p-3 pointer-events-none border border-r-gray-300">
-          R$
+          {isPercentage ? "%" : "R$"}
         </div>
         <input
           onChange={onChange}
