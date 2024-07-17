@@ -46,7 +46,7 @@ const PersonalizationStore = ({ isOpen, onClose }: ShippingRegisterProps) => {
   const { data: session } = useSession();
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<User>()
-  const [currentColor, setCurrentColor] = useState(user?.background_color ? user?.background_color : "#ffffff");
+  const [currentColor, setCurrentColor] = useState(user?.background_color ? user?.background_color : "#081c15");
 
   const userService = useUserService();
 
