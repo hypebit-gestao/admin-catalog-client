@@ -165,7 +165,7 @@ const PersonalizationStore = ({ isOpen, onClose }: ShippingRegisterProps) => {
                       <FormItem>
                         <FormLabel>Tema de sua loja</FormLabel>
                         <SketchPicker
-                          color={currentColor}
+                          color={user?.background_color ? user?.background_color : "#081c15"}
                           onChangeComplete={handleOnChange}
                         />
 
