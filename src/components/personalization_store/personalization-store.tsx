@@ -46,14 +46,14 @@ const PersonalizationStore = ({ isOpen, onClose }: ShippingRegisterProps) => {
   const { data: session } = useSession();
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<User>()
-  const [currentColor, setCurrentColor] = useState(user?.background_color ? user?.background_color : "#081c15");
+  const [currentColor, setCurrentColor] = useState("");
 
   const userService = useUserService();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      background_color: "",
+      background_color: user?.background_color || "",
       pix_discount: "",
       credit_discount: "",
       debit_discount: "",
@@ -129,6 +129,7 @@ const PersonalizationStore = ({ isOpen, onClose }: ShippingRegisterProps) => {
       resetForm();
       if (user) {
         setCustomValue("background_color", user.background_color);
+        setCurrentColor(user?.background_color || "");
         setCustomValue("pix_discount", String(user.pix_discount));
         setCustomValue("credit_discount", String(user.credit_discount));
         setCustomValue("debit_discount", String(user.debit_discount));
