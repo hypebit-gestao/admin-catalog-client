@@ -254,8 +254,8 @@ const AttributeRegister = ({ isOpen, onClose }: AttributeRegisterProps) => {
                           <div className="w-full mt-5">
                           <h1 className="font-bold text-lg mb-3">Opções</h1>
                               {listOptions.map((option, index) => (
-                                <div className="flex flex-row items-center  mb-3">
-                                <div key={index} className="p-1 rounded-md w-full border border-gray-200">
+                                <div key={index} className="flex flex-row items-center  mb-3">
+                                <div className="p-1 rounded-md w-full border border-gray-200">
                                 <p className="text-sm">
                                 {option}
                                 </p>
