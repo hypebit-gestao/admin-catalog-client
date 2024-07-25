@@ -215,7 +215,7 @@ const Attribute = () => {
           />
         </div>
 
-        <div className="my-10 ">
+        {/* <div className="my-10 ">
           {loading === true ? (
             <Loader color="text-green-primary" />
           ) : (
@@ -265,7 +265,7 @@ const Attribute = () => {
               </div>
             </>
           )}
-        </div>
+        </div> */}
       </ContentMain>
     </>
   );
