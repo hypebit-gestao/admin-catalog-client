@@ -387,12 +387,12 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
     })),
   ];
 
-  const optionsAttributes: any = [
-    ...attributes.map((attribute) => ({
+  const optionsAttributes: any = attributes?.length > 0 ? [
+    ...attributes?.map((attribute) => ({
       value: attribute.id,
       label: attribute.name,
-    })),
-  ]
+    }))
+  ] : []
 
   console.log("Attributes", attributes);
   console.log("AttributesOption", attributesOption);
