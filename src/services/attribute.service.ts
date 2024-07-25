@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { fetchWrapper } from "../utils/functions/fetch";
-import { Attribute } from "@/models/attribute";
+import { Attribute, AttributeOption, AttributeProduct } from "@/models/attribute";
 
 export const useAttributeService = () => {
   const POST = async (
@@ -8,6 +8,42 @@ export const useAttributeService = () => {
     session: string | any
   ): Promise<Attribute | undefined> => {
     const response: any = await fetchWrapper<Attribute>(`attribute`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `${session}`,
+      },
+      body: JSON.stringify(data),
+    });
+    if (response.error) {
+      throw new Error(response.message);
+    }
+    return response;
+  };
+
+  const POSTOPTION = async (
+    data: AttributeOption,
+    session: string | any
+  ): Promise<AttributeOption | undefined> => {
+    const response: any = await fetchWrapper<AttributeOption>(`attributeOption`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `${session}`,
+      },
+      body: JSON.stringify(data),
+    });
+    if (response.error) {
+      throw new Error(response.message);
+    }
+    return response;
+  };
+
+  const POSTPRODUCTOPTION = async (
+    data: AttributeProduct,
+    session: string | any
+  ): Promise<AttributeProduct | undefined> => {
+    const response: any = await fetchWrapper<AttributeProduct>(`attributeProduct`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -34,6 +70,22 @@ export const useAttributeService = () => {
     }
     return response;
   };
+
+  
+  const GETALLATTRIBUTEOPTION = async (session: string | any): Promise<AttributeOption[] | undefined> => {
+    const response: any = await fetchWrapper<AttributeOption[]>(`attributeOption`, {
+      method: "GET",
+      headers: {
+        Authorization: `${session}`,
+      },
+    });
+
+    if (response.error) {
+      throw new Error(response.message);
+    }
+    return response;
+  };
+
 
   const GETBYID = async (
     session: string | any,
@@ -93,7 +145,10 @@ export const useAttributeService = () => {
 
   return {
     POST,
+    POSTOPTION,
+    POSTPRODUCTOPTION,
     GETALL,
+    GETALLATTRIBUTEOPTION,
     GETBYID,
     PUT,
     DELETE,

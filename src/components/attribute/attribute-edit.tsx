@@ -29,6 +29,8 @@ import useSizeUpdateModal from "@/utils/hooks/size/useUpdateSizeModal";
 import { Size } from "@/models/size";
 import useSizeRegisterModal from "@/utils/hooks/size/useRegisterSizeModal";
 import useSizeDeleteModal from "@/utils/hooks/size/useDeleteSizeModal";
+import useAttributeUpdateModal from "@/utils/hooks/attribute/useUpdateAttributeModal";
+import { useAttributeService } from "@/services/attribute.service";
 
 interface SizeUpdateProps {
   isOpen: boolean;
@@ -39,11 +41,13 @@ const formSchema = z.object({
   size: z.string().min(1, "Tamanho é obrigatório"),
 });
 
-const SizeEdit = ({ isOpen, onClose }: SizeUpdateProps) => {
+const AttributeEdit = ({ isOpen, onClose }: SizeUpdateProps) => {
   const { data: session } = useSession();
   const router = useRouter();
   const sizeService = useSizeService();
+  const attributeService = useAttributeService();
   const sizeEditModal = useSizeUpdateModal();
+  const attributeEditModal = useAttributeUpdateModal();
   const [size, setSize] = useState<Size>();
   const [loading, setLoading] = useState(false);
 
@@ -125,7 +129,7 @@ const SizeEdit = ({ isOpen, onClose }: SizeUpdateProps) => {
       header={
         <>
           <h1 className="text-primary-blue font-bold text-xl">
-            Editar Tamanho
+            Editar Atributo
           </h1>
         </>
       }
@@ -138,7 +142,7 @@ const SizeEdit = ({ isOpen, onClose }: SizeUpdateProps) => {
               <form onSubmit={form.handleSubmit(onUpdate)} className=" w-full">
                 <div>
                   <h1 className="my-4 font-semibold text-green-primary">
-                    Informações do tamanho
+                    Informações do atributo
                   </h1>
                   <div className="flex flex-row mb-5">
                     <div className="w-full">
@@ -182,4 +186,4 @@ const SizeEdit = ({ isOpen, onClose }: SizeUpdateProps) => {
   );
 };
 
-export default SizeEdit;
+export default AttributeEdit;

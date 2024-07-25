@@ -19,7 +19,7 @@ interface SizeDeleteProps {
   onClose: () => void;
 }
 
-const SizeDelete = ({ isOpen, onClose }: SizeDeleteProps) => {
+const AttributeDelete = ({ isOpen, onClose }: SizeDeleteProps) => {
   const { data: session } = useSession();
   const sizeService = useSizeService();
   const sizeDelete = useSizeDeleteModal();
@@ -81,4 +81,4 @@ const SizeDelete = ({ isOpen, onClose }: SizeDeleteProps) => {
   );
 };
 
-export default SizeDelete;
+export default AttributeDelete;

@@ -14,7 +14,7 @@ import Loader from "@/components/loader";
 
 import { MdDelete, MdEdit } from "react-icons/md";
 import { useSizeService } from "@/services/size.service";
-import { Size as SizeModel } from "@/models/size";
+import { Attribute as AttributeModel } from "@/models/attribute";
 import useSizeRegisterModal from "@/utils/hooks/size/useRegisterSizeModal";
 import useSizeUpdateModal from "@/utils/hooks/size/useUpdateSizeModal";
 import useSizeDeleteModal from "@/utils/hooks/size/useDeleteSizeModal";
@@ -24,13 +24,18 @@ import SizeRegister from "@/components/size/size-register";
 import useAttributeRegisterModal from "@/utils/hooks/attribute/useRegisterAttributeModal";
 import useAttributeUpdateModal from "@/utils/hooks/attribute/useUpdateAttributeModal";
 import useAttributeDeleteModal from "@/utils/hooks/attribute/useDeleteAttributeModal";
+import AttributeRegister from "@/components/attribute/attribute-register";
+import AttributeEdit from "@/components/attribute/attribute-edit";
+import AttributeDelete from "@/components/attribute/attribute-delete";
+import { useAttributeService } from "@/services/attribute.service";
 
-const Size = () => {
+const Attribute = () => {
   const [loading, setLoading] = useState(false);
   const { data: session } = useSession();
-  const [rowData, setRowData] = useState<SizeModel[]>([]);
+  const [rowData, setRowData] = useState<AttributeModel[]>([]);
   const [screenWidth, setScreenWidth] = useState(window.innerWidth);
   const sizeService = useSizeService();
+  const attributeService = useAttributeService();
   const sizeRegisterModal = useSizeRegisterModal();
   const sizeEditModal = useSizeUpdateModal();
   const sizeDeleteModal = useSizeDeleteModal();
@@ -40,20 +45,20 @@ const Size = () => {
 
   useEffect(() => {
     setLoading(true);
-    const getSizes = async () => {
-      const fetchedSize = await sizeService.GETALL(session?.user.accessToken);
-      if (fetchedSize) {
+    const getAttributes = async () => {
+      const fetchedAttribute = await attributeService.GETALL(session?.user.accessToken);
+      if (fetchedAttribute) {
         setLoading(false);
-        setRowData(fetchedSize as SizeModel[]);
+        setRowData(fetchedAttribute as AttributeModel[]);
       }
     };
 
-    getSizes();
+    getAttributes();
   }, [
     session?.user?.accessToken,
-    sizeRegisterModal.isRegister,
-    sizeEditModal.isUpdate,
-    sizeDeleteModal.isDelete,
+    attributeRegisterModal.isRegister,
+    attributeEditModal.isUpdate,
+    attributeDeleteModal.isDelete,
   ]);
 
   useEffect(() => {
@@ -69,13 +74,13 @@ const Size = () => {
   }, []);
 
   const handleDelete = (id: string | undefined) => {
-    useSizeDeleteModal.setState({ itemId: id });
-    sizeDeleteModal.onOpen();
+    useAttributeDeleteModal.setState({ itemId: id });
+    attributeDeleteModal.onOpen();
   };
 
   const handleEdit = (id: string | undefined) => {
-    sizeEditModal.onOpen();
-    useSizeUpdateModal.setState({ itemId: id });
+    attributeEditModal.onOpen();
+    useAttributeUpdateModal.setState({ itemId: id });
   };
   const ActionsRenderer = (props: any) => {
     return (
@@ -118,13 +123,19 @@ const Size = () => {
 
   const [colDefs, setColDefs] = useState([
     {
-      field: "size",
+      field: "name",
       flex: 1,
-      headerName: "Tamanho",
+      headerName: "Nome",
       filter: true,
       floatingFilter: true,
     },
-
+    {
+      field: "type",
+      flex: 1,
+      headerName: "Tipo",
+      filter: false,
+      floatingFilter: false,
+    },
     {
       field: "actions",
       headerName: "Ações",
@@ -137,11 +148,18 @@ const Size = () => {
     if (screenWidth < 768) {
       setColDefs([
         {
-          field: "size",
+          field: "name",
           flex: 1,
-          headerName: "Tamanho",
+          headerName: "Nome",
           filter: true,
           floatingFilter: true,
+        },
+        {
+          field: "type",
+          flex: 1,
+          headerName: "Tipo",
+          filter: false,
+          floatingFilter: false,
         },
         {
           field: "actions",
@@ -153,13 +171,20 @@ const Size = () => {
     } else {
       setColDefs([
         {
-          field: "size",
+          field: "name",
           flex: 1,
-          headerName: "Tamanho",
+          headerName: "Nome",
           filter: true,
           floatingFilter: true,
         },
-
+        {
+          field: "type",
+          flex: 1,
+          headerName: "Tipo",
+          filter: false,
+          floatingFilter: false,
+          
+        },
         {
           field: "actions",
           headerName: "Ações",
@@ -172,19 +197,19 @@ const Size = () => {
 
   return (
     <>
-      <SizeDelete
-        isOpen={sizeDeleteModal.isOpen}
-        onClose={sizeDeleteModal.onClose}
+      <AttributeDelete
+        isOpen={attributeDeleteModal.isOpen}
+        onClose={attributeDeleteModal.onClose}
       />
-      <SizeEdit isOpen={sizeEditModal.isOpen} onClose={sizeEditModal.onClose} />
-      <SizeRegister
-        isOpen={sizeRegisterModal.isOpen}
-        onClose={sizeRegisterModal.onClose}
+      <AttributeEdit isOpen={attributeEditModal.isOpen} onClose={attributeEditModal.onClose} />
+      <AttributeRegister
+        isOpen={attributeRegisterModal.isOpen}
+        onClose={attributeRegisterModal.onClose}
       />
       <ContentMain title="Atributos">
         <div className="flex justify-end">
           <IoIosAddCircle
-            onClick={() => sizeRegisterModal.onOpen()}
+            onClick={() => attributeRegisterModal.onOpen()}
             size={44}
             className="text-green-primary cursor-pointer  hover:opacity-70 transition-all duration-200"
           />
@@ -196,26 +221,26 @@ const Size = () => {
           ) : (
             <>
               <div className="lg:hidden ">
-                {rowData?.map((size, index) => (
+                {rowData?.map((attribute, index) => (
                   <div
                     key={index}
                     className="card w-auto bg-base-100 shadow-xl"
                   >
                     <div className="card-body bg-white">
                       <h2 className="font-bold text-2xl text-green-primary truncate">
-                        {size.size}
+                        {attribute.name}
                       </h2>
                       {/* <p className="text-[#2c6e49]">{category?.description}</p> */}
                       <div className="card-actions justify-between">
                         <div className="flex flex-row items-center">
                           <div
-                            onClick={() => handleEdit(size && size.id)}
+                            onClick={() => handleEdit(attribute && attribute.id)}
                             className="mr-3 cursor-pointer"
                           >
                             <MdEdit color="blue" size={32} />
                           </div>
                           <div
-                            onClick={() => handleDelete(size && size.id)}
+                            onClick={() => handleDelete(attribute && attribute.id)}
                             className="cursor-pointer"
                           >
                             <MdDelete color="red" size={32} />
@@ -246,4 +271,4 @@ const Size = () => {
   );
 };
 
-export default Size;
+export default Attribute;

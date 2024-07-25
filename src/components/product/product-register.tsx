@@ -54,6 +54,8 @@ import { IoMdAdd, IoMdCash } from "react-icons/io";
 import { useSizeService } from "@/services/size.service";
 import { Size } from "@/models/size";
 import { useProductSizeService } from "@/services/productSize.service";
+import { useAttributeService } from "@/services/attribute.service";
+import { Attribute, AttributeOption } from "@/models/attribute";
 
 interface ProductRegisterProps {
   isOpen: boolean;
@@ -66,12 +68,14 @@ const formSchema = z
     description: z.string().min(1, "Descrição do produto é obrigatório"),
     category_id: z.string().nullable(),
     size_ids: z.any(),
+    attribute_ids: z.any(),
     images: z.any(),
     featured: z.boolean(),
     active: z.boolean(),
     currency: z.string(),
     isPromotion: z.boolean(),
     isSize: z.boolean(),
+    isAttribute: z.boolean(),
     promotion_price: z.string(),
     price: z.string().min(1, "Preço do produto é obrigatório"),
     user_name: z.string(),
@@ -90,12 +94,15 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
   const [loading, setLoading] = useState(false);
   const userService = useUserService();
   const productService = useProductService();
+  const attributeService = useAttributeService();
   const categoryService = useCategoryService();
   const sizeService = useSizeService();
   const productSizeService = useProductSizeService();
   const uploadService = useUploadService();
   const [categories, setCategories] = useState<Category[]>([]);
   const [sizes, setSizes] = useState<Size[]>([]);
+  const [attributes, setAttributes] = useState<Attribute[]>([]);
+  const [attributesOption, setAttributesOption] = useState<AttributeOption[]>([]);
   const [users, setUsers] = useState<User>();
   const productRegisterModal = useProductRegisterModal();
   const router = useRouter();
@@ -109,12 +116,14 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
       description: "",
       category_id: "",
       size_ids: [],
+      attribute_ids: [],
       images: "",
       currency: "",
       featured: false,
       active: true,
       isPromotion: false,
       isSize: false,
+      isAttribute: false,
       price: "",
       promotion_price: "",
       user_name: session?.user?.user?.name,
@@ -190,6 +199,25 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
       }
     };
 
+    const getAttributes = async () => {
+      const fetchedAttributes = await attributeService.GETALL(
+        session?.user.accessToken
+      );
+      if (fetchedAttributes) {
+        setAttributes(fetchedAttributes);
+      }
+    }
+
+    const getAttributesOptions = async () => {
+      const fetchedAttributesOptions = await attributeService.GETALLATTRIBUTEOPTION(
+        session?.user.accessToken
+      );
+      if (fetchedAttributesOptions) {
+        setAttributesOption(fetchedAttributesOptions);
+      }
+    }
+
+
     const getSizes = async () => {
       const fetchedSizes = await sizeService.GETALL(session?.user.accessToken);
       if (fetchedSizes) {
@@ -198,6 +226,8 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
     };
 
     getSizes();
+    getAttributes();
+    getAttributesOptions();
     getUser();
     getCategories();
   }, [session?.user?.accessToken]);
@@ -255,6 +285,22 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                       );
                     });
                   }
+                  if (attributeIds) {
+                    attributeIds?.map((item: any) => {
+                      attributeService.POSTPRODUCTOPTION(
+                        {
+                          user_id: session?.user?.user?.id,
+                          attribute_id: item?.value,
+                          product_id: res?.id,
+                        },
+                        session?.user?.accessToken
+                      ).then((res) => {
+
+                      }).catch((err) => {
+                        console.log("ERR: ", err)
+                      })
+                    });
+                  }
                   useProductRegisterModal.setState({ isRegister: true });
                   toast.success(`${data.name} criado com sucesso`);
                   setLoading(false);
@@ -297,6 +343,22 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
               );
             });
           }
+          if (attributeIds) {
+            attributeIds?.map((item: any) => {
+              attributeService.POSTPRODUCTOPTION(
+                {
+                  user_id: session?.user?.user?.id,
+                  attribute_id: item?.value,
+                  product_id: res?.id,
+                },
+                session?.user?.accessToken
+              ).then((res) => {
+
+              }).catch((err) => {
+                console.log("ERR: ", err)
+              })
+            });
+          }
           useProductRegisterModal.setState({ isRegister: true });
           toast.success(`${data.name} criado com sucesso`);
           setLoading(false);
@@ -314,7 +376,9 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
 
   const isPromotion = watch("isPromotion");
   const isSize = watch("isSize");
+  const isAttribute = watch("isAttribute");
   const sizeIds = watch("size_ids");
+  const attributeIds = watch("attribute_ids");
 
   const options: any = [
     ...sizes.map((size) => ({
@@ -322,6 +386,17 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
       label: size.size,
     })),
   ];
+
+  const optionsAttributes: any = [
+    ...attributes.map((attribute) => ({
+      value: attribute.id,
+      label: attribute.name,
+    })),
+  ]
+
+  console.log("Attributes", attributes);
+  console.log("AttributesOption", attributesOption);
+  console.log("Attribute", attributeIds);
 
   return (
     <Modal
@@ -570,6 +645,95 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                     )}
                   />
                 </div>
+                <div className="mb-3">
+                  <h1 className="font-bold">Seu produto possui personalização?</h1>
+                </div>
+                <div className="mb-5">
+                  <FormField
+                    control={form.control}
+                    name="isAttribute"
+                    render={({ field }) => (
+                      <FormItem>
+                        <div className="flex flex-col">
+                          <FormControl>
+                            <div className="flex flex-row items-center">
+                              <Checkbox
+                                color="blue"
+                                className="w-5 h-5"
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </div>
+                          </FormControl>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                {isAttribute && (
+                  <div className="w-full mb-5">
+                    <FormField
+                      control={form.control}
+                      name="attribute_ids"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Atributos</FormLabel>
+                          <Select
+                            styles={{
+                              control: (provided, state) => ({
+                                ...provided,
+                                border: "1px solid #e2e8f0",
+                                borderRadius: "0.375rem",
+                                padding: "0.2rem",
+                                fontSize: "0.875rem",
+                                color: "#374151",
+                                backgroundColor: "#fff",
+                                boxShadow: "none",
+                                "&:hover": {
+                                  cursor: "pointer",
+                                },
+                              }),
+                              option: (provided, state) => ({
+                                ...provided,
+                                backgroundColor: state.isSelected
+                                  ? "#2c6e49"
+                                  : "#fff",
+                                color: state.isSelected ? "#fff" : "#374151",
+                                "&:hover": {
+                                  backgroundColor: "#2c6e49",
+                                  color: "#fff",
+                                },
+                              }),
+                              singleValue: (provided, state) => ({
+                                ...provided,
+                                color: "#374151",
+                              }),
+                              placeholder: (provided, state) => ({
+                                ...provided,
+                                color: "#000",
+                              }),
+                              indicatorSeparator: (provided, state) => ({
+                                ...provided,
+                                display: "none",
+                              }),
+                              dropdownIndicator: (provided, state) => ({
+                                ...provided,
+                                color: "#9ca3af",
+                              }),
+                            }}
+                            // className="flex h-9 w-full items-center justify-between whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1"
+                            isMulti
+                            placeholder="Selecione os atributos do produto"
+                            options={optionsAttributes}
+                            {...field}
+                          />
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                )}
                 {isSize && (
                   <div className="w-full mb-5">
                     <FormField
@@ -627,32 +791,6 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                             options={options}
                             {...field}
                           />
-                          {/* <SelectComponent
-                            onValueChange={(value) => {
-                              if (value === "null") {
-                                field.onChange(null);
-                              } else {
-                                field.onChange(value);
-                              }
-                            }}
-                            defaultValue={"null"}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecione os tamanhos do produto" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent className="z-[300]">
-                              {sizes.map((size, index) => (
-                                <SelectItem
-                                  key={index}
-                                  value={size?.id as string}
-                                >
-                                  {size?.size}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </SelectComponent> */}
                           <FormMessage />
                         </FormItem>
                       )}
