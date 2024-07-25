@@ -215,57 +215,7 @@ const Attribute = () => {
           />
         </div>
 
-        {/* <div className="my-10 ">
-          {loading === true ? (
-            <Loader color="text-green-primary" />
-          ) : (
-            <>
-              <div className="lg:hidden ">
-                {rowData?.map((attribute, index) => (
-                  <div
-                    key={index}
-                    className="card w-auto bg-base-100 shadow-xl"
-                  >
-                    <div className="card-body bg-white">
-                      <h2 className="font-bold text-2xl text-green-primary truncate">
-                        {attribute.name}
-                      </h2>
-                      {/* <p className="text-[#2c6e49]">{category?.description}</p> */}
-                      <div className="card-actions justify-between">
-                        <div className="flex flex-row items-center">
-                          <div
-                            onClick={() => handleEdit(attribute && attribute.id)}
-                            className="mr-3 cursor-pointer"
-                          >
-                            <MdEdit color="blue" size={32} />
-                          </div>
-                          <div
-                            onClick={() => handleDelete(attribute && attribute.id)}
-                            className="cursor-pointer"
-                          >
-                            <MdDelete color="red" size={32} />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="hidden lg:block ag-theme-quartz">
-                <AgGridReact
-                  rowData={rowData}
-                  columnDefs={colDefs as any}
-                  getRowStyle={getRowStyle as any}
-                  domLayout="autoHeight"
-                  pagination={true}
-                  paginationPageSizeSelector={[10, 20]}
-                  paginationPageSize={10}
-                  localeText={AG_GRID_LOCALE_PT_BR}
-                />
-              </div>
-            </>
-          )}
-        </div> */}
+      
       </ContentMain>
     </>
   );
