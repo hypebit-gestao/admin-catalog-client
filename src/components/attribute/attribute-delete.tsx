@@ -11,30 +11,35 @@ import toast from "react-hot-toast";
 import useSizeDeleteModal from "@/utils/hooks/size/useDeleteSizeModal";
 import { useSizeService } from "@/services/size.service";
 import { Size } from "@/models/size";
-import useSizeRegisterModal from "@/utils/hooks/size/useRegisterSizeModal";
-import useSizeUpdateModal from "@/utils/hooks/size/useUpdateSizeModal";
+import { useAttributeService } from "@/services/attribute.service";
+import useAttributeDeleteModal from "@/utils/hooks/attribute/useDeleteAttributeModal";
+import useAttributeRegisterModal from "@/utils/hooks/attribute/useRegisterAttributeModal";
+import useAttributeUpdateModal from "@/utils/hooks/attribute/useUpdateAttributeModal";
 
-interface SizeDeleteProps {
+interface AttributeDeleteProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-const AttributeDelete = ({ isOpen, onClose }: SizeDeleteProps) => {
+const AttributeDelete = ({ isOpen, onClose }: AttributeDeleteProps) => {
   const { data: session } = useSession();
+  const attributeService = useAttributeService()
   const sizeService = useSizeService();
+  const attributeDelete = useAttributeDeleteModal();
   const sizeDelete = useSizeDeleteModal();
   const [size, setSize] = useState<Size>();
 
   const handleDelete = () => {
-    sizeService.DELETE(sizeDelete.itemId, session?.user.accessToken);
+    attributeService.DELETE(attributeDelete.itemId, session?.user.accessToken);
+    useAttributeDeleteModal.setState({ isDelete: true });
     onClose();
-    toast.success("Tamanho excluído com sucesso");
+    toast.success("Atributo excluído com sucesso");
   };
 
   useEffect(() => {
-    useSizeRegisterModal.setState({ isRegister: false });
-    useSizeUpdateModal.setState({ isUpdate: false });
-    useSizeDeleteModal.setState({ isDelete: false });
+    useAttributeRegisterModal.setState({ isRegister: false });
+    useAttributeUpdateModal.setState({ isUpdate: false });
+    useAttributeDeleteModal.setState({ isDelete: false });
   }, [isOpen]);
 
   return (
@@ -44,7 +49,7 @@ const AttributeDelete = ({ isOpen, onClose }: SizeDeleteProps) => {
       header={
         <>
           <h1 className="text-primary-blue font-bold text-xl">
-            Excluir tamanho
+            Excluir atributo
           </h1>
         </>
       }
@@ -53,21 +58,20 @@ const AttributeDelete = ({ isOpen, onClose }: SizeDeleteProps) => {
           <div className="flex flex-col justify-center items-center">
             <MdDelete size={100} color="red" />
             <div className="my-4 text-lg">
-              <p>Deseja mesmo excluir esse tamanho?</p>
+              <p>Deseja mesmo excluir esse atributo?</p>
             </div>
             <div className="flex flex-row items-center my-6">
               <Button
                 size={"lg"}
                 onClick={() => {
                   handleDelete();
-                  useSizeDeleteModal.setState({ isDelete: true });
                 }}
                 className="bg-red-600 hover:bg-red-700 mr-5 w-full"
               >
                 Excluir
               </Button>
               <Button
-                onClick={() => sizeDelete.onClose()}
+                onClick={() => attributeDelete.onClose()}
                 size={"lg"}
                 variant={"outline"}
               >

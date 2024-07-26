@@ -143,18 +143,20 @@ const AttributeEdit = ({ isOpen, onClose }: SizeUpdateProps) => {
       ).then((res: Attribute | undefined) => {
         if (res?.id) {
           if (data.type == "2") {
-            newListOptions.map((option) => {
-              attributeService.POSTOPTION(
-                {
-                  option_name: option,
-                  attribute_id: res.id,
-                  user_id: session?.user?.user?.id,
-                },
-                session?.user?.accessToken
-              ).then((res) => {
-                toast.success(`Opção do atributo criado com sucesso`);
-              })
-            });
+            if (newListOptions?.length > 0) {
+              newListOptions.map((option) => {
+                attributeService.POSTOPTION(
+                  {
+                    option_name: option,
+                    attribute_id: res.id,
+                    user_id: session?.user?.user?.id,
+                  },
+                  session?.user?.accessToken
+                ).then((res) => {
+                  toast.success(`Opção do atributo criado com sucesso`);
+                })
+              });
+            }
           }
         }
       })
@@ -200,6 +202,7 @@ const AttributeEdit = ({ isOpen, onClose }: SizeUpdateProps) => {
 
 
   console.log("List: ", listOptions);
+  console.log("NewList: ", newListOptions);
 
   return (
     <Modal
@@ -263,9 +266,9 @@ const AttributeEdit = ({ isOpen, onClose }: SizeUpdateProps) => {
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent className="z-[300]">
-                                <SelectItem value="1">
+                                {/* <SelectItem value="1">
                                   Texto
-                                </SelectItem>
+                                </SelectItem> */}
                                 <SelectItem value="2">
                                   Seleção
                                 </SelectItem>

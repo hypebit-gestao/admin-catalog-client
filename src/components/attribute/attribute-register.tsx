@@ -56,7 +56,7 @@ const AttributeRegister = ({ isOpen, onClose }: AttributeRegisterProps) => {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
-      type: "1",
+      type: "2",
       option_name: ""
     },
   });
@@ -191,7 +191,7 @@ const AttributeRegister = ({ isOpen, onClose }: AttributeRegisterProps) => {
                             <FormLabel>Tipo de atributo</FormLabel>
                             <Select
                               onValueChange={field.onChange}
-                              defaultValue={"1"}
+                              defaultValue={"2"}
                             >
                               <FormControl>
                                 <SelectTrigger>
@@ -199,9 +199,9 @@ const AttributeRegister = ({ isOpen, onClose }: AttributeRegisterProps) => {
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent className="z-[300]">
-                                <SelectItem value="1">
+                                {/* <SelectItem value="1">
                                   Texto
-                                </SelectItem>
+                                </SelectItem> */}
                                 <SelectItem value="2">
                                   Seleção
                                 </SelectItem>
