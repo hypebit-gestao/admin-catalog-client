@@ -394,9 +394,6 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
     })),
   ] : []
 
-  console.log("Attributes", attributes);
-  console.log("AttributesOption", attributesOption);
-  console.log("Attribute", attributeIds);
 
   return (
     <Modal

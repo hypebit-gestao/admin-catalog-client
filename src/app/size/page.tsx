@@ -172,6 +172,8 @@ const Size = () => {
     }
   }, [screenWidth]);
 
+  console.log("ROW DATA", rowData);
+
   return (
     <>
       <SizeDelete
