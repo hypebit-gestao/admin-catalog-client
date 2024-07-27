@@ -40,7 +40,6 @@ const Home = () => {
     getCountCategories();
   }, [session?.user?.accessToken]);
 
-  // console.log("CountCat: ", countCategories);
 
   return (
     <ContentMain title="Home">

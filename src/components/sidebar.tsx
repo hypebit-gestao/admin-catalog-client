@@ -2,7 +2,7 @@
 
 import React from "react";
 import MenuItem from "./menu-item";
-import { FaHome, FaStore, FaUser } from "react-icons/fa";
+import { FaCubes, FaHome, FaStore, FaUser } from "react-icons/fa";
 import {
   MdCategory,
   MdOutlineProductionQuantityLimits,
@@ -39,8 +39,8 @@ const Sidebar = () => {
         }
 
         {/* <MenuItem href="/coupon" label="Cupons" icon={BiSolidCoupon} /> */}
-        <MenuItem href="/size" label="Tamanhos" icon={TbRulerMeasure} />
-       {isAdmin &&  <MenuItem href="/attribute" label="Atributos" icon={TbRulerMeasure} />}
+        {/* <MenuItem href="/size" label="Tamanhos" icon={TbRulerMeasure} /> */}
+       {isAdmin &&  <MenuItem href="/attribute" label="Atributos" icon={FaCubes} />}
         <MenuItem href="/order" label="Pedidos" icon={MdRequestPage} />
         <MenuItem
           href="/configurations"

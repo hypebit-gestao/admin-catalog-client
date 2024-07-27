@@ -259,7 +259,6 @@ const Coupon = () => {
     }
   }, [screenWidth]);
 
-  console.log("RowData", rowData);
 
   return (
     <>

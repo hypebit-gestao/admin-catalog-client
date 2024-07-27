@@ -125,11 +125,67 @@ export const useAttributeService = () => {
     return response;
   };
 
+  // const PUT = async (
+  //   data: Attribute,
+  //   session: string | any
+  // ): Promise<Attribute | undefined> => {
+  //   const response = await fetchWrapper<Attribute>(`attribute`, {
+  //     method: "PUT",
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //       Authorization: `${session}`,
+  //     },
+  //     body: JSON.stringify(data),
+  //   });
+
+  //   if (!response) {
+  //     console.error("Sem resposta do servidor");
+  //   }
+
+  //   return response;
+  // };
+
   const DELETE = async (
     id: string,
     session: string | any
   ): Promise<Attribute | undefined> => {
     const response = await fetchWrapper<Attribute>(`attribute/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `${session}`,
+      },
+    });
+
+    if (!response) {
+      console.error("Sem resposta do servidor");
+    }
+
+    return response;
+  };
+
+  const DELETEATTRIBUTEOPTION = async (
+    id: string,
+    session: string | any
+  ): Promise<AttributeOption | undefined> => {
+    const response = await fetchWrapper<AttributeOption>(`attributeOption/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `${session}`,
+      },
+    });
+
+    if (!response) {
+      console.error("Sem resposta do servidor");
+    }
+
+    return response;
+  };
+
+  const DELETEPRODUCTOPTION = async (
+    id: string,
+    session: string | any
+  ): Promise<AttributeProduct | undefined> => {
+    const response = await fetchWrapper<AttributeProduct>(`attributeProduct/${id}`, {
       method: "DELETE",
       headers: {
         Authorization: `${session}`,
@@ -152,5 +208,7 @@ export const useAttributeService = () => {
     GETBYID,
     PUT,
     DELETE,
+    DELETEATTRIBUTEOPTION,
+    DELETEPRODUCTOPTION,
   };
 };
