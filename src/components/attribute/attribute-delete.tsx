@@ -30,10 +30,15 @@ const AttributeDelete = ({ isOpen, onClose }: AttributeDeleteProps) => {
   const [size, setSize] = useState<Size>();
 
   const handleDelete = () => {
-    attributeService.DELETE(attributeDelete.itemId, session?.user.accessToken);
-    useAttributeDeleteModal.setState({ isDelete: true });
-    onClose();
-    toast.success("Atributo excluído com sucesso");
+    attributeService.DELETE(attributeDelete.itemId, session?.user.accessToken).then((res: any) => {
+      toast.success("Atributo excluído com sucesso");
+      useAttributeDeleteModal.setState({ isDelete: true });
+       onClose();
+    }).catch((err) => {
+       onClose();
+      toast.error(err?.message);
+    })
+
   };
 
   useEffect(() => {

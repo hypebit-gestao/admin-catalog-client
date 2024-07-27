@@ -7,6 +7,17 @@ export async function fetchWrapper<T = unknown>(
     init
   );
 
+  if (!data.ok) {
+    const errorText = await data.text();
+    let errorResult;
+    if (errorText.length) {
+      errorResult = JSON.parse(errorText);
+    } else {
+      errorResult = {};
+    }
+    throw new Error(errorResult.message || "Erro na requisição");
+  }
+
   const text = await data.text();
   let result;
   if (text.length) {

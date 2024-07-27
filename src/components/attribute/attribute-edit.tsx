@@ -127,7 +127,7 @@ const AttributeEdit = ({ isOpen, onClose }: SizeUpdateProps) => {
 
     getAttribute();
     getAllAttributeOption();
-  }, [session?.user.accessToken, attributeEditModal.itemId]);
+  }, [session?.user.accessToken, attributeEditModal.itemId, attributeEditModal.isUpdate, isOpen]);
 
   const onUpdate = async (data: z.infer<typeof formSchema>) => {
     if (loading) return;
@@ -167,7 +167,6 @@ const AttributeEdit = ({ isOpen, onClose }: SizeUpdateProps) => {
             toast.success(`Opção do atributo deletado com sucesso`);
             useAttributeDeleteModal.setState({ isDelete: true });
           }).catch((err) => {
-            console.log("Err: ", err);
           })
         });
       }
@@ -187,6 +186,8 @@ const AttributeEdit = ({ isOpen, onClose }: SizeUpdateProps) => {
     useAttributeRegisterModal.setState({ isRegister: false });
     useAttributeUpdateModal.setState({ isUpdate: false });
     useAttributeDeleteModal.setState({ isDelete: false });
+    setNewListOptions([]);
+    setListDeleteOptions([]);
   }, [isOpen]);
 
 
@@ -201,9 +202,7 @@ const AttributeEdit = ({ isOpen, onClose }: SizeUpdateProps) => {
   }, [attribute, attributeOption, isOpen, attributeEditModal.isUpdate, attributeDeleteModal.isDelete]);
 
 
-  console.log("List: ", listOptions);
-  console.log("NewList: ", newListOptions);
-
+ 
   return (
     <Modal
       isOpen={isOpen}
@@ -250,35 +249,37 @@ const AttributeEdit = ({ isOpen, onClose }: SizeUpdateProps) => {
                   </div>
                   <div className="flex flex-row mb-5">
                   <div className="w-full">
-                  <FormField
-                        control={form.control}
-                        name="type"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Tipo de atributo</FormLabel>
-                            <Select
-                              onValueChange={field.onChange}
-                              defaultValue={field.value}
-                            >
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent className="z-[300]">
-                                {/* <SelectItem value="1">
-                                  Texto
-                                </SelectItem> */}
-                                <SelectItem value="2">
-                                  Seleção
-                                </SelectItem>
-                              </SelectContent>
-                            </Select>
+                  {watch("type") !== "" && (
+                    <FormField
+                    control={form.control}
+                    name="type"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Tipo de atributo</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field?.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent className="z-[300]">
+                            {/* <SelectItem value="1">
+                              Texto
+                            </SelectItem> */}
+                            <SelectItem value="2">
+                              Seleção
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
 
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  )}
                   </div>
                 </div>
                 <div className="mt-5">

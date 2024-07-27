@@ -181,6 +181,24 @@ export const useAttributeService = () => {
     return response;
   };
 
+  const DELETEPRODUCTOPTION = async (
+    id: string,
+    session: string | any
+  ): Promise<AttributeProduct | undefined> => {
+    const response = await fetchWrapper<AttributeProduct>(`attributeProduct/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `${session}`,
+      },
+    });
+
+    if (!response) {
+      console.error("Sem resposta do servidor");
+    }
+
+    return response;
+  };
+
   return {
     POST,
     POSTOPTION,
@@ -191,5 +209,6 @@ export const useAttributeService = () => {
     PUT,
     DELETE,
     DELETEATTRIBUTEOPTION,
+    DELETEPRODUCTOPTION,
   };
 };

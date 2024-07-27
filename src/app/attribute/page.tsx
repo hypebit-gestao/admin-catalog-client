@@ -195,7 +195,6 @@ const Attribute = () => {
     }
   }, [screenWidth]);
 
-  console.log("ROW DATA", rowData);
 
   return (
     <>

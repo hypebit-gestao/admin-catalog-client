@@ -13,6 +13,14 @@ export interface Product {
       };
     }
   ];
+  product_attribute?: [
+    {
+      attribute: {
+        id: string;
+        name: string;
+      }
+    }
+  ]
   category_id: string | null;
   user_id: string | undefined;
   featured: boolean;

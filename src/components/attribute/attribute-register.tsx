@@ -138,7 +138,6 @@ const AttributeRegister = ({ isOpen, onClose }: AttributeRegisterProps) => {
     useAttributeDeleteModal.setState({ isDelete: false });
   }, [isOpen]);
 
-  console.log("ListOptions", listOptions);
 
   return (
     <Modal
