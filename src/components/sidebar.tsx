@@ -39,7 +39,7 @@ const Sidebar = () => {
         }
 
         {/* <MenuItem href="/coupon" label="Cupons" icon={BiSolidCoupon} /> */}
-        {/* <MenuItem href="/size" label="Tamanhos" icon={TbRulerMeasure} /> */}
+        <MenuItem href="/size" label="Tamanhos" icon={TbRulerMeasure} />
        {isAdmin &&  <MenuItem href="/attribute" label="Atributos" icon={FaCubes} />}
         <MenuItem href="/order" label="Pedidos" icon={MdRequestPage} />
         <MenuItem
