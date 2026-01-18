@@ -799,10 +799,10 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                       />
                     </div>
                   )}
-                <div className="mb-3">
+                {/* <div className="mb-3">
                   <h1 className="font-bold">Seu produto possui personalização?</h1>
-                </div>
-                <div className="mb-5">
+                </div> */}
+                {/* <div className="mb-5">
                   <FormField
                     control={form.control}
                     name="isAttribute"
@@ -824,8 +824,8 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                       </FormItem>
                     )}
                   />
-                </div>
-                {isAttribute && (
+                </div> */}
+                {/* {isAttribute && (
                   <div className="w-full mb-5">
                     <FormField
                       control={form.control}
@@ -887,7 +887,7 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                       )}
                     />
                   </div>
-                )}
+                )} */}
                   <div className="flex flex-col lg:flex-row mb-5">
                     <div className="w-full ">
                       <FormField

@@ -29,4 +29,5 @@ export interface Product {
   currency: string;
   promotion_price?: number | null;
   price: number;
+  archived?: boolean
 }

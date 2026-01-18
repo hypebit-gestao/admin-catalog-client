@@ -270,6 +270,7 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                     featured: data.featured,
                     active: data.active,
                     description: data.description,
+                    archived: false
                   },
                   session?.user?.accessToken
                 )
@@ -328,6 +329,7 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
             featured: data.featured,
             active: data.active,
             description: data.description,
+            archived: false
           },
           session?.user?.accessToken
         )
@@ -642,10 +644,10 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                     )}
                   />
                 </div>
-                <div className="mb-3">
+                {/* <div className="mb-3">
                   <h1 className="font-bold">Seu produto possui personalização?</h1>
-                </div>
-                <div className="mb-5">
+                </div> */}
+                {/* <div className="mb-5">
                   <FormField
                     control={form.control}
                     name="isAttribute"
@@ -730,7 +732,7 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                       )}
                     />
                   </div>
-                )}
+                )} */}
                 {isSize && (
                   <div className="w-full mb-5">
                     <FormField

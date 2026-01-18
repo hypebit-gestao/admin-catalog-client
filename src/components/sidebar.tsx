@@ -39,7 +39,7 @@ const Sidebar = () => {
         }
 
         {/* <MenuItem href="/coupon" label="Cupons" icon={BiSolidCoupon} /> */}
-        {session?.user?.user?.id == '18b2e340-ad57-467b-a156-a7f78e6d0ea4' && (
+        { (
           <MenuItem href="/size" label="Tamanhos" icon={TbRulerMeasure} />
         )}
        {/* {<MenuItem href="/attribute" label="Atributos" icon={FaCubes} />} */}

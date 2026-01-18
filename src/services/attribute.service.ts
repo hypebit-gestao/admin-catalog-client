@@ -7,7 +7,7 @@ export const useAttributeService = () => {
     data: Attribute,
     session: string | any
   ): Promise<Attribute | undefined> => {
-    const response: any = await fetchWrapper<Attribute>(`attribute`, {
+    const response: any = await fetchWrapper<Attribute>(`productAttribute`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -25,7 +25,7 @@ export const useAttributeService = () => {
     data: AttributeOption,
     session: string | any
   ): Promise<AttributeOption | undefined> => {
-    const response: any = await fetchWrapper<AttributeOption>(`attributeOption`, {
+    const response: any = await fetchWrapper<AttributeOption>(`productAttributeOption`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -58,7 +58,7 @@ export const useAttributeService = () => {
   };
 
   const GETALL = async (session: string | any): Promise<Attribute[] | undefined> => {
-    const response: any = await fetchWrapper<Attribute[]>(`attribute`, {
+    const response: any = await fetchWrapper<Attribute[]>(`productAttribute`, {
       method: "GET",
       headers: {
         Authorization: `${session}`,
@@ -73,7 +73,7 @@ export const useAttributeService = () => {
 
   
   const GETALLATTRIBUTEOPTION = async (session: string | any): Promise<AttributeOption[] | undefined> => {
-    const response: any = await fetchWrapper<AttributeOption[]>(`attributeOption`, {
+    const response: any = await fetchWrapper<AttributeOption[]>(`productAttributeOption`, {
       method: "GET",
       headers: {
         Authorization: `${session}`,
@@ -91,7 +91,7 @@ export const useAttributeService = () => {
     session: string | any,
     id: string
   ): Promise<Attribute | undefined> => {
-    const response = await fetchWrapper<Attribute>(`attribute/${id}`, {
+    const response = await fetchWrapper<Attribute>(`productAttribute/${id}`, {
       method: "GET",
       headers: {
         Authorization: `${session}`,
@@ -109,7 +109,7 @@ export const useAttributeService = () => {
     data: Attribute,
     session: string | any
   ): Promise<Attribute | undefined> => {
-    const response = await fetchWrapper<Attribute>(`attribute`, {
+    const response = await fetchWrapper<Attribute>(`productAttribute`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -149,7 +149,7 @@ export const useAttributeService = () => {
     id: string,
     session: string | any
   ): Promise<Attribute | undefined> => {
-    const response = await fetchWrapper<Attribute>(`attribute/${id}`, {
+    const response = await fetchWrapper<Attribute>(`productAttribute/${id}`, {
       method: "DELETE",
       headers: {
         Authorization: `${session}`,
@@ -167,7 +167,7 @@ export const useAttributeService = () => {
     id: string,
     session: string | any
   ): Promise<AttributeOption | undefined> => {
-    const response = await fetchWrapper<AttributeOption>(`attributeOption/${id}`, {
+    const response = await fetchWrapper<AttributeOption>(`productAttributeOption/${id}`, {
       method: "DELETE",
       headers: {
         Authorization: `${session}`,
