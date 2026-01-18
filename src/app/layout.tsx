@@ -39,7 +39,7 @@ export default function RootLayout({
   const forgotPasswordModal = useForgotPasswordModal();
   const renewalSubscriptionModal = useRenewalSubscriptionModal();
   return (
-    <html lang="en">
+    <html lang="pt-br">
       <AuthProvider>
         <body className={inter.className}>
           <ToastProvider />
