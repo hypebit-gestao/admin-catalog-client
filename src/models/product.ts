@@ -29,5 +29,9 @@ export interface Product {
   currency: string;
   promotion_price?: number | null;
   price: number;
+  installment_available?: boolean;
+  installment_with_interest?: boolean;
+  installment_interest_value?: number | null;
+  max_installments?: number;
   archived?: boolean
 }

@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import Modal from "../modal";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { set, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import * as z from "zod";
 
 import {
@@ -78,6 +78,10 @@ const formSchema = z
     isAttribute: z.boolean(),
     promotion_price: z.string(),
     price: z.string().min(1, "Preço do produto é obrigatório"),
+    installment_available: z.boolean(),
+    installment_with_interest: z.boolean(),
+    installment_interest_value: z.string().optional(),
+    max_installments: z.string().optional(),
     user_name: z.string(),
   })
   .refine((data) => Number(data.promotion_price) <= Number(data.price), {
@@ -87,7 +91,23 @@ const formSchema = z
   .refine((data) => Number(data.price) >= Number(data.promotion_price), {
     message: "O preço normal não pode ser menor que o preço promocional",
     path: ["price"],
-  });
+  })
+  .refine(
+    (data) =>
+      !data.installment_available ||
+      !data.installment_with_interest ||
+      (data.installment_interest_value !== undefined &&
+        data.installment_interest_value !== null &&
+        data.installment_interest_value !== "" &&
+        Number(data.installment_interest_value) > 0 &&
+        Number(data.installment_interest_value) <= 100),
+    {
+      message: "O valor do juros deve ser maior que 0 e menor ou igual a 100",
+      path: ["installment_interest_value"],
+    }
+  );
+
+
 
 const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
   const { data: session } = useSession();
@@ -126,6 +146,10 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
       isAttribute: false,
       price: "",
       promotion_price: "",
+      installment_available: false,
+      installment_with_interest: false,
+      installment_interest_value: "",
+      max_installments: "1",
       user_name: session?.user?.user?.name,
     },
   });
@@ -270,7 +294,18 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                     featured: data.featured,
                     active: data.active,
                     description: data.description,
-                    archived: false
+                    archived: false,
+                    installment_available: data.installment_available,
+                    installment_with_interest: data.installment_available
+                      ? data.installment_with_interest
+                      : false,
+                    installment_interest_value:
+                      data.installment_available && data.installment_with_interest
+                        ? Number(data.installment_interest_value)
+                        : null,
+                    max_installments: data.installment_available
+                      ? Number(data.max_installments ?? 1)
+                      : 1,
                   },
                   session?.user?.accessToken
                 )
@@ -329,7 +364,18 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
             featured: data.featured,
             active: data.active,
             description: data.description,
-            archived: false
+            archived: false,
+            installment_available: data.installment_available,
+            installment_with_interest: data.installment_available
+              ? data.installment_with_interest
+              : false,
+            installment_interest_value:
+              data.installment_available && data.installment_with_interest
+                ? Number(data.installment_interest_value)
+                : null,
+            max_installments: data.installment_available
+              ? Number(data.max_installments ?? 1)
+              : 1,
           },
           session?.user?.accessToken
         )
@@ -379,6 +425,9 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
   const isPromotion = watch("isPromotion");
   const isSize = watch("isSize");
   const isAttribute = watch("isAttribute");
+  const installmentAvailable = watch("installment_available");
+  const installmentWithInterest = watch("installment_with_interest");
+  const maxInstallments = watch("max_installments");
   const sizeIds = watch("size_ids");
   const attributeIds = watch("attribute_ids");
 
@@ -794,6 +843,107 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                         </FormItem>
                       )}
                     />
+                  </div>
+                )}
+                <div className="mb-5">
+                  <h1 className="font-bold">Parcelamento</h1>
+                </div>
+                <div className="mb-5">
+                  <FormField
+                    control={form.control}
+                    name="installment_available"
+                    render={({ field }) => (
+                      <FormItem>
+                        <div className="flex flex-col">
+                          <FormControl>
+                            <div className="flex flex-row items-center">
+                              <Checkbox
+                                color="blue"
+                                className="w-5 h-5"
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                              <div className="ml-2">Parcelamento disponível</div>
+                            </div>
+                          </FormControl>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                {installmentAvailable && (
+                  <div className="mb-5">
+                    <FormField
+                      control={form.control}
+                      name="installment_with_interest"
+                      render={({ field }) => (
+                        <FormItem>
+                          <div className="flex flex-col">
+                            <FormControl>
+                              <div className="flex flex-row items-center">
+                                <Checkbox
+                                  color="blue"
+                                  className="w-5 h-5"
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                />
+                                <div className="ml-2">Com juros</div>
+                              </div>
+                            </FormControl>
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {installmentWithInterest && (
+                      <div className="w-full mt-3">
+                        <FormField
+                          control={form.control}
+                          name="installment_interest_value"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Valor do juros (%)</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="Ex.: 2.5"
+                                  type="number"
+                                  step="0.01"
+                                  min={0}
+                                  max={100}
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    )}
+                    <div className="w-full mt-3">
+                      <FormField
+                        control={form.control}
+                        name="max_installments"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Máximo de parcelas</FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="Ex.: 6"
+                                type="number"
+                                step="1"
+                                min={1}
+                                max={36}
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                   </div>
                 )}
                 <div className="flex flex-row mb-5">
