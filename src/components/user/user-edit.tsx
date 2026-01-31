@@ -198,7 +198,7 @@ const UserEdit = ({ isOpen, onClose }: UserEditProps) => {
             setValue("district", fetchedAddress.district);
             setValue("city", fetchedAddress.city);
             setValue("state", fetchedAddress.state);
-            setValue("complement", fetchedAddress.complement);
+               setValue("complement", fetchedAddress.complement ?? "");
           }
         }
       };
@@ -226,6 +226,7 @@ const UserEdit = ({ isOpen, onClose }: UserEditProps) => {
   };
 
   const onUpdate = async (data: z.infer<typeof formSchema>) => {
+    console.log("Data: ", data)
     try {
       if (data?.image_url) {
         await uploadService
@@ -278,6 +279,8 @@ const UserEdit = ({ isOpen, onClose }: UserEditProps) => {
       toast.error((error as Error).message);
     }
   };
+
+  console.log("watch: ", watch())
 
   return (
     <Modal
