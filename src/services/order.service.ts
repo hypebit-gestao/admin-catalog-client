@@ -1,6 +1,10 @@
 import { fetchWrapper } from "../utils/functions/fetch";
 import { User } from "../models/user";
 import { Order } from "@/models/order";
+import {
+  OrderAnalyticsResponse,
+  OrderDashboardResponse,
+} from "@/models/order-analytics";
 
 export const useOrderService = () => {
   const POST = async (
@@ -89,9 +93,43 @@ export const useOrderService = () => {
     });
   };
 
+  const GETANALYTICS = async (
+    session: string | any,
+    userId: string | undefined
+  ): Promise<OrderAnalyticsResponse | undefined> => {
+    const response = await fetchWrapper<OrderAnalyticsResponse>(
+      `order/analytics/${userId}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `${session}`,
+        },
+      }
+    );
+    return response;
+  };
+
+  const GETDASHBOARD = async (
+    session: string | any,
+    userId: string | undefined
+  ): Promise<OrderDashboardResponse | undefined> => {
+    const response = await fetchWrapper<OrderDashboardResponse>(
+      `order/dashboard/${userId}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `${session}`,
+        },
+      }
+    );
+    return response;
+  };
+
   return {
     GETALL,
     GETBYID,
+    GETANALYTICS,
+    GETDASHBOARD,
     POST,
     PUT,
     DELETE,

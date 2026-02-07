@@ -141,15 +141,8 @@ const Product = () => {
         onClose={productRegisterModal.onClose}
       />
       <ContentMain title="Produtos">
-        <div className="flex justify-end">
-          <IoIosAddCircle
-            onClick={() => productRegisterModal.onOpen()}
-            size={44}
-            className="text-blue-primary cursor-pointer  hover:opacity-70 transition-all duration-200"
-          />
-        </div>
-
-        <div className="w-[25%]">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+          <div className="w-full sm:w-64">
           <Form {...form}>
             <FormField
               control={form.control}
@@ -181,9 +174,17 @@ const Product = () => {
               )}
             />
           </Form>
+          </div>
+          <Button
+            onClick={() => productRegisterModal.onOpen()}
+            className="bg-green-primary hover:bg-green-primary/90 gap-2"
+          >
+            <IoIosAddCircle size={22} />
+            Novo Produto
+          </Button>
         </div>
 
-        <div className="mt-5 mb-16">
+        <div className="mb-16">
           {loading === true ? (
             <Loader color="text-green-primary" />
           ) : (
@@ -192,7 +193,7 @@ const Product = () => {
                 {products?.map((product, index) => (
                   <div
                     key={index}
-                    className="relative flex flex-col mt-6 text-gray-700 bg-white shadow-md bg-clip-border rounded-xl"
+                    className="relative flex flex-col text-gray-700 bg-white border border-gray-100 rounded-xl overflow-hidden hover:shadow-lg hover:border-green-primary/10 transition-all duration-200"
                   >
                     <div className="rounded-lg">
                       {product.images && product.images.length > 0 ? (

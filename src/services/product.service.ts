@@ -1,5 +1,9 @@
 import { fetchWrapper } from "../utils/functions/fetch";
 import { Product } from "@/models/product";
+import {
+  ProductAnalyticsResponse,
+  ProductByCategoryResponse,
+} from "@/models/product-analytics";
 
 export const useProductService = () => {
   const POST = async (
@@ -109,10 +113,44 @@ export const useProductService = () => {
     });
   };
 
+  const GETANALYTICS = async (
+    user_id: string | undefined,
+    session: string | any
+  ): Promise<ProductAnalyticsResponse | undefined> => {
+    const response = await fetchWrapper<ProductAnalyticsResponse>(
+      `product/analytics/${user_id}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `${session}`,
+        },
+      }
+    );
+    return response;
+  };
+
+  const GETBYCATEGORY = async (
+    user_id: string | undefined,
+    session: string | any
+  ): Promise<ProductByCategoryResponse | undefined> => {
+    const response = await fetchWrapper<ProductByCategoryResponse>(
+      `product/by-category/${user_id}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `${session}`,
+        },
+      }
+    );
+    return response;
+  };
+
   return {
     GETBYUSERID,
     GETBYID,
     COUNTPRODUCTS,
+    GETANALYTICS,
+    GETBYCATEGORY,
     POST,
     PUT,
     DELETE,

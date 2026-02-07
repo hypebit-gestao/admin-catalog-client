@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import React, { useEffect, useState } from "react";
 
 import { IoIosAddCircle } from "react-icons/io";
+import { Button } from "@/components/ui/button";
 import ContentMain from "@/components/content-main";
 import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles//ag-grid.css";
@@ -185,15 +186,17 @@ const Category = () => {
         onClose={categoryRegisterModal.onClose}
       />
       <ContentMain title="Categorias">
-        <div className="flex justify-end">
-          <IoIosAddCircle
+        <div className="flex justify-end mb-6">
+          <Button
             onClick={() => categoryRegisterModal.onOpen()}
-            size={44}
-            className="text-green-primary cursor-pointer  hover:opacity-70 transition-all duration-200"
-          />
+            className="bg-green-primary hover:bg-green-primary/90 gap-2"
+          >
+            <IoIosAddCircle size={22} />
+            Nova Categoria
+          </Button>
         </div>
 
-        <div className="my-10 ">
+        <div className="my-6">
           {loading === true ? (
             <Loader color="text-green-primary" />
           ) : (
