@@ -47,7 +47,7 @@ const User = () => {
   const [loading, setLoading] = useState(false);
   const { data: session } = useSession();
   const [rowData, setRowData] = useState<User[]>([]);
-  const [screenWidth, setScreenWidth] = useState(window.innerWidth);
+  const [screenWidth, setScreenWidth] = useState(0);
   const userService = useUserService();
   const userRegisterModal = useUserRegisterModal();
   const userDeleteModal = useUserDeleteModal();
@@ -72,6 +72,7 @@ const User = () => {
   ]);
 
   useEffect(() => {
+    setScreenWidth(window.innerWidth);
     const handleResize = () => {
       setScreenWidth(window.innerWidth);
     };
@@ -246,12 +247,14 @@ const User = () => {
       />
       <ContentMain title="Lojas">
         <div className="w-full">
-          <div className="flex justify-end">
-            <IoIosAddCircle
+          <div className="flex justify-end mb-6">
+            <Button
               onClick={() => userRegisterModal.onOpen()}
-              size={44}
-              className="text-green-primary cursor-pointer  hover:opacity-70 transition-all duration-200"
-            />
+              className="bg-green-primary hover:bg-green-primary/90 gap-2"
+            >
+              <IoIosAddCircle size={22} />
+              Nova Loja
+            </Button>
           </div>
 
           <div className="my-10">

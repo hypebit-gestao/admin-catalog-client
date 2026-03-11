@@ -24,6 +24,8 @@ const pathLabels: Record<string, string> = {
   coupon: "Cupons",
   attribute: "Atributos",
   analytics: "Análises",
+  calculator: "Calculadora de Preços",
+  help: "Central de Ajuda",
 };
 
 const ContentMain: React.FC<ContentMainProps> = ({

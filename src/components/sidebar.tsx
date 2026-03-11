@@ -8,9 +8,9 @@ import {
   MdOutlineProductionQuantityLimits,
   MdRequestPage,
   MdSettings,
-  MdAnalytics,
+  MdCalculate,
+  MdHelpOutline,
 } from "react-icons/md";
-import { BiSolidCoupon } from "react-icons/bi";
 import { TbRulerMeasure } from "react-icons/tb";
 import { useSession } from "next-auth/react";
 import { HiMenuAlt2, HiX } from "react-icons/hi";
@@ -120,15 +120,21 @@ const Sidebar = () => {
             collapsed={isCollapsed}
           />
           {/* <MenuItem
-            href="/analytics"
-            label="Análises"
-            icon={MdAnalytics}
+            href="/calculator"
+            label="Calculadora"
+            icon={MdCalculate}
             collapsed={isCollapsed}
           /> */}
           <MenuItem
             href="/configurations"
             label="Configurações"
             icon={MdSettings}
+            collapsed={isCollapsed}
+          />
+          <MenuItem
+            href="/help"
+            label="Ajuda"
+            icon={MdHelpOutline}
             collapsed={isCollapsed}
           />
         </ul>

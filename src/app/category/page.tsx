@@ -31,7 +31,7 @@ const Category = () => {
   const [loading, setLoading] = useState(false);
   const { data: session } = useSession();
   const [rowData, setRowData] = useState<Category[]>([]);
-  const [screenWidth, setScreenWidth] = useState(window.innerWidth);
+  const [screenWidth, setScreenWidth] = useState(0);
   const categoryService = useCategoryService();
   const categoryRegisterModal = useCategoryRegisterModal();
   const categoryEditModal = useCategoryUpdateModal();
@@ -58,6 +58,7 @@ const Category = () => {
   ]);
 
   useEffect(() => {
+    setScreenWidth(window.innerWidth);
     const handleResize = () => {
       setScreenWidth(window.innerWidth);
     };
@@ -201,59 +202,47 @@ const Category = () => {
             <Loader color="text-green-primary" />
           ) : (
             <>
-              <div className="lg:hidden ">
+              <div className="lg:hidden space-y-3">
                 {rowData?.map((category, index) => (
                   <div
                     key={index}
-                    className="card w-auto bg-base-100 shadow-xl"
+                    className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden"
                   >
-                    <div className="h-auto">
-                      {category.image_url ? (
-                        <Image
-                          className="h-full w-full "
-                          src={`${category.image_url}`}
-                          alt="Shoes"
-                          width={1920}
-                          height={1080}
-                          objectFit="cover"
-                        />
-                      ) : (
-                        <Image
-                          className="h-[300px] w-full"
-                          src={`https://www.pallenz.co.nz/assets/camaleon_cms/image-not-found-4a963b95bf081c3ea02923dceaeb3f8085e1a654fc54840aac61a57a60903fef.png`}
-                          alt="Shoes"
-                          width={1920}
-                          height={1080}
-                          objectFit="cover"
-                        />
-                      )}
+                    <div className="h-[160px] w-full">
+                      <Image
+                        className="h-full w-full object-cover"
+                        src={category.image_url || `https://www.pallenz.co.nz/assets/camaleon_cms/image-not-found-4a963b95bf081c3ea02923dceaeb3f8085e1a654fc54840aac61a57a60903fef.png`}
+                        alt={category.name}
+                        width={800}
+                        height={160}
+                      />
                     </div>
-                    <div className="card-body bg-white">
-                      <h2 className="font-bold text-2xl text-green-primary truncate">
+                    <div className="p-4 flex items-center justify-between">
+                      <h2 className="font-bold text-base text-green-primary truncate flex-1">
                         {category.name}
                       </h2>
-                      {/* <p className="text-[#2c6e49]">{category?.description}</p> */}
-                      <div className="card-actions justify-between">
-                        <div className="flex flex-row items-center">
-                          <div
-                            onClick={() => handleEdit(category && category.id)}
-                            className="mr-3 cursor-pointer"
-                          >
-                            <MdEdit color="blue" size={32} />
-                          </div>
-                          <div
-                            onClick={() =>
-                              handleDelete(category && category.id)
-                            }
-                            className="cursor-pointer"
-                          >
-                            <MdDelete color="red" size={32} />
-                          </div>
-                        </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <button
+                          onClick={() => handleEdit(category && category.id)}
+                          className="text-blue-500 hover:text-blue-600 transition-colors p-1"
+                          aria-label="Editar categoria"
+                        >
+                          <MdEdit size={28} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(category && category.id)}
+                          className="text-red-500 hover:text-red-600 transition-colors p-1"
+                          aria-label="Excluir categoria"
+                        >
+                          <MdDelete size={28} />
+                        </button>
                       </div>
                     </div>
                   </div>
                 ))}
+                {rowData.length === 0 && (
+                  <p className="text-center text-muted-foreground py-8">Nenhuma categoria cadastrada</p>
+                )}
               </div>
               <div className="hidden lg:block ag-theme-quartz">
                 <AgGridReact

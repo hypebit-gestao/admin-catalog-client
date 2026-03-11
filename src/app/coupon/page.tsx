@@ -5,6 +5,7 @@ import React, { useEffect, useState } from "react";
 
 import { IoIosAddCircle } from "react-icons/io";
 import ContentMain from "@/components/content-main";
+import { Button } from "@/components/ui/button";
 import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles//ag-grid.css";
 import "ag-grid-community/styles//ag-theme-quartz.css";
@@ -27,7 +28,7 @@ const Coupon = () => {
   const [loading, setLoading] = useState(false);
   const { data: session } = useSession();
   const [rowData, setRowData] = useState<CouponModel[]>([]);
-  const [screenWidth, setScreenWidth] = useState(window.innerWidth);
+  const [screenWidth, setScreenWidth] = useState(0);
   const couponService = useCouponService();
   const couponRegisterModal = useCouponRegisterModal();
   const couponEditModal = useCouponUpdateModal();
@@ -52,6 +53,7 @@ const Coupon = () => {
   ]);
 
   useEffect(() => {
+    setScreenWidth(window.innerWidth);
     const handleResize = () => {
       setScreenWidth(window.innerWidth);
     };
@@ -275,12 +277,14 @@ const Coupon = () => {
       onClose={couponRegisterModal.onClose}
     />
       <ContentMain title="Cupons de Desconto">
-        <div className="flex justify-end">
-          <IoIosAddCircle
+        <div className="flex justify-end mb-6">
+          <Button
             onClick={() => couponRegisterModal.onOpen()}
-            size={44}
-            className="text-green-primary cursor-pointer  hover:opacity-70 transition-all duration-200"
-          />
+            className="bg-green-primary hover:bg-green-primary/90 gap-2"
+          >
+            <IoIosAddCircle size={22} />
+            Novo Cupom
+          </Button>
         </div>
 
         <div className="my-10 ">
@@ -288,32 +292,53 @@ const Coupon = () => {
             <Loader color="text-green-primary" />
           ) : (
             <>
-              <div className="lg:hidden ">
+              <div className="lg:hidden space-y-3">
                 {rowData?.map((coupon, index) => (
                   <div
                     key={index}
-                    className="card w-auto bg-base-100 shadow-xl"
+                    className="bg-white rounded-xl border border-gray-200 shadow-sm p-4"
                   >
-                    <div className="card-body bg-white">
-                      <div className="card-actions justify-between">
-                        <div className="flex flex-row items-center">
-                          <div
-                            onClick={() => handleEdit(coupon && coupon.id)}
-                            className="mr-3 cursor-pointer"
-                          >
-                            <MdEdit color="blue" size={32} />
-                          </div>
-                          <div
-                            onClick={() => handleDelete(coupon && coupon.id)}
-                            className="cursor-pointer"
-                          >
-                            <MdDelete color="red" size={32} />
-                          </div>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold text-lg text-green-primary truncate">
+                          {coupon.code}
+                        </p>
+                        <div className="mt-1 flex flex-wrap gap-2 text-sm text-gray-600">
+                          <span>Desconto: <strong>{Number(coupon.discount).toFixed(0)}%</strong></span>
+                          <span>·</span>
+                          <span>Estoque: <strong>{coupon.stock}</strong></span>
                         </div>
+                        {coupon.expires_at && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Expira: {moment(coupon.expires_at).format("DD/MM/YYYY HH:mm")}
+                          </p>
+                        )}
+                        <span className={`inline-block mt-2 text-xs px-2 py-0.5 rounded-full font-medium ${coupon.active ? "bg-emerald-100 text-emerald-800" : "bg-red-100 text-red-800"}`}>
+                          {coupon.active ? "Ativo" : "Inativo"}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <button
+                          onClick={() => handleEdit(coupon && coupon.id)}
+                          className="text-blue-500 hover:text-blue-600 transition-colors p-1"
+                          aria-label="Editar cupom"
+                        >
+                          <MdEdit size={28} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(coupon && coupon.id)}
+                          className="text-red-500 hover:text-red-600 transition-colors p-1"
+                          aria-label="Excluir cupom"
+                        >
+                          <MdDelete size={28} />
+                        </button>
                       </div>
                     </div>
                   </div>
                 ))}
+                {rowData.length === 0 && (
+                  <p className="text-center text-muted-foreground py-8">Nenhum cupom cadastrado</p>
+                )}
               </div>
               <div className="hidden lg:block ag-theme-quartz">
                 <AgGridReact
