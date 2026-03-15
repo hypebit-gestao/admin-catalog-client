@@ -59,6 +59,8 @@ const PasswordReset = () => {
         });
     }
   };
+
+
   return (
     <div className="min-h-screen w-full flex justify-center items-center bg-green-primary">
       <div className="flex flex-col w-[30%] items-center">
