@@ -144,7 +144,7 @@ const Help = () => {
       if (next.has(id)) next.delete(id);
       else next.add(id);
       if (typeof window !== "undefined") {
-        localStorage.setItem("help_checklist", JSON.stringify([...next]));
+        localStorage.setItem("help_checklist", JSON.stringify(Array.from(next)));
       }
       return next;
     });
