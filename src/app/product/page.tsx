@@ -204,7 +204,7 @@ const Product = () => {
                     <Image
                       className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
                       src={
-                        product.images?.length > 0
+                        (product.images?.length ?? 0) > 0
                           ? product.images[0]
                           : "https://www.pallenz.co.nz/assets/camaleon_cms/image-not-found-4a963b95bf081c3ea02923dceaeb3f8085e1a654fc54840aac61a57a60903fef.png"
                       }
