@@ -3,12 +3,13 @@
 import { useSession } from "next-auth/react";
 import React from "react";
 import ContentMain from "@/components/content-main";
-import { Button } from "@/components/ui/button";
 import useShippingRegisterModal from "@/utils/hooks/shipping/useRegisterShippingModal";
 import ShippingRegister from "@/components/shipping/shipping-register";
 import usePersonalizationStoreModal from "@/utils/hooks/pesonalization-store/usePersonalizationStoreModal";
 import PersonalizationStore from "@/components/personalization_store/personalization-store";
-import { MdLocalShipping, MdPalette, MdChevronRight } from "react-icons/md";
+import useGoogleAnalyticsModal from "@/utils/hooks/analytics/useGoogleAnalyticsModal";
+import GoogleAnalyticsModal from "@/components/google-analytics/google-analytics-modal";
+import { MdLocalShipping, MdPalette, MdChevronRight, MdAnalytics } from "react-icons/md";
 import { cn } from "@/lib/utils";
 
 const configCards = [
@@ -30,16 +31,27 @@ const configCards = [
     iconColor: "text-purple-600",
     borderHover: "hover:border-purple-200",
   },
+  {
+    id: "analytics",
+    title: "Google Analytics",
+    description: "Conecte o Google Analytics à sua loja para acompanhar visitantes, conversões e comportamento dos clientes.",
+    icon: MdAnalytics,
+    iconBg: "bg-orange-50",
+    iconColor: "text-orange-500",
+    borderHover: "hover:border-orange-200",
+  },
 ];
 
 const Configurations = () => {
   const { data: session } = useSession();
   const shippingModal = useShippingRegisterModal();
   const personalizationStoreModal = usePersonalizationStoreModal();
+  const gaModal = useGoogleAnalyticsModal();
 
   const handleCardClick = (id: string) => {
     if (id === "shipping") shippingModal.onOpen();
     if (id === "personalization") personalizationStoreModal.onOpen();
+    if (id === "analytics") gaModal.onOpen();
   };
 
   return (
@@ -51,6 +63,10 @@ const Configurations = () => {
       <PersonalizationStore
         isOpen={personalizationStoreModal.isOpen}
         onClose={personalizationStoreModal.onClose}
+      />
+      <GoogleAnalyticsModal
+        isOpen={gaModal.isOpen}
+        onClose={gaModal.onClose}
       />
       <ContentMain
         title="Configurações da Loja"

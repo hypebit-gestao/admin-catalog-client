@@ -36,6 +36,7 @@
     "react-input-mask": "^2.0.4",
     "react-number-format": "^5.3.3",
     "react-select": "^5.8.0",
+    "recharts": "^3.8.1",
     "sheetjs-style": "^0.15.8",
     "stripe": "^15.5.0",
     "tailwind-merge": "^2.2.1",

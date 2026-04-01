@@ -4,6 +4,12 @@ export interface OrderStatusSummary {
   revenue: number;
 }
 
+export interface MonthlyRevenueTrend {
+  month: string;
+  revenue: number;
+  orders: number;
+}
+
 export interface OrderAnalyticsResponse {
   totalRevenue: number;
   deliveredRevenue: number;
@@ -11,6 +17,7 @@ export interface OrderAnalyticsResponse {
   averageTicket: number;
   pendingOrders: number;
   statusSummary: OrderStatusSummary[];
+  monthlyRevenue: MonthlyRevenueTrend[];
 }
 
 export interface RecentOrderItem {

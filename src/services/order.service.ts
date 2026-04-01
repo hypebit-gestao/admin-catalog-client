@@ -95,10 +95,16 @@ export const useOrderService = () => {
 
   const GETANALYTICS = async (
     session: string | any,
-    userId: string | undefined
+    userId: string | undefined,
+    startDate?: string,
+    endDate?: string
   ): Promise<OrderAnalyticsResponse | undefined> => {
+    const params = new URLSearchParams();
+    if (startDate) params.append("startDate", startDate);
+    if (endDate) params.append("endDate", endDate);
+    const qs = params.toString() ? `?${params.toString()}` : "";
     const response = await fetchWrapper<OrderAnalyticsResponse>(
-      `order/analytics/${userId}`,
+      `order/analytics/${userId}${qs}`,
       {
         method: "GET",
         headers: {

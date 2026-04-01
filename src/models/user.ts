@@ -18,6 +18,7 @@ export interface User {
   pix_discount?: number | null;
   credit_discount?: number | null;
   debit_discount?: number | null;
+  ga_measurement_id?: string | null;
 }
 
 export interface UserShippingPut {
