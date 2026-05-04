@@ -344,9 +344,18 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
     };
     getSizes();
 
+    const getAttributes = async () => {
+      const fetchedAttributes = await attributeService.GETALL(session?.user.accessToken);
+      if (fetchedAttributes) setAttributesAll(fetchedAttributes);
+    };
+    getAttributes();
+
     getUser();
     getCategories();
   }, [session?.user?.accessToken, productEditModal.itemId, isOpen]);
+
+  const options = sizes.map((size) => ({ value: size.id, label: size.size }));
+  const optionsAttributes = attributesAll.map((attr) => ({ value: attr.id, label: attr.name }));
 
 
   const handleUpdateSizePrice = async (index: number) => {
@@ -779,16 +788,6 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                   <h1 className="my-4 font-semibold text-green-primary">
                     Informações adicionais
                   </h1>
-<<<<<<< HEAD
-             
-              {productAttributes?.length <= 0 && (
-                <>
-                   
-                <div className="mb-3">
-                  <h1 className="font-bold">Deseja adicionar alguma variação no produto?</h1>
-                </div>
-                <div className="mb-5">
-=======
                   <div className="mb-3">
                     <h1 className="font-bold">Seu produto possui tamanho?</h1>
                   </div>
@@ -984,7 +983,6 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                   <h1 className="font-bold">Seu produto possui personalização?</h1>
                 </div> */}
                 {/* <div className="mb-5">
->>>>>>> fa967c95c632334790d49425fae73ea6ea4b50e6
                   <FormField
                     control={form.control}
                     name="isAttribute"
@@ -1006,171 +1004,6 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                       </FormItem>
                     )}
                   />
-<<<<<<< HEAD
-                </div>
-                </>
-              )}
-                {isAttribute || productAttributes?.length > 0 && (
-                  <>
-                   {productAttributes?.length > 0 ? (
-                    
-                    productAttributes?.map((attribute, index) => (
-                      <div key={index} className="w-full flex items-center mb-5">
-                        <div className="w-full">
-                        <Input
-                          className="w-full"
-                          value={attribute.name}
-                          placeholder={attribute.name}
-                          onChange={(e) => {
-                            
-                          }}
-                          disabled={!isEditProductAttribute}
-                        />
-                        </div>
-                        <div className="ml-4">
-                      <TbTrash className="cursor-pointer"  onClick={() => handleRemoveOption(index)} size={24} color="red" />
-                    </div>
-                    <div className="ml-4">
-                      {isEditProductAttribute ? <MdSave  className="cursor-pointer" onClick={() => handleRemoveOption(index)} size={24} color="blue" /> : <MdEdit  className="cursor-pointer" onClick={handleEditProductAttribute} size={24} color="blue" />}
-                    </div>
-                     </div>
-                    ))
-                   ) :   <div className="w-full mb-5">
-                   <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-blue-primary">
-                        Nome da variação
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Insira o nome da variação do produto"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-            </div>}
-                  {/* <div>
-                        <h1 className="mb-2">Quais opções este produto possui?</h1>
-                          {optionsAttribute.map((option, index) => (
-                            <div key={index} className="flex items-center mb-5">
-                            <div className="w-full ">
-                           <FormField
-                          control={form.control}
-                          name={`option_${index}`}
-                          render={({ field }) => (
-                            <FormItem>
-                         
-                              <FormControl>
-                                <Input
-                                  placeholder="Digite o nome da opção"
-                                  {...field}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                    </div>
-                    <div className="ml-4">
-                      <TbTrash className="cursor-pointer"  onClick={() => handleRemoveOption(index)} size={24} color="red" />
-                    </div>
-                    <div className="ml-4">
-                      <MdSave  className="cursor-pointer" onClick={() => handleRemoveOption(index)} size={24} color="blue" />
-                    </div>
-                            </div>
-                          ))}
-                          <div className="flex justify-center">
-                          <Button type="button" onClick={handleAddOption}>Adicionar opção</Button>
-                          </div>
-                  </div> */}
-                  </>
-                )}
-
-                  <div className="mt-8 mb-5">
-                    <h1 className="my-4 font-semibold text-green-primary">
-                      Tamanhos do produto
-                    </h1>
-
-                    {sizeList.length > 0 && (
-                      <div className="mb-4">
-                        {sizeList.map((item, index) => (
-                          <div key={index} className="flex items-center gap-3 mb-3">
-                            <span className="w-28 font-medium text-sm shrink-0">
-                              {item.sizeName}
-                            </span>
-                            <InputCurrency
-                              placeholder="Preço (opcional)"
-                              type="number"
-                              value={item.price}
-                              onChange={(e: any) => {
-                                const newList = [...sizeList];
-                                newList[index].price = e.target.value;
-                                setSizeList(newList);
-                              }}
-                            />
-                            <Button
-                              type="button"
-                              size="sm"
-                              onClick={() => handleUpdateSizePrice(index)}
-                            >
-                              <FaSave />
-                            </Button>
-                            <TbTrash
-                              className="cursor-pointer shrink-0"
-                              onClick={() => handleRemoveSize(index)}
-                              size={24}
-                              color="red"
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    <div className="flex items-center gap-3 mt-2">
-                      <div className="flex-1">
-                        <SelectComponent
-                          value={selectedNewSizeId}
-                          onValueChange={setSelectedNewSizeId}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione um tamanho" />
-                          </SelectTrigger>
-                          <SelectContent className="z-[300]">
-                            {sizes
-                              .filter((s) => !sizeList.some((sl) => sl.sizeId === s.id))
-                              .map((size) => (
-                                <SelectItem key={size.id} value={size.id!}>
-                                  {size.size}
-                                </SelectItem>
-                              ))}
-                          </SelectContent>
-                        </SelectComponent>
-                      </div>
-                      <div className="flex-1">
-                        <InputCurrency
-                          placeholder="Preço do tamanho (opcional)"
-                          type="number"
-                          value={newSizePrice}
-                          onChange={(e: any) => setNewSizePrice(e.target.value)}
-                        />
-                      </div>
-                      <Button
-                        type="button"
-                        onClick={handleAddSize}
-                        disabled={!selectedNewSizeId}
-                      >
-                        <IoMdAdd size={20} />
-                      </Button>
-                    </div>
-                  </div>
-
-=======
                 </div> */}
                 {/* {isAttribute && (
                   <div className="w-full mb-5">
@@ -1235,7 +1068,6 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                     />
                   </div>
                 )} */}
->>>>>>> fa967c95c632334790d49425fae73ea6ea4b50e6
                   <div className="flex flex-col lg:flex-row mb-5">
                     <div className="w-full ">
                       <FormField
