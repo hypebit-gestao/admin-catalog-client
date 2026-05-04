@@ -55,6 +55,7 @@ import { useSizeService } from "@/services/size.service";
 import { Size } from "@/models/size";
 import { useProductSizeService } from "@/services/productSize.service";
 import { Attribute, AttributeOption } from "@/models/attribute";
+import { useAttributeService } from "@/services/attribute.service";
 
 interface ProductRegisterProps {
   isOpen: boolean;
@@ -116,8 +117,11 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
   const categoryService = useCategoryService();
   const productSizeService = useProductSizeService();
   const uploadService = useUploadService();
+  const sizeService = useSizeService();
+  const attributeService = useAttributeService();
   const [categories, setCategories] = useState<Category[]>([]);
   const [sizes, setSizes] = useState<Size[]>([]);
+  const [attributes, setAttributes] = useState<Attribute[]>([]);
   const [users, setUsers] = useState<User>();
   const productRegisterModal = useProductRegisterModal();
   const router = useRouter();
@@ -220,9 +224,24 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
 
 
 
+    const getSizes = async () => {
+      const fetchedSizes = await sizeService.GETALL(session?.user.accessToken);
+      if (fetchedSizes) setSizes(fetchedSizes);
+    };
+
+    const getAttributes = async () => {
+      const fetchedAttributes = await attributeService.GETALL(session?.user.accessToken);
+      if (fetchedAttributes) setAttributes(fetchedAttributes);
+    };
+
     getUser();
     getCategories();
+    getSizes();
+    getAttributes();
   }, [session?.user?.accessToken]);
+
+  const options = sizes.map((size) => ({ value: size.id, label: size.size }));
+  const optionsAttributes = attributes.map((attr) => ({ value: attr.id, label: attr.name }));
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     data.images = filePreviews.map((preview) => preview.file);
 
@@ -339,8 +358,6 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
   const { setValue, watch } = form;
 
   const isPromotion = watch("isPromotion");
-<<<<<<< HEAD
-=======
   const isSize = watch("isSize");
   const isAttribute = watch("isAttribute");
   const installmentAvailable = watch("installment_available");
@@ -348,7 +365,6 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
   const maxInstallments = watch("max_installments");
   const sizeIds = watch("size_ids");
   const attributeIds = watch("attribute_ids");
->>>>>>> fa967c95c632334790d49425fae73ea6ea4b50e6
 
 
 
@@ -573,9 +589,6 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                 <h1 className="my-4 font-semibold text-green-primary">
                   Informações adicionais
                 </h1>
-<<<<<<< HEAD
-      
-=======
                 <div className="mb-3">
                   <h1 className="font-bold">Seu produto possui tamanho?</h1>
                 </div>
@@ -855,7 +868,6 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                     </div>
                   </div>
                 )}
->>>>>>> fa967c95c632334790d49425fae73ea6ea4b50e6
                 <div className="flex flex-row mb-5">
                   <div className="w-full ">
                     <FormField
