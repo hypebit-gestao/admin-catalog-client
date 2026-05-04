@@ -1,11 +1,11 @@
 "use client";
 
-import * as z from "zod";
 import { useSession } from "next-auth/react";
 import React, { useEffect, useState } from "react";
 
 import { IoIosAddCircle } from "react-icons/io";
 import ContentMain from "@/components/content-main";
+import { Button } from "@/components/ui/button";
 import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles//ag-grid.css";
 import "ag-grid-community/styles//ag-theme-quartz.css";
@@ -34,7 +34,7 @@ const Size = () => {
   const [loading, setLoading] = useState(false);
   const { data: session } = useSession();
   const [rowData, setRowData] = useState<SizeModel[]>([]);
-  const [screenWidth, setScreenWidth] = useState(window.innerWidth);
+  const [screenWidth, setScreenWidth] = useState(0);
   const sizeService = useSizeService();
   const sizeRegisterModal = useSizeRegisterModal();
   const sizeEditModal = useSizeUpdateModal();
@@ -59,6 +59,7 @@ const Size = () => {
   ]);
 
   useEffect(() => {
+    setScreenWidth(window.innerWidth);
     const handleResize = () => {
       setScreenWidth(window.innerWidth);
     };
@@ -185,12 +186,14 @@ const Size = () => {
         onClose={sizeRegisterModal.onClose}
       />
       <ContentMain title="Tamanhos">
-        <div className="flex justify-end">
-          <IoIosAddCircle
+        <div className="flex justify-end mb-6">
+          <Button
             onClick={() => sizeRegisterModal.onOpen()}
-            size={44}
-            className="text-green-primary cursor-pointer  hover:opacity-70 transition-all duration-200"
-          />
+            className="bg-green-primary hover:bg-green-primary/90 gap-2"
+          >
+            <IoIosAddCircle size={22} />
+            Novo Tamanho
+          </Button>
         </div>
 
         <div className="my-10 ">
@@ -198,36 +201,36 @@ const Size = () => {
             <Loader color="text-green-primary" />
           ) : (
             <>
-              <div className="lg:hidden ">
+              <div className="lg:hidden space-y-3">
                 {rowData?.map((size, index) => (
                   <div
                     key={index}
-                    className="card w-auto bg-base-100 shadow-xl"
+                    className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 flex items-center justify-between"
                   >
-                    <div className="card-body bg-white">
-                      <h2 className="font-bold text-2xl text-green-primary truncate">
-                        {size.size}
-                      </h2>
-                      {/* <p className="text-[#2c6e49]">{category?.description}</p> */}
-                      <div className="card-actions justify-between">
-                        <div className="flex flex-row items-center">
-                          <div
-                            onClick={() => handleEdit(size && size.id)}
-                            className="mr-3 cursor-pointer"
-                          >
-                            <MdEdit color="blue" size={32} />
-                          </div>
-                          <div
-                            onClick={() => handleDelete(size && size.id)}
-                            className="cursor-pointer"
-                          >
-                            <MdDelete color="red" size={32} />
-                          </div>
-                        </div>
-                      </div>
+                    <h2 className="font-bold text-lg text-green-primary truncate">
+                      {size.size}
+                    </h2>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleEdit(size && size.id)}
+                        className="text-blue-500 hover:text-blue-600 transition-colors p-1"
+                        aria-label="Editar tamanho"
+                      >
+                        <MdEdit size={28} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(size && size.id)}
+                        className="text-red-500 hover:text-red-600 transition-colors p-1"
+                        aria-label="Excluir tamanho"
+                      >
+                        <MdDelete size={28} />
+                      </button>
                     </div>
                   </div>
                 ))}
+                {rowData.length === 0 && (
+                  <p className="text-center text-muted-foreground py-8">Nenhum tamanho cadastrado</p>
+                )}
               </div>
               <div className="hidden lg:block ag-theme-quartz">
                 <AgGridReact

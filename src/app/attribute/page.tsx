@@ -5,6 +5,7 @@ import React, { useEffect, useState } from "react";
 
 import { IoIosAddCircle } from "react-icons/io";
 import ContentMain from "@/components/content-main";
+import { Button } from "@/components/ui/button";
 import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles//ag-grid.css";
 import "ag-grid-community/styles//ag-theme-quartz.css";
@@ -33,7 +34,7 @@ const Attribute = () => {
   const [loading, setLoading] = useState(false);
   const { data: session } = useSession();
   const [rowData, setRowData] = useState<AttributeModel[]>([]);
-  const [screenWidth, setScreenWidth] = useState(window.innerWidth);
+  const [screenWidth, setScreenWidth] = useState(0);
   const sizeService = useSizeService();
   const attributeService = useAttributeService();
   const sizeRegisterModal = useSizeRegisterModal();
@@ -62,6 +63,7 @@ const Attribute = () => {
   ]);
 
   useEffect(() => {
+    setScreenWidth(window.innerWidth);
     const handleResize = () => {
       setScreenWidth(window.innerWidth);
     };
@@ -208,12 +210,14 @@ const Attribute = () => {
         onClose={attributeRegisterModal.onClose}
       />
       <ContentMain title="Atributos">
-        <div className="flex justify-end">
-          <IoIosAddCircle
+        <div className="flex justify-end mb-6">
+          <Button
             onClick={() => attributeRegisterModal.onOpen()}
-            size={44}
-            className="text-green-primary cursor-pointer  hover:opacity-70 transition-all duration-200"
-          />
+            className="bg-green-primary hover:bg-green-primary/90 gap-2"
+          >
+            <IoIosAddCircle size={22} />
+            Novo Atributo
+          </Button>
         </div>
 
         <div className="my-10 ">
@@ -221,36 +225,41 @@ const Attribute = () => {
             <Loader color="text-green-primary" />
           ) : (
             <>
-              <div className="lg:hidden ">
+              <div className="lg:hidden space-y-3">
                 {rowData?.map((attribute, index) => (
                   <div
                     key={index}
-                    className="card w-auto bg-base-100 shadow-xl"
+                    className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 flex items-center justify-between"
                   >
-                    <div className="card-body bg-white">
-                      <h2 className="font-bold text-2xl text-green-primary truncate">
+                    <div className="min-w-0">
+                      <h2 className="font-bold text-base text-green-primary truncate">
                         {attribute.name}
                       </h2>
-                      {/* <p className="text-[#2c6e49]">{category?.description}</p> */}
-                      <div className="card-actions justify-between">
-                        <div className="flex flex-row items-center">
-                          <div
-                            onClick={() => handleEdit(attribute && attribute.id)}
-                            className="mr-3 cursor-pointer"
-                          >
-                            <MdEdit color="blue" size={32} />
-                          </div>
-                          <div
-                            onClick={() => handleDelete(attribute && attribute.id)}
-                            className="cursor-pointer"
-                          >
-                            <MdDelete color="red" size={32} />
-                          </div>
-                        </div>
-                      </div>
+                      {attribute.type && (
+                        <p className="text-sm text-muted-foreground">{attribute.type}</p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <button
+                        onClick={() => handleEdit(attribute && attribute.id)}
+                        className="text-blue-500 hover:text-blue-600 transition-colors p-1"
+                        aria-label="Editar atributo"
+                      >
+                        <MdEdit size={28} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(attribute && attribute.id)}
+                        className="text-red-500 hover:text-red-600 transition-colors p-1"
+                        aria-label="Excluir atributo"
+                      >
+                        <MdDelete size={28} />
+                      </button>
                     </div>
                   </div>
                 ))}
+                {rowData.length === 0 && (
+                  <p className="text-center text-muted-foreground py-8">Nenhum atributo cadastrado</p>
+                )}
               </div>
               <div className="hidden lg:block ag-theme-quartz">
                 <AgGridReact

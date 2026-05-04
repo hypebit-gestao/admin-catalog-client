@@ -43,7 +43,7 @@ const Home = () => {
       formData.append("file", values.picture); // Assuming you're allowing only one file
       formData.append("folderName", session?.user?.user?.name);
       // Send the formData to your server using fetch
-      const response = await fetch("http://localhost:8080/upload", {
+      const response = await fetch("https://api-catalog-desenv.onrender.com/upload", {
         method: "POST",
         body: formData,
       });

@@ -1,5 +1,5 @@
 export interface Upload {
-  file: string;
+  file: File | Blob | string;
   folderName: string;
 }
 

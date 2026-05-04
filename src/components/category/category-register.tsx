@@ -42,9 +42,13 @@ interface CategoryRegisterProps {
 
 const formSchema = z.object({
   name: z.string().min(1, "Nome da categoria é obrigatório"),
+<<<<<<< HEAD
   image_url: z
     .any()
     // .refine((value) => value !== "", "Imagem da categoria é obrigatória"),
+=======
+  image_url: z.any().optional(),
+>>>>>>> fa967c95c632334790d49425fae73ea6ea4b50e6
 });
 
 const CategoryRegister = ({ isOpen, onClose }: CategoryRegisterProps) => {

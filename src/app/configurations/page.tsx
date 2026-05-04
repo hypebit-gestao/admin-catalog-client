@@ -1,14 +1,20 @@
 "use client";
 
 import { useSession } from "next-auth/react";
+<<<<<<< HEAD
 import React, { useEffect, useState } from "react";
 
 import ContentMain from "@/components/content-main";
 import { Button } from "@/components/ui/button";
+=======
+import React from "react";
+import ContentMain from "@/components/content-main";
+>>>>>>> fa967c95c632334790d49425fae73ea6ea4b50e6
 import useShippingRegisterModal from "@/utils/hooks/shipping/useRegisterShippingModal";
 import ShippingRegister from "@/components/shipping/shipping-register";
 import usePersonalizationStoreModal from "@/utils/hooks/pesonalization-store/usePersonalizationStoreModal";
 import PersonalizationStore from "@/components/personalization_store/personalization-store";
+<<<<<<< HEAD
 import { useStripeService, SubscriptionInfo } from "@/services/stripe.service";
 import toast from "react-hot-toast";
 import Loader from "@/components/loader";
@@ -86,6 +92,53 @@ const Configurations = () => {
 
   const formatDate = (timestamp: number) => {
     return new Date(timestamp * 1000).toLocaleDateString("pt-BR");
+=======
+import useGoogleAnalyticsModal from "@/utils/hooks/analytics/useGoogleAnalyticsModal";
+import GoogleAnalyticsModal from "@/components/google-analytics/google-analytics-modal";
+import { MdLocalShipping, MdPalette, MdChevronRight, MdAnalytics } from "react-icons/md";
+import { cn } from "@/lib/utils";
+
+const configCards = [
+  {
+    id: "shipping",
+    title: "Entrega",
+    description: "Configure o tipo de frete, valores de entrega e taxas de envio para sua loja.",
+    icon: MdLocalShipping,
+    iconBg: "bg-blue-50",
+    iconColor: "text-blue-600",
+    borderHover: "hover:border-blue-200",
+  },
+  {
+    id: "personalization",
+    title: "Personalização da Loja",
+    description: "Defina a cor tema, descontos por forma de pagamento (PIX, crédito, débito) e outras preferências visuais.",
+    icon: MdPalette,
+    iconBg: "bg-purple-50",
+    iconColor: "text-purple-600",
+    borderHover: "hover:border-purple-200",
+  },
+  {
+    id: "analytics",
+    title: "Google Analytics",
+    description: "Conecte o Google Analytics à sua loja para acompanhar visitantes, conversões e comportamento dos clientes.",
+    icon: MdAnalytics,
+    iconBg: "bg-orange-50",
+    iconColor: "text-orange-500",
+    borderHover: "hover:border-orange-200",
+  },
+];
+
+const Configurations = () => {
+  const { data: session } = useSession();
+  const shippingModal = useShippingRegisterModal();
+  const personalizationStoreModal = usePersonalizationStoreModal();
+  const gaModal = useGoogleAnalyticsModal();
+
+  const handleCardClick = (id: string) => {
+    if (id === "shipping") shippingModal.onOpen();
+    if (id === "personalization") personalizationStoreModal.onOpen();
+    if (id === "analytics") gaModal.onOpen();
+>>>>>>> fa967c95c632334790d49425fae73ea6ea4b50e6
   };
 
   return (
@@ -98,6 +151,7 @@ const Configurations = () => {
         isOpen={personalizationStoreModal.isOpen}
         onClose={personalizationStoreModal.onClose}
       />
+<<<<<<< HEAD
       <ContentMain title="Configurações da Loja">
         <div className="h-[96%] flex items-center justify-center">
           <div className="flex flex-col w-full items-center gap-6">
@@ -176,6 +230,49 @@ const Configurations = () => {
             </div>
 
           </div>
+=======
+      <GoogleAnalyticsModal
+        isOpen={gaModal.isOpen}
+        onClose={gaModal.onClose}
+      />
+      <ContentMain
+        title="Configurações da Loja"
+        subtitle="Gerencie as preferências e personalizações da sua loja"
+      >
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-3xl">
+          {configCards.map((card) => (
+            <button
+              key={card.id}
+              onClick={() => handleCardClick(card.id)}
+              className={cn(
+                "group text-left bg-white rounded-xl border border-gray-200/80 p-6",
+                "shadow-sm hover:shadow-md transition-all duration-200",
+                "focus:outline-none focus:ring-2 focus:ring-green-primary/20",
+                card.borderHover
+              )}
+            >
+              <div className="flex items-start gap-4">
+                <div className={cn("p-3 rounded-lg flex-shrink-0", card.iconBg, card.iconColor)}>
+                  <card.icon size={28} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-semibold text-gray-900 text-base">
+                      {card.title}
+                    </h3>
+                    <MdChevronRight
+                      size={20}
+                      className="text-gray-400 group-hover:text-green-primary transition-colors flex-shrink-0"
+                    />
+                  </div>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {card.description}
+                  </p>
+                </div>
+              </div>
+            </button>
+          ))}
+>>>>>>> fa967c95c632334790d49425fae73ea6ea4b50e6
         </div>
       </ContentMain>
     </>

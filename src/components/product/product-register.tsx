@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import Modal from "../modal";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { set, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import * as z from "zod";
 
 import {
@@ -77,6 +77,10 @@ const formSchema = z
     isAttribute: z.boolean(),
     promotion_price: z.string(),
     price: z.string().min(1, "Preço do produto é obrigatório"),
+    installment_available: z.boolean(),
+    installment_with_interest: z.boolean(),
+    installment_interest_value: z.string().optional(),
+    max_installments: z.string().optional(),
     user_name: z.string(),
   })
   .refine((data) => Number(data.promotion_price) <= Number(data.price), {
@@ -86,7 +90,23 @@ const formSchema = z
   .refine((data) => Number(data.price) >= Number(data.promotion_price), {
     message: "O preço normal não pode ser menor que o preço promocional",
     path: ["price"],
-  });
+  })
+  .refine(
+    (data) =>
+      !data.installment_available ||
+      !data.installment_with_interest ||
+      (data.installment_interest_value !== undefined &&
+        data.installment_interest_value !== null &&
+        data.installment_interest_value !== "" &&
+        Number(data.installment_interest_value) > 0 &&
+        Number(data.installment_interest_value) <= 100),
+    {
+      message: "O valor do juros deve ser maior que 0 e menor ou igual a 100",
+      path: ["installment_interest_value"],
+    }
+  );
+
+
 
 const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
   const { data: session } = useSession();
@@ -121,6 +141,10 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
       isAttribute: false,
       price: "",
       promotion_price: "",
+      installment_available: false,
+      installment_with_interest: false,
+      installment_interest_value: "",
+      max_installments: "1",
       user_name: session?.user?.user?.name,
     },
   });
@@ -238,6 +262,18 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                     featured: data.featured,
                     active: data.active,
                     description: data.description,
+                    archived: false,
+                    installment_available: data.installment_available,
+                    installment_with_interest: data.installment_available
+                      ? data.installment_with_interest
+                      : false,
+                    installment_interest_value:
+                      data.installment_available && data.installment_with_interest
+                        ? Number(data.installment_interest_value)
+                        : null,
+                    max_installments: data.installment_available
+                      ? Number(data.max_installments ?? 1)
+                      : 1,
                   },
                   session?.user?.accessToken
                 )
@@ -269,6 +305,18 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
             featured: data.featured,
             active: data.active,
             description: data.description,
+            archived: false,
+            installment_available: data.installment_available,
+            installment_with_interest: data.installment_available
+              ? data.installment_with_interest
+              : false,
+            installment_interest_value:
+              data.installment_available && data.installment_with_interest
+                ? Number(data.installment_interest_value)
+                : null,
+            max_installments: data.installment_available
+              ? Number(data.max_installments ?? 1)
+              : 1,
           },
           session?.user?.accessToken
         )
@@ -291,6 +339,16 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
   const { setValue, watch } = form;
 
   const isPromotion = watch("isPromotion");
+<<<<<<< HEAD
+=======
+  const isSize = watch("isSize");
+  const isAttribute = watch("isAttribute");
+  const installmentAvailable = watch("installment_available");
+  const installmentWithInterest = watch("installment_with_interest");
+  const maxInstallments = watch("max_installments");
+  const sizeIds = watch("size_ids");
+  const attributeIds = watch("attribute_ids");
+>>>>>>> fa967c95c632334790d49425fae73ea6ea4b50e6
 
 
 
@@ -515,7 +573,289 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                 <h1 className="my-4 font-semibold text-green-primary">
                   Informações adicionais
                 </h1>
+<<<<<<< HEAD
       
+=======
+                <div className="mb-3">
+                  <h1 className="font-bold">Seu produto possui tamanho?</h1>
+                </div>
+                <div className="mb-5">
+                  <FormField
+                    control={form.control}
+                    name="isSize"
+                    render={({ field }) => (
+                      <FormItem>
+                        <div className="flex flex-col">
+                          <FormControl>
+                            <div className="flex flex-row items-center">
+                              <Checkbox
+                                color="blue"
+                                className="w-5 h-5"
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </div>
+                          </FormControl>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                {/* <div className="mb-3">
+                  <h1 className="font-bold">Seu produto possui personalização?</h1>
+                </div> */}
+                {/* <div className="mb-5">
+                  <FormField
+                    control={form.control}
+                    name="isAttribute"
+                    render={({ field }) => (
+                      <FormItem>
+                        <div className="flex flex-col">
+                          <FormControl>
+                            <div className="flex flex-row items-center">
+                              <Checkbox
+                                color="blue"
+                                className="w-5 h-5"
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </div>
+                          </FormControl>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                {isAttribute && (
+                  <div className="w-full mb-5">
+                    <FormField
+                      control={form.control}
+                      name="attribute_ids"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Atributos</FormLabel>
+                          <Select
+                            styles={{
+                              control: (provided, state) => ({
+                                ...provided,
+                                border: "1px solid #e2e8f0",
+                                borderRadius: "0.375rem",
+                                padding: "0.2rem",
+                                fontSize: "0.875rem",
+                                color: "#374151",
+                                backgroundColor: "#fff",
+                                boxShadow: "none",
+                                "&:hover": {
+                                  cursor: "pointer",
+                                },
+                              }),
+                              option: (provided, state) => ({
+                                ...provided,
+                                backgroundColor: state.isSelected
+                                  ? "#2c6e49"
+                                  : "#fff",
+                                color: state.isSelected ? "#fff" : "#374151",
+                                "&:hover": {
+                                  backgroundColor: "#2c6e49",
+                                  color: "#fff",
+                                },
+                              }),
+                              singleValue: (provided, state) => ({
+                                ...provided,
+                                color: "#374151",
+                              }),
+                              placeholder: (provided, state) => ({
+                                ...provided,
+                                color: "#000",
+                              }),
+                              indicatorSeparator: (provided, state) => ({
+                                ...provided,
+                                display: "none",
+                              }),
+                              dropdownIndicator: (provided, state) => ({
+                                ...provided,
+                                color: "#9ca3af",
+                              }),
+                            }}
+                            // className="flex h-9 w-full items-center justify-between whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1"
+                            isMulti
+                            placeholder="Selecione os atributos do produto"
+                            options={optionsAttributes}
+                            {...field}
+                          />
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                )} */}
+                {isSize && (
+                  <div className="w-full mb-5">
+                    <FormField
+                      control={form.control}
+                      name="size_ids"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Tamanho</FormLabel>
+                          <Select
+                            styles={{
+                              control: (provided, state) => ({
+                                ...provided,
+                                border: "1px solid #e2e8f0",
+                                borderRadius: "0.375rem",
+                                padding: "0.2rem",
+                                fontSize: "0.875rem",
+                                color: "#374151",
+                                backgroundColor: "#fff",
+                                boxShadow: "none",
+                                "&:hover": {
+                                  cursor: "pointer",
+                                },
+                              }),
+                              option: (provided, state) => ({
+                                ...provided,
+                                backgroundColor: state.isSelected
+                                  ? "#2c6e49"
+                                  : "#fff",
+                                color: state.isSelected ? "#fff" : "#374151",
+                                "&:hover": {
+                                  backgroundColor: "#2c6e49",
+                                  color: "#fff",
+                                },
+                              }),
+                              singleValue: (provided, state) => ({
+                                ...provided,
+                                color: "#374151",
+                              }),
+                              placeholder: (provided, state) => ({
+                                ...provided,
+                                color: "#000",
+                              }),
+                              indicatorSeparator: (provided, state) => ({
+                                ...provided,
+                                display: "none",
+                              }),
+                              dropdownIndicator: (provided, state) => ({
+                                ...provided,
+                                color: "#9ca3af",
+                              }),
+                            }}
+                            // className="flex h-9 w-full items-center justify-between whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1"
+                            isMulti
+                            placeholder="Selecione os tamanhos do produto"
+                            options={options}
+                            {...field}
+                          />
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                )}
+                <div className="mb-5">
+                  <h1 className="font-bold">Parcelamento</h1>
+                </div>
+                <div className="mb-5">
+                  <FormField
+                    control={form.control}
+                    name="installment_available"
+                    render={({ field }) => (
+                      <FormItem>
+                        <div className="flex flex-col">
+                          <FormControl>
+                            <div className="flex flex-row items-center">
+                              <Checkbox
+                                color="blue"
+                                className="w-5 h-5"
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                              <div className="ml-2">Parcelamento disponível</div>
+                            </div>
+                          </FormControl>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                {installmentAvailable && (
+                  <div className="mb-5">
+                    <FormField
+                      control={form.control}
+                      name="installment_with_interest"
+                      render={({ field }) => (
+                        <FormItem>
+                          <div className="flex flex-col">
+                            <FormControl>
+                              <div className="flex flex-row items-center">
+                                <Checkbox
+                                  color="blue"
+                                  className="w-5 h-5"
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                />
+                                <div className="ml-2">Com juros</div>
+                              </div>
+                            </FormControl>
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {installmentWithInterest && (
+                      <div className="w-full mt-3">
+                        <FormField
+                          control={form.control}
+                          name="installment_interest_value"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Valor do juros (%)</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="Ex.: 2.5"
+                                  type="number"
+                                  step="0.01"
+                                  min={0}
+                                  max={100}
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    )}
+                    <div className="w-full mt-3">
+                      <FormField
+                        control={form.control}
+                        name="max_installments"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Máximo de parcelas</FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="Ex.: 6"
+                                type="number"
+                                step="1"
+                                min={1}
+                                max={36}
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+                )}
+>>>>>>> fa967c95c632334790d49425fae73ea6ea4b50e6
                 <div className="flex flex-row mb-5">
                   <div className="w-full ">
                     <FormField
