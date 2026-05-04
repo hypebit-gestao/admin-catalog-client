@@ -14,7 +14,6 @@ import {
   MdCancel,
   MdDownload,
   MdTrendingUp,
-  MdTrendingDown,
 } from "react-icons/md";
 import { cn } from "@/lib/utils";
 import {
@@ -31,7 +30,6 @@ import {
   ResponsiveContainer,
   PieChart,
   Pie,
-  Cell,
   Legend,
   BarChart,
   Bar,
@@ -416,7 +414,7 @@ const Analytics = () => {
                       tickLine={false}
                     />
                     <YAxis
-                      tickFormatter={(v) =>
+                      tickFormatter={(v: number) =>
                         v >= 1000 ? `R$${(v / 1000).toFixed(0)}k` : `R$${v}`
                       }
                       tick={{ fontSize: 11, fill: "#6b7280" }}
@@ -464,18 +462,14 @@ const Analytics = () => {
                       outerRadius={80}
                       paddingAngle={3}
                       dataKey="value"
-                    >
-                      {pieData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.fill} />
-                      ))}
-                    </Pie>
+                    />
                     <Tooltip
-                      formatter={(value: number, name: string) => [value, name]}
+                      formatter={(value, name) => [value, name]}
                     />
                     <Legend
                       iconType="circle"
                       iconSize={8}
-                      formatter={(value) => (
+                      formatter={(value: string) => (
                         <span style={{ fontSize: 12, color: "#374151" }}>{value}</span>
                       )}
                     />
@@ -585,7 +579,7 @@ const Analytics = () => {
                       tickLine={false}
                     />
                     <Tooltip
-                      formatter={(value: number) => [value, "Produtos"]}
+                      formatter={(value) => [value, "Produtos"]}
                     />
                     <Bar dataKey="count" fill="#2c6e49" radius={[4, 4, 0, 0]} />
                   </BarChart>
