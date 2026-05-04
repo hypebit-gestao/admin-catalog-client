@@ -44,7 +44,7 @@ const formSchema = z.object({
   name: z.string().min(1, "Nome da categoria é obrigatório"),
   image_url: z
     .any()
-    .refine((value) => value !== "", "Imagem da categoria é obrigatória"),
+    // .refine((value) => value !== "", "Imagem da categoria é obrigatória"),
 });
 
 const CategoryRegister = ({ isOpen, onClose }: CategoryRegisterProps) => {

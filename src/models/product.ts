@@ -5,14 +5,14 @@ export interface Product {
   category?: {
     name: string;
   };
-  product_size?: [
-    {
-      size: {
-        id: string;
-        size: string;
-      };
-    }
-  ];
+  product_size?: Array<{
+    id: string;
+    price?: number | null;
+    size: {
+      id: string;
+      size: string;
+    };
+  }>;
   product_attribute?: [
     {
       attribute: {

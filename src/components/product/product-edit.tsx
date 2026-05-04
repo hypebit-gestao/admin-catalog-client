@@ -55,6 +55,11 @@ import { Size } from "@/models/size";
 import { useProductSizeService } from "@/services/productSize.service";
 import { Attribute } from "@/models/attribute";
 import { useAttributeService } from "@/services/attribute.service";
+import { TbTrash } from "react-icons/tb";
+import { MdApproval, MdEdit, MdSave, MdSaveAlt } from "react-icons/md";
+import { FaSave } from "react-icons/fa";
+import { useProductAttributeService } from "@/services/productAttribute.service";
+import { ProductAttribute } from "@/models/productAttribute";
 
 interface ProductRegisterProps {
   isOpen: boolean;
@@ -101,6 +106,7 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
   const sizeService = useSizeService();
   const productSizeService = useProductSizeService();
   const attributeService = useAttributeService();
+  const productAttributeService = useProductAttributeService();
   const uploadService = useUploadService();
   const [categories, setCategories] = useState<Category[]>([]);
   const [users, setUsers] = useState<User>();
@@ -112,6 +118,38 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
   const router = useRouter();
   const [filePreviews, setFilePreviews] = useState<any[]>([]);
   const productEditModal = useEditProductModal();
+  const [optionsAttribute, setOptionsAttribute] = useState([{option_name: ""}]);
+  const [productAttributes, setProductAttributes] = useState<ProductAttribute[]>([]);
+  const [isEditProductAttribute, setIsEditProductAttribute] = useState(false);
+  const [sizeList, setSizeList] = useState<
+    Array<{
+      productSizeId?: string;
+      sizeId: string;
+      sizeName: string;
+      price: string;
+    }>
+  >([]);
+  const [selectedNewSizeId, setSelectedNewSizeId] = useState<string>('');
+  const [newSizePrice, setNewSizePrice] = useState<string>('');
+
+  const handleEditProductAttribute = () => {
+    setIsEditProductAttribute(!isEditProductAttribute);
+  }
+
+  const handleAddOption = () => {
+    setOptionsAttribute([...optionsAttribute, { option_name: "" }]);
+  };
+
+  const handleOptionChange = (index: number, value: string) => {
+    const newOptions = [...optionsAttribute];
+    newOptions[index].option_name = value;
+    setOptionsAttribute(newOptions);
+  };
+
+  const handleRemoveOption = (index: number) => {
+    const newOptions = optionsAttribute.filter((_, i) => i !== index);
+    setOptionsAttribute(newOptions);
+  };
 
   const form = useForm<z.infer<typeof formSchema>>({
     // resolver: zodResolver(formSchema),
@@ -210,44 +248,23 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
             "isPromotion",
             Number(fetchedProduct.promotion_price) > 0
           );
-          const sizes = fetchedProduct.product_size?.map((item) => {
-            return {
-              value: item.size.id,
-              label: item.size.size,
-            };
-          });
-          const attributes = fetchedProduct.product_attribute?.map((item) => {
-            return {
-              value: item.attribute.id,
-              label: item.attribute.name
-            }
-          })
-          if (sizes) {
-            if (sizes.length > 0) {
-              setCustomValue("isSize", true);
-              setCustomValue("size_ids", sizes);
-            }
-          }
-          if (attributes) {
-            if (attributes.length > 0) {
-              setCustomValue("isAttribute", true);
-              setCustomValue("attribute_ids", attributes);
-            } else {
-              setCustomValue("isAttribute", false);
-            }
-          } 
-          // if (fetchedProduct?.product_size?.length > 0) {
-          //   setCustomValue("isSize", true);
-          //   const sizes = fetchedProduct?.product_size.map(
-          //     (size) => size.size.size
-          //   );
-          //   setCustomValue("size_ids", sizes);
-          // }
+   
           setCustomValue("user_id", fetchedProduct.user_id);
 
           if (fetchedProduct.images) {
             const previews = fetchedProduct.images.map((image) => image);
             setFilePreviews(previews as any);
+          }
+
+          if (fetchedProduct.product_size) {
+            setSizeList(
+              fetchedProduct.product_size.map((ps) => ({
+                productSizeId: ps.id,
+                sizeId: ps.size.id,
+                sizeName: ps.size.size,
+                price: ps.price?.toString() ?? '',
+              }))
+            );
           }
 
           setLoading(false);
@@ -278,27 +295,89 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
       }
     };
 
+    const getProductAttributes = async () => {
+      const fetchedProductAttributes = await productAttributeService.GETALL(session?.user.accessToken, session?.user?.user?.id);
+      if (fetchedProductAttributes) {
+        setProductAttributes(fetchedProductAttributes as ProductAttribute[]);
+      }
+    };
+
+    getProductAttributes();
+
     const getSizes = async () => {
       const fetchedSizes = await sizeService.GETALL(session?.user.accessToken);
       if (fetchedSizes) {
         setSizes(fetchedSizes);
       }
     };
-
-    const getAttributes = async () => {
-      const fetchedAttributes = await attributeService.GETALL(session?.user.accessToken);
-      if (fetchedAttributes) {
-        setAttributesAll(fetchedAttributes);
-      }
-    };
-
     getSizes();
-    getAttributes()
 
     getUser();
     getCategories();
   }, [session?.user?.accessToken, productEditModal.itemId, isOpen]);
 
+
+  const handleUpdateSizePrice = async (index: number) => {
+    const item = sizeList[index];
+    if (!item.productSizeId) return;
+    try {
+      await productSizeService.PUT(
+        {
+          id: item.productSizeId,
+          product_id: product?.id,
+          size_id: item.sizeId,
+          price: item.price ? Number(item.price) : null,
+        },
+        session?.user?.accessToken
+      );
+      toast.success('Preço do tamanho atualizado');
+    } catch {
+      toast.error('Erro ao atualizar preço');
+    }
+  };
+
+  const handleRemoveSize = async (index: number) => {
+    const item = sizeList[index];
+    try {
+      if (item.productSizeId) {
+        await productSizeService.DELETE(item.productSizeId, session?.user?.accessToken);
+      }
+      setSizeList(sizeList.filter((_, i) => i !== index));
+      toast.success('Tamanho removido');
+    } catch {
+      toast.error('Erro ao remover tamanho');
+    }
+  };
+
+  const handleAddSize = async () => {
+    if (!selectedNewSizeId || !product?.id) return;
+    const selectedSize = sizes.find((s) => s.id === selectedNewSizeId);
+    if (!selectedSize) return;
+    try {
+      const created = await productSizeService.POST(
+        {
+          product_id: product.id,
+          size_id: selectedNewSizeId,
+          price: newSizePrice ? Number(newSizePrice) : null,
+        },
+        session?.user?.accessToken
+      );
+      setSizeList([
+        ...sizeList,
+        {
+          productSizeId: (created as any)?.id,
+          sizeId: selectedNewSizeId,
+          sizeName: selectedSize.size!,
+          price: newSizePrice,
+        },
+      ]);
+      setSelectedNewSizeId('');
+      setNewSizePrice('');
+      toast.success('Tamanho adicionado');
+    } catch {
+      toast.error('Erro ao adicionar tamanho');
+    }
+  };
 
   const onUpdate = async (data: z.infer<typeof formSchema>) => {
     data.images = filePreviews.map((preview) => preview);
@@ -396,47 +475,6 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
               }
             }
 
-          if (
-            form.watch("size_ids")?.length >
-            (product?.product_size?.length ?? 0)
-          ) {
-            const newSize = form
-              .watch("size_ids")
-              ?.filter(
-                (size: any) =>
-                  !product?.product_size?.some(
-                    (item: any) => item.size.id === size.value
-                  )
-              );
-
-            if (newSize) {
-              newSize.map(async (size: any) => {
-                await productSizeService.POST(
-                  {
-                    product_id: product?.id,
-                    size_id: size.value,
-                  },
-                  session?.user?.accessToken
-                );
-              });
-            }
-          } else {
-            const newSize = product?.product_size?.filter(
-              (item) =>
-                !form
-                  .watch("size_ids")
-                  ?.some((size: any) => size.value === item.size.id)
-            );
-
-            if (newSize) {
-              newSize.map(async (size: any) => {
-                await productSizeService.DELETE(
-                  size.id,
-                  session?.user?.accessToken
-                );
-              });
-            }
-          }
         });
 
         
@@ -459,19 +497,8 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
     useProductDeleteModal.setState({ isDelete: false });
   }, [isOpen]);
 
-  const options: any = [
-    ...sizes.map((size) => ({
-      value: size.id,
-      label: size.size,
-    })),
-  ];
 
-  const optionsAttributes: any = attributesAll?.length > 0 ? [
-    ...attributesAll.map((attribute) => ({
-      value: attribute.id,
-      label: attribute.name,
-    })),
-  ] : []
+  console.log("ProductAttributes", productAttributes);
 
   const handleClose = () => {
     onClose();
@@ -605,7 +632,7 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                     </div>
                   </div>
 
-                  <div className="mb-3">
+                        <div className="mb-3">
                     <h1 className="font-bold">
                       Deseja adicionar preço promocional no produto?
                     </h1>
@@ -709,98 +736,12 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                   <h1 className="my-4 font-semibold text-green-primary">
                     Informações adicionais
                   </h1>
-                  <div className="mb-3">
-                    <h1 className="font-bold">Seu produto possui tamanho?</h1>
-                  </div>
-                  <div className="mb-5">
-                    <FormField
-                      control={form.control}
-                      name="isSize"
-                      render={({ field }) => (
-                        <FormItem>
-                          <div className="flex flex-col">
-                            <FormControl>
-                              <div className="flex flex-row items-center">
-                                <Checkbox
-                                  color="blue"
-                                  className="w-5 h-5"
-                                  checked={field.value}
-                                  onCheckedChange={field.onChange}
-                                />
-                              </div>
-                            </FormControl>
-                          </div>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  {isSize && (
-                    <div className="w-full mb-5">
-                      <FormField
-                        control={form.control}
-                        name="size_ids"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Tamanho</FormLabel>
-                            <Select
-                              styles={{
-                                control: (provided, state) => ({
-                                  ...provided,
-                                  border: "1px solid #e2e8f0",
-                                  borderRadius: "0.375rem",
-                                  padding: "0.2rem",
-                                  fontSize: "0.875rem",
-                                  color: "#374151",
-                                  backgroundColor: "#fff",
-                                  boxShadow: "none",
-                                  "&:hover": {
-                                    cursor: "pointer",
-                                  },
-                                }),
-                                option: (provided, state) => ({
-                                  ...provided,
-                                  backgroundColor: state.isSelected
-                                    ? "#2c6e49"
-                                    : "#fff",
-                                  color: state.isSelected ? "#fff" : "#374151",
-                                  "&:hover": {
-                                    backgroundColor: "#2c6e49",
-                                    color: "#fff",
-                                  },
-                                }),
-                                singleValue: (provided, state) => ({
-                                  ...provided,
-                                  color: "#374151",
-                                }),
-                                placeholder: (provided, state) => ({
-                                  ...provided,
-                                  color: "#000",
-                                }),
-                                indicatorSeparator: (provided, state) => ({
-                                  ...provided,
-                                  display: "none",
-                                }),
-                                dropdownIndicator: (provided, state) => ({
-                                  ...provided,
-                                  color: "#9ca3af",
-                                }),
-                              }}
-                              // className="flex h-9 w-full items-center justify-between whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1"
-                              isMulti
-                              placeholder="Selecione os tamanhos do produto"
-                              options={options}
-                              {...field}
-                            />
-
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  )}
+             
+              {productAttributes?.length <= 0 && (
+                <>
+                   
                 <div className="mb-3">
-                  <h1 className="font-bold">Seu produto possui personalização?</h1>
+                  <h1 className="font-bold">Deseja adicionar alguma variação no produto?</h1>
                 </div>
                 <div className="mb-5">
                   <FormField
@@ -825,69 +766,168 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                     )}
                   />
                 </div>
-                {isAttribute && (
-                  <div className="w-full mb-5">
-                    <FormField
-                      control={form.control}
-                      name="attribute_ids"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Atributos</FormLabel>
-                          <Select
-                            styles={{
-                              control: (provided, state) => ({
-                                ...provided,
-                                border: "1px solid #e2e8f0",
-                                borderRadius: "0.375rem",
-                                padding: "0.2rem",
-                                fontSize: "0.875rem",
-                                color: "#374151",
-                                backgroundColor: "#fff",
-                                boxShadow: "none",
-                                "&:hover": {
-                                  cursor: "pointer",
-                                },
-                              }),
-                              option: (provided, state) => ({
-                                ...provided,
-                                backgroundColor: state.isSelected
-                                  ? "#2c6e49"
-                                  : "#fff",
-                                color: state.isSelected ? "#fff" : "#374151",
-                                "&:hover": {
-                                  backgroundColor: "#2c6e49",
-                                  color: "#fff",
-                                },
-                              }),
-                              singleValue: (provided, state) => ({
-                                ...provided,
-                                color: "#374151",
-                              }),
-                              placeholder: (provided, state) => ({
-                                ...provided,
-                                color: "#000",
-                              }),
-                              indicatorSeparator: (provided, state) => ({
-                                ...provided,
-                                display: "none",
-                              }),
-                              dropdownIndicator: (provided, state) => ({
-                                ...provided,
-                                color: "#9ca3af",
-                              }),
-                            }}
-                            // className="flex h-9 w-full items-center justify-between whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1"
-                            isMulti
-                            placeholder="Selecione os atributos do produto"
-                            options={optionsAttributes}
-                            {...field}
-                          />
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+                </>
+              )}
+                {isAttribute || productAttributes?.length > 0 && (
+                  <>
+                   {productAttributes?.length > 0 ? (
+                    
+                    productAttributes?.map((attribute, index) => (
+                      <div key={index} className="w-full flex items-center mb-5">
+                        <div className="w-full">
+                        <Input
+                          className="w-full"
+                          value={attribute.name}
+                          placeholder={attribute.name}
+                          onChange={(e) => {
+                            
+                          }}
+                          disabled={!isEditProductAttribute}
+                        />
+                        </div>
+                        <div className="ml-4">
+                      <TbTrash className="cursor-pointer"  onClick={() => handleRemoveOption(index)} size={24} color="red" />
+                    </div>
+                    <div className="ml-4">
+                      {isEditProductAttribute ? <MdSave  className="cursor-pointer" onClick={() => handleRemoveOption(index)} size={24} color="blue" /> : <MdEdit  className="cursor-pointer" onClick={handleEditProductAttribute} size={24} color="blue" />}
+                    </div>
+                     </div>
+                    ))
+                   ) :   <div className="w-full mb-5">
+                   <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-blue-primary">
+                        Nome da variação
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Insira o nome da variação do produto"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+            </div>}
+                  {/* <div>
+                        <h1 className="mb-2">Quais opções este produto possui?</h1>
+                          {optionsAttribute.map((option, index) => (
+                            <div key={index} className="flex items-center mb-5">
+                            <div className="w-full ">
+                           <FormField
+                          control={form.control}
+                          name={`option_${index}`}
+                          render={({ field }) => (
+                            <FormItem>
+                         
+                              <FormControl>
+                                <Input
+                                  placeholder="Digite o nome da opção"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                    </div>
+                    <div className="ml-4">
+                      <TbTrash className="cursor-pointer"  onClick={() => handleRemoveOption(index)} size={24} color="red" />
+                    </div>
+                    <div className="ml-4">
+                      <MdSave  className="cursor-pointer" onClick={() => handleRemoveOption(index)} size={24} color="blue" />
+                    </div>
+                            </div>
+                          ))}
+                          <div className="flex justify-center">
+                          <Button type="button" onClick={handleAddOption}>Adicionar opção</Button>
+                          </div>
+                  </div> */}
+                  </>
                 )}
+
+                  <div className="mt-8 mb-5">
+                    <h1 className="my-4 font-semibold text-green-primary">
+                      Tamanhos do produto
+                    </h1>
+
+                    {sizeList.length > 0 && (
+                      <div className="mb-4">
+                        {sizeList.map((item, index) => (
+                          <div key={index} className="flex items-center gap-3 mb-3">
+                            <span className="w-28 font-medium text-sm shrink-0">
+                              {item.sizeName}
+                            </span>
+                            <InputCurrency
+                              placeholder="Preço (opcional)"
+                              type="number"
+                              value={item.price}
+                              onChange={(e: any) => {
+                                const newList = [...sizeList];
+                                newList[index].price = e.target.value;
+                                setSizeList(newList);
+                              }}
+                            />
+                            <Button
+                              type="button"
+                              size="sm"
+                              onClick={() => handleUpdateSizePrice(index)}
+                            >
+                              <FaSave />
+                            </Button>
+                            <TbTrash
+                              className="cursor-pointer shrink-0"
+                              onClick={() => handleRemoveSize(index)}
+                              size={24}
+                              color="red"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="flex items-center gap-3 mt-2">
+                      <div className="flex-1">
+                        <SelectComponent
+                          value={selectedNewSizeId}
+                          onValueChange={setSelectedNewSizeId}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione um tamanho" />
+                          </SelectTrigger>
+                          <SelectContent className="z-[300]">
+                            {sizes
+                              .filter((s) => !sizeList.some((sl) => sl.sizeId === s.id))
+                              .map((size) => (
+                                <SelectItem key={size.id} value={size.id!}>
+                                  {size.size}
+                                </SelectItem>
+                              ))}
+                          </SelectContent>
+                        </SelectComponent>
+                      </div>
+                      <div className="flex-1">
+                        <InputCurrency
+                          placeholder="Preço do tamanho (opcional)"
+                          type="number"
+                          value={newSizePrice}
+                          onChange={(e: any) => setNewSizePrice(e.target.value)}
+                        />
+                      </div>
+                      <Button
+                        type="button"
+                        onClick={handleAddSize}
+                        disabled={!selectedNewSizeId}
+                      >
+                        <IoMdAdd size={20} />
+                      </Button>
+                    </div>
+                  </div>
+
                   <div className="flex flex-col lg:flex-row mb-5">
                     <div className="w-full ">
                       <FormField
