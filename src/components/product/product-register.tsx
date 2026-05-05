@@ -65,7 +65,7 @@ interface ProductRegisterProps {
 const formSchema = z
   .object({
     name: z.string().min(1, "Nome do produto é obrigatório"),
-    description: z.string().min(1, "Descrição do produto é obrigatório"),
+    description: z.string().optional(),
     category_id: z.string().nullable(),
     size_ids: z.any(),
     attribute_ids: z.any(),
