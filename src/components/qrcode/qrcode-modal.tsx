@@ -45,11 +45,25 @@ function rgba(hex: string | null | undefined, opacity: number): string {
   return `rgba(${rgb.r},${rgb.g},${rgb.b},${opacity})`;
 }
 
-/** Use store color for QR dots if dark enough, else slate-900. */
 function qrFgColor(bgColor: string | null | undefined): string {
   return luminance(bgColor) < 0.18 && bgColor ? bgColor : "#0f172a";
 }
 // ───────────────────────────────────────────────────────────────────────────
+
+async function toBase64(url: string): Promise<string | null> {
+  try {
+    const res = await fetch(url, { mode: "cors", cache: "no-cache" });
+    const blob = await res.blob();
+    return await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+}
 
 const CATALOG_BASE_URL = "https://www.catalogoplace.com.br";
 
@@ -62,15 +76,26 @@ const QRCodeModal = ({ isOpen, onClose }: QRCodeModalProps) => {
   const { data: session } = useSession();
   const userService = useUserService();
   const [user, setUser] = useState<User | null>(null);
+  const [logoSrc, setLogoSrc] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!isOpen) return;
     setLoading(true);
+    setLogoSrc(null);
+
     userService
       .GETBYID(session?.user?.user?.id, session?.user?.accessToken)
-      .then((data) => { if (data) setUser(data); })
+      .then(async (data) => {
+        if (!data) return;
+        setUser(data);
+        if (data.image_url) {
+          // Pré-converte para base64 para que html2canvas capture sem CORS
+          const b64 = await toBase64(data.image_url);
+          setLogoSrc(b64 ?? data.image_url);
+        }
+      })
       .finally(() => setLoading(false));
   }, [isOpen]);
 
@@ -83,6 +108,7 @@ const QRCodeModal = ({ isOpen, onClose }: QRCodeModalProps) => {
     try {
       const canvas = await html2canvas(cardRef.current, {
         useCORS: true,
+        allowTaint: false,
         scale: 3,
         backgroundColor: null,
       });
@@ -130,17 +156,16 @@ const QRCodeModal = ({ isOpen, onClose }: QRCodeModalProps) => {
               >
                 {/* Topo: logo + nome */}
                 <div className="flex flex-col items-center pt-8 pb-3 px-6">
-                  {user?.image_url ? (
+                  {logoSrc ? (
                     <div
                       className="w-16 h-16 rounded-full overflow-hidden border-2 mb-3 flex-shrink-0"
                       style={{ borderColor: rgba(fg, 0.25) }}
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
-                        src={user.image_url}
+                        src={logoSrc}
                         alt="Logo"
                         className="w-full h-full object-cover"
-                        crossOrigin="anonymous"
                       />
                     </div>
                   ) : (
