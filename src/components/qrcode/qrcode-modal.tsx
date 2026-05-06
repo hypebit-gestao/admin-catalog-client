@@ -3,7 +3,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import Modal from "../modal";
 import QRCode from "react-qr-code";
-import html2canvas from "html2canvas";
 import { useSession } from "next-auth/react";
 import { useUserService } from "@/services/user.service";
 import { User } from "@/models/user";
@@ -91,7 +90,6 @@ const QRCodeModal = ({ isOpen, onClose }: QRCodeModalProps) => {
         if (!data) return;
         setUser(data);
         if (data.image_url) {
-          // Pré-converte para base64 para que html2canvas capture sem CORS
           const b64 = await toBase64(data.image_url);
           setLogoSrc(b64 ?? data.image_url);
         }
@@ -104,14 +102,111 @@ const QRCodeModal = ({ isOpen, onClose }: QRCodeModalProps) => {
   const fg = contrastColor(bgColor);
 
   const handleDownload = async () => {
-    if (!cardRef.current) return;
+    if (!user) return;
     try {
-      const canvas = await html2canvas(cardRef.current, {
-        useCORS: true,
-        allowTaint: false,
-        scale: 3,
-        backgroundColor: null,
-      });
+      const W = 360;
+      const SCALE = 3;
+      const LOGO_SIZE = 64;
+      const QR_SIZE = 176;
+      const QR_PAD = 16;
+      const QR_BOX = QR_SIZE + QR_PAD * 2;
+      // top(32) + logo(64) + gap(12) + name(28) + sect(28) + qrBox + sect(28) + cta(20) + gap(4) + url(20) + bottom(32)
+      const TOTAL_H = 32 + LOGO_SIZE + 12 + 28 + 28 + QR_BOX + 28 + 20 + 4 + 20 + 32;
+
+      const canvas = document.createElement("canvas");
+      canvas.width = W * SCALE;
+      canvas.height = TOTAL_H * SCALE;
+      const ctx = canvas.getContext("2d")!;
+      ctx.scale(SCALE, SCALE);
+
+      const cx = W / 2;
+
+      const roundRect = (x: number, y: number, w: number, h: number, r: number) => {
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.lineTo(x + w - r, y);
+        ctx.arcTo(x + w, y, x + w, y + r, r);
+        ctx.lineTo(x + w, y + h - r);
+        ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
+        ctx.lineTo(x + r, y + h);
+        ctx.arcTo(x, y + h, x, y + h - r, r);
+        ctx.lineTo(x, y + r);
+        ctx.arcTo(x, y, x + r, y, r);
+        ctx.closePath();
+      };
+
+      // Background
+      ctx.fillStyle = bgColor;
+      roundRect(0, 0, W, TOTAL_H, 16);
+      ctx.fill();
+
+      let y = 32;
+
+      // Logo — crossOrigin="anonymous" so canvas stays untainted;
+      // if server has no CORS headers, onerror fires and logo is skipped (no taint, rest works)
+      if (logoSrc) {
+        await new Promise<void>((resolve) => {
+          const img = new Image();
+          img.crossOrigin = "anonymous";
+          img.onload = () => {
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(cx, y + LOGO_SIZE / 2, LOGO_SIZE / 2, 0, Math.PI * 2);
+            ctx.clip();
+            ctx.drawImage(img, cx - LOGO_SIZE / 2, y, LOGO_SIZE, LOGO_SIZE);
+            ctx.restore();
+            resolve();
+          };
+          img.onerror = () => resolve();
+          img.src = logoSrc;
+        });
+      }
+      y += LOGO_SIZE + 12;
+
+      // Store name
+      ctx.fillStyle = fg;
+      ctx.font = `bold 18px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "top";
+      ctx.fillText(user.name ?? "Minha Loja", cx, y);
+      y += 28 + 28;
+
+      // QR white box
+      ctx.fillStyle = "#ffffff";
+      roundRect(cx - QR_BOX / 2, y - QR_PAD, QR_BOX, QR_BOX, 16);
+      ctx.fill();
+
+      // QR code: serialize SVG from DOM → blob URL → draw on canvas
+      const svgEl = cardRef.current?.querySelector("svg");
+      if (svgEl) {
+        const svgStr = new XMLSerializer().serializeToString(svgEl);
+        const svgBlob = new Blob([svgStr], { type: "image/svg+xml;charset=utf-8" });
+        const svgUrl = URL.createObjectURL(svgBlob);
+        await new Promise<void>((resolve) => {
+          const img = new Image();
+          img.onload = () => {
+            ctx.drawImage(img, cx - QR_SIZE / 2, y, QR_SIZE, QR_SIZE);
+            URL.revokeObjectURL(svgUrl);
+            resolve();
+          };
+          img.onerror = () => { URL.revokeObjectURL(svgUrl); resolve(); };
+          img.src = svgUrl;
+        });
+      }
+      y += QR_SIZE + QR_PAD + 12;
+
+      // CTA
+      ctx.fillStyle = fg;
+      ctx.font = `600 14px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
+      ctx.textBaseline = "top";
+      ctx.fillText("Escaneie e veja nosso catálogo", cx, y);
+      y += 24;
+
+      // URL
+      ctx.fillStyle = rgba(fg, 0.55);
+      ctx.font = `12px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
+      ctx.fillText(storeUrl.replace("https://www.", ""), cx, y);
+
       const link = document.createElement("a");
       link.href = canvas.toDataURL("image/png");
       link.download = `qrcode-${user?.person_link ?? "loja"}.png`;
