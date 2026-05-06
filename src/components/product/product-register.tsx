@@ -280,7 +280,7 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                     user_id: session?.user?.user?.id,
                     featured: data.featured,
                     active: data.active,
-                    description: data.description,
+                    description: data.description ?? "",
                     archived: false,
                     installment_available: data.installment_available,
                     installment_with_interest: data.installment_available
@@ -323,7 +323,7 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
             user_id: session?.user?.user?.id,
             featured: data.featured,
             active: data.active,
-            description: data.description,
+            description: data.description ?? "",
             archived: false,
             installment_available: data.installment_available,
             installment_with_interest: data.installment_available

@@ -9,7 +9,9 @@ import usePersonalizationStoreModal from "@/utils/hooks/pesonalization-store/use
 import PersonalizationStore from "@/components/personalization_store/personalization-store";
 import useGoogleAnalyticsModal from "@/utils/hooks/analytics/useGoogleAnalyticsModal";
 import GoogleAnalyticsModal from "@/components/google-analytics/google-analytics-modal";
-import { MdLocalShipping, MdPalette, MdChevronRight, MdAnalytics } from "react-icons/md";
+import { MdLocalShipping, MdPalette, MdChevronRight, MdAnalytics, MdQrCode2 } from "react-icons/md";
+import useQRCodeModal from "@/utils/hooks/qrcode/useQRCodeModal";
+import QRCodeModal from "@/components/qrcode/qrcode-modal";
 import { cn } from "@/lib/utils";
 
 const configCards = [
@@ -40,6 +42,15 @@ const configCards = [
     iconColor: "text-orange-500",
     borderHover: "hover:border-orange-200",
   },
+  {
+    id: "qrcode",
+    title: "QR Code da Loja",
+    description: "Gere um QR Code personalizado com as cores e logo da sua loja para compartilhar ou imprimir.",
+    icon: MdQrCode2,
+    iconBg: "bg-green-50",
+    iconColor: "text-green-600",
+    borderHover: "hover:border-green-200",
+  },
 ];
 
 const Configurations = () => {
@@ -47,11 +58,13 @@ const Configurations = () => {
   const shippingModal = useShippingRegisterModal();
   const personalizationStoreModal = usePersonalizationStoreModal();
   const gaModal = useGoogleAnalyticsModal();
+  const qrCodeModal = useQRCodeModal();
 
   const handleCardClick = (id: string) => {
     if (id === "shipping") shippingModal.onOpen();
     if (id === "personalization") personalizationStoreModal.onOpen();
     if (id === "analytics") gaModal.onOpen();
+    if (id === "qrcode") qrCodeModal.onOpen();
   };
 
   return (
@@ -67,6 +80,10 @@ const Configurations = () => {
       <GoogleAnalyticsModal
         isOpen={gaModal.isOpen}
         onClose={gaModal.onClose}
+      />
+      <QRCodeModal
+        isOpen={qrCodeModal.isOpen}
+        onClose={qrCodeModal.onClose}
       />
       <ContentMain
         title="Configurações da Loja"
