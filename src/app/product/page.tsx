@@ -8,12 +8,8 @@ import ContentMain from "@/components/content-main";
 import Loader from "@/components/loader";
 import { useProductService } from "@/services/product.service";
 import { Product as ProductModel } from "@/models/product";
-import ProductRegister from "@/components/product/product-register";
-import useProductRegisterModal from "@/utils/hooks/product/useRegisterProductModal";
 import Image from "next/image";
 import { MdDelete, MdEdit, MdOutlineProductionQuantityLimits, MdSearch } from "react-icons/md";
-import ProductEdit from "@/components/product/product-edit";
-import useEditProductModal from "@/utils/hooks/product/useEditProductModal";
 import ProductDelete from "@/components/product/product-delete";
 import useProductDeleteModal from "@/utils/hooks/product/useDeleteProductModal";
 import {
@@ -26,6 +22,7 @@ import {
 import { useCategoryService } from "@/services/category.service";
 import { Category } from "@/models/category";
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 
 const formatter = new Intl.NumberFormat("pt-BR", {
   style: "currency",
@@ -43,11 +40,10 @@ const Product = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [filterCategory, setFilterCategory] = useState<string>("");
   const [searchName, setSearchName] = useState("");
+  const router = useRouter();
 
   const productService = useProductService();
   const categoryService = useCategoryService();
-  const productRegisterModal = useProductRegisterModal();
-  const productEditModal = useEditProductModal();
   const productDeleteModal = useProductDeleteModal();
 
   useEffect(() => {
@@ -76,8 +72,6 @@ const Product = () => {
     getCategories();
   }, [
     session?.user?.accessToken,
-    productRegisterModal.isRegister,
-    productEditModal.isUpdate,
     productDeleteModal.isDelete,
     filterCategory,
   ]);
@@ -97,18 +91,21 @@ const Product = () => {
     productDeleteModal.onOpen();
   };
 
-  const handleEdit = (id: string | undefined) => {
-    useEditProductModal.setState({ itemId: id });
-    productEditModal.onOpen();
-  };
-
   return (
     <>
-      <ProductDelete isOpen={productDeleteModal.isOpen} onClose={productDeleteModal.onClose} />
-      <ProductEdit isOpen={productEditModal.isOpen} onClose={productEditModal.onClose} />
-      <ProductRegister isOpen={productRegisterModal.isOpen} onClose={productRegisterModal.onClose} />
+      <ProductDelete
+        isOpen={productDeleteModal.isOpen}
+        onClose={productDeleteModal.onClose}
+      />
 
-      <ContentMain title="Produtos" subtitle={`${filteredProducts.length} produto${filteredProducts.length !== 1 ? "s" : ""}${searchName ? " encontrado" + (filteredProducts.length !== 1 ? "s" : "") : " cadastrado" + (filteredProducts.length !== 1 ? "s" : "")}`}>
+      <ContentMain
+        title="Produtos"
+        subtitle={`${filteredProducts.length} produto${filteredProducts.length !== 1 ? "s" : ""}${
+          searchName
+            ? " encontrado" + (filteredProducts.length !== 1 ? "s" : "")
+            : " cadastrado" + (filteredProducts.length !== 1 ? "s" : "")
+        }`}
+      >
         {/* Filters bar */}
         <div className="flex flex-col sm:flex-row gap-3 mb-6">
           {/* Search by name */}
@@ -136,9 +133,7 @@ const Product = () => {
 
           {/* Category filter */}
           <div className="w-full sm:w-56">
-            <Select
-              onValueChange={(value) => setFilterCategory(value)}
-            >
+            <Select onValueChange={(value) => setFilterCategory(value)}>
               <SelectTrigger className="bg-white">
                 <SelectValue placeholder="Filtrar por categoria" />
               </SelectTrigger>
@@ -154,7 +149,7 @@ const Product = () => {
           </div>
 
           <Button
-            onClick={() => productRegisterModal.onOpen()}
+            onClick={() => router.push("/product/new")}
             className="bg-green-primary hover:bg-green-primary/90 gap-2 sm:ml-auto flex-shrink-0"
           >
             <IoIosAddCircle size={22} />
@@ -170,7 +165,10 @@ const Product = () => {
             </div>
           ) : filteredProducts.length === 0 ? (
             <div className="bg-white rounded-xl border border-gray-200/80 py-20 flex flex-col items-center text-center shadow-sm">
-              <MdOutlineProductionQuantityLimits size={52} className="text-gray-200 mb-3" />
+              <MdOutlineProductionQuantityLimits
+                size={52}
+                className="text-gray-200 mb-3"
+              />
               <p className="font-medium text-gray-500 text-base">
                 {searchName
                   ? `Nenhum produto encontrado para "${searchName}"`
@@ -185,7 +183,7 @@ const Product = () => {
                 </button>
               ) : (
                 <button
-                  onClick={() => productRegisterModal.onOpen()}
+                  onClick={() => router.push("/product/new")}
                   className="mt-3 text-sm text-green-primary hover:underline"
                 >
                   Cadastrar primeiro produto
@@ -246,11 +244,13 @@ const Product = () => {
                         <p className="font-bold text-green-primary text-base">
                           {formatter.format(product.price)}
                         </p>
-                        {product.promotion_price && product.promotion_price > 0 && product.promotion_price < product.price && (
-                          <p className="text-xs text-muted-foreground line-through">
-                            {formatter.format(product.promotion_price)}
-                          </p>
-                        )}
+                        {product.promotion_price &&
+                          product.promotion_price > 0 &&
+                          product.promotion_price < product.price && (
+                            <p className="text-xs text-muted-foreground line-through">
+                              {formatter.format(product.promotion_price)}
+                            </p>
+                          )}
                       </div>
                       <span
                         className={cn(
@@ -260,7 +260,9 @@ const Product = () => {
                             : "bg-gray-100 text-gray-500"
                         )}
                       >
-                        {product.category_id ? product.category?.name : "Sem categoria"}
+                        {product.category_id
+                          ? product.category?.name
+                          : "Sem categoria"}
                       </span>
                     </div>
                   </div>
@@ -268,7 +270,7 @@ const Product = () => {
                   {/* Actions */}
                   <div className="px-3 pb-3 flex justify-end gap-2">
                     <button
-                      onClick={() => handleEdit(product.id)}
+                      onClick={() => router.push(`/product/${product.id}/edit`)}
                       className="p-1.5 rounded-lg hover:bg-blue-50 text-blue-500 hover:text-blue-600 transition-colors"
                       title="Editar produto"
                     >

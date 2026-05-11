@@ -26,7 +26,12 @@ const pathLabels: Record<string, string> = {
   analytics: "Análises",
   calculator: "Calculadora de Preços",
   help: "Central de Ajuda",
+  new: "Novo",
+  edit: "Editar",
 };
+
+const isUuid = (s: string) =>
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
 
 const ContentMain: React.FC<ContentMainProps> = ({
   children,
@@ -36,11 +41,16 @@ const ContentMain: React.FC<ContentMainProps> = ({
 }) => {
   const pathname = usePathname();
   const segments = pathname?.split("/").filter(Boolean) || [];
-  const breadcrumbs = segments.map((segment, index) => ({
-    label: pathLabels[segment] || segment.charAt(0).toUpperCase() + segment.slice(1),
+  const allCrumbs = segments.map((segment, index) => ({
+    label: isUuid(segment)
+      ? null
+      : pathLabels[segment] ||
+        segment.charAt(0).toUpperCase() + segment.slice(1),
     href: "/" + segments.slice(0, index + 1).join("/"),
-    isLast: index === segments.length - 1,
   }));
+  const breadcrumbs = allCrumbs
+    .filter((c) => c.label !== null)
+    .map((c, i, arr) => ({ ...c, isLast: i === arr.length - 1 }));
 
   return (
     <div
