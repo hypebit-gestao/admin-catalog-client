@@ -16,6 +16,7 @@ declare module "next-auth" {
         person_link: string;
         last_name: string;
         user_type: number;
+        payer_id: string | null;
       };
     };
   }

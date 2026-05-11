@@ -15,8 +15,10 @@ import {
   MdAttachMoney,
   MdTrendingUp,
   MdWarning,
+  MdChevronRight,
 } from "react-icons/md";
 import { HiArrowRight } from "react-icons/hi";
+import { FaCircleCheck } from "react-icons/fa6";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { RecentOrderItem } from "@/models/order-analytics";
@@ -188,6 +190,35 @@ const Home = () => {
     },
   ];
 
+  const onboardingSteps = [
+    {
+      label: "Crie sua primeira categoria",
+      done: countCategories > 0,
+      href: "/category",
+      action: "Criar categoria",
+    },
+    {
+      label: "Adicione seu primeiro produto",
+      done: countProducts > 0,
+      href: "/product/new",
+      action: "Adicionar produto",
+    },
+    {
+      label: "Configure o frete",
+      done: false,
+      href: "/configurations",
+      action: "Configurar",
+    },
+    {
+      label: "Personalize sua loja",
+      done: false,
+      href: "/configurations",
+      action: "Personalizar",
+    },
+  ];
+
+  const onboardingComplete = countCategories > 0 && countProducts > 0;
+
   return (
     <ContentMain
       title="Dashboard"
@@ -199,6 +230,34 @@ const Home = () => {
         </div>
       ) : (
         <div className="space-y-8">
+          {/* Onboarding checklist — exibe apenas quando loja está vazia */}
+          {!onboardingComplete && (
+            <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-primary/20 p-6">
+              <div className="mb-4">
+                <h2 className="text-lg font-semibold text-gray-900">Primeiros passos</h2>
+                <p className="text-sm text-gray-500 mt-0.5">Complete as etapas abaixo para deixar sua loja pronta.</p>
+              </div>
+              <div className="space-y-3">
+                {onboardingSteps.map((step, i) => (
+                  <div key={i} className={cn("flex items-center gap-3 bg-white rounded-lg px-4 py-3 border", step.done ? "border-emerald-200" : "border-gray-200")}>
+                    <FaCircleCheck size={18} className={step.done ? "text-emerald-500 flex-shrink-0" : "text-gray-300 flex-shrink-0"} />
+                    <span className={cn("flex-1 text-sm font-medium", step.done ? "text-gray-400 line-through" : "text-gray-700")}>
+                      {step.label}
+                    </span>
+                    {!step.done && (
+                      <button
+                        onClick={() => router.push(step.href)}
+                        className="inline-flex items-center gap-1 text-xs font-semibold text-green-primary hover:text-green-secondary transition-colors flex-shrink-0"
+                      >
+                        {step.action}
+                        <MdChevronRight size={14} />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           {/* Stats cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {statsCards.map((card) => (
