@@ -20,7 +20,9 @@ import { useSizeService } from "@/services/size.service";
 import { useParams, useRouter } from "next/navigation";
 import Loader from "@/components/loader";
 import ContentMain from "@/components/content-main";
+import { FormSkeleton } from "@/components/ui/skeleton";
 import { Size } from "@/models/size";
+import { useUnsavedChanges } from "@/utils/hooks/useUnsavedChanges";
 
 const formSchema = z.object({
   size: z.string().min(1, "Tamanho é obrigatório"),
@@ -42,7 +44,7 @@ const SizeEditPage = () => {
     defaultValues: { size: "" },
   });
 
-  const { setValue } = form;
+  const { confirmLeave } = useUnsavedChanges(form.formState.isDirty);
 
   useEffect(() => {
     if (!session?.user?.accessToken || !sizeId) return;
@@ -52,7 +54,7 @@ const SizeEditPage = () => {
       const fetched = await sizeService.GETBYID(session.user.accessToken, sizeId);
       if (fetched) {
         setSize(fetched);
-        setValue("size", fetched.size ?? "", {
+        form.setValue("size", fetched.size ?? "", {
           shouldValidate: true,
           shouldDirty: true,
           shouldTouch: true,
@@ -85,9 +87,7 @@ const SizeEditPage = () => {
   if (loading) {
     return (
       <ContentMain title="Editar Tamanho">
-        <div className="flex justify-center py-20">
-          <Loader color="text-green-primary" />
-        </div>
+        <FormSkeleton rows={2} />
       </ContentMain>
     );
   }
@@ -125,7 +125,7 @@ const SizeEditPage = () => {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => router.push("/size")}
+                onClick={() => { if (confirmLeave()) router.push("/size"); }}
                 className="flex-1"
               >
                 Cancelar

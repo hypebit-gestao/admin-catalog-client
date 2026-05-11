@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { IoIosAddCircle } from "react-icons/io";
 import ContentMain from "@/components/content-main";
@@ -9,7 +9,15 @@ import Loader from "@/components/loader";
 import { useProductService } from "@/services/product.service";
 import { Product as ProductModel } from "@/models/product";
 import Image from "next/image";
-import { MdDelete, MdEdit, MdOutlineProductionQuantityLimits, MdSearch } from "react-icons/md";
+import {
+  MdContentCopy,
+  MdDelete,
+  MdEdit,
+  MdOutlineProductionQuantityLimits,
+  MdSearch,
+  MdToggleOff,
+  MdToggleOn,
+} from "react-icons/md";
 import ProductDelete from "@/components/product/product-delete";
 import useProductDeleteModal from "@/utils/hooks/product/useDeleteProductModal";
 import {
@@ -23,6 +31,7 @@ import { useCategoryService } from "@/services/category.service";
 import { Category } from "@/models/category";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 const formatter = new Intl.NumberFormat("pt-BR", {
   style: "currency",
@@ -40,41 +49,38 @@ const Product = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [filterCategory, setFilterCategory] = useState<string>("");
   const [searchName, setSearchName] = useState("");
+  const [refreshKey, setRefreshKey] = useState(0);
   const router = useRouter();
 
   const productService = useProductService();
   const categoryService = useCategoryService();
   const productDeleteModal = useProductDeleteModal();
 
-  useEffect(() => {
+  const fetchProducts = useCallback(async () => {
     if (!session?.user?.accessToken) return;
     setLoading(true);
+    try {
+      const fetched = await productService.GETBYUSERID(
+        session.user?.user?.id,
+        filterCategory === "all" ? "" : filterCategory,
+        session.user.accessToken
+      );
+      setProducts(fetched ?? []);
+    } finally {
+      setLoading(false);
+    }
+  }, [session?.user?.accessToken, filterCategory]);
 
-    const getProducts = async () => {
-      try {
-        const fetched = await productService.GETBYUSERID(
-          session.user?.user?.id,
-          filterCategory === "all" ? "" : filterCategory,
-          session.user.accessToken
-        );
-        setProducts(fetched ?? []);
-      } finally {
-        setLoading(false);
-      }
-    };
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts, productDeleteModal.isDelete, refreshKey]);
 
-    const getCategories = async () => {
-      const fetched = await categoryService.GETALL(session.user.accessToken);
-      if (fetched) setCategories(fetched);
-    };
-
-    getProducts();
-    getCategories();
-  }, [
-    session?.user?.accessToken,
-    productDeleteModal.isDelete,
-    filterCategory,
-  ]);
+  useEffect(() => {
+    if (!session?.user?.accessToken) return;
+    categoryService
+      .GETALL(session.user.accessToken)
+      .then((res) => { if (res) setCategories(res); });
+  }, [session?.user?.accessToken]);
 
   const filteredProducts = useMemo(() => {
     if (!searchName.trim()) return products;
@@ -89,6 +95,73 @@ const Product = () => {
   const handleDelete = (id: string | undefined) => {
     useProductDeleteModal.setState({ itemId: id });
     productDeleteModal.onOpen();
+  };
+
+  const handleToggleActive = async (product: ProductModel) => {
+    const newActive = !product.active;
+    setProducts((prev) =>
+      prev.map((p) => (p.id === product.id ? { ...p, active: newActive } : p))
+    );
+    try {
+      await productService.PUT(
+        {
+          id: product.id,
+          name: product.name,
+          description: product.description,
+          category_id: product.category_id,
+          images: product.images,
+          currency: product.currency ?? "brl",
+          price: product.price,
+          promotion_price: product.promotion_price ?? null,
+          user_id: product.user_id,
+          featured: product.featured,
+          active: newActive,
+          archived: product.archived,
+          installment_available: product.installment_available,
+          installment_with_interest: product.installment_with_interest,
+          installment_interest_value: product.installment_interest_value ?? null,
+          max_installments: product.max_installments ?? 1,
+        },
+        session?.user?.accessToken
+      );
+      toast.success(
+        newActive ? "Produto ativado" : "Produto desativado"
+      );
+    } catch (err: any) {
+      setProducts((prev) =>
+        prev.map((p) => (p.id === product.id ? { ...p, active: product.active } : p))
+      );
+      toast.error(err.message);
+    }
+  };
+
+  const handleDuplicate = async (product: ProductModel) => {
+    try {
+      await productService.POST(
+        {
+          name: `${product.name} (cópia)`,
+          description: product.description ?? "",
+          category_id: product.category_id,
+          images: product.images ?? null,
+          currency: product.currency ?? "brl",
+          price: product.price,
+          promotion_price: product.promotion_price ?? null,
+          user_id: session?.user?.user?.id,
+          featured: product.featured,
+          active: product.active,
+          archived: false,
+          installment_available: product.installment_available,
+          installment_with_interest: product.installment_with_interest,
+          installment_interest_value: product.installment_interest_value ?? null,
+          max_installments: product.max_installments ?? 1,
+        },
+        session?.user?.accessToken
+      );
+      toast.success(`${product.name} duplicado`);
+      setRefreshKey((k) => k + 1);
+    } catch (err: any) {
+      toast.error(err.message);
+    }
   };
 
   return (
@@ -108,7 +181,6 @@ const Product = () => {
       >
         {/* Filters bar */}
         <div className="flex flex-col sm:flex-row gap-3 mb-6">
-          {/* Search by name */}
           <div className="relative flex-1 max-w-sm">
             <MdSearch
               size={18}
@@ -131,7 +203,6 @@ const Product = () => {
             )}
           </div>
 
-          {/* Category filter */}
           <div className="w-full sm:w-56">
             <Select onValueChange={(value) => setFilterCategory(value)}>
               <SelectTrigger className="bg-white">
@@ -235,9 +306,15 @@ const Product = () => {
                     <h5 className="font-semibold text-gray-900 truncate text-sm mb-1">
                       {product.name}
                     </h5>
-                    <p className="text-xs text-gray-500 leading-relaxed flex-1">
-                      {truncate(product.description, 70)}
-                    </p>
+                    <p
+                      className="text-xs text-gray-500 leading-relaxed flex-1"
+                      dangerouslySetInnerHTML={{
+                        __html: truncate(
+                          product.description?.replace(/<[^>]+>/g, "") ?? "",
+                          70
+                        ),
+                      }}
+                    />
 
                     <div className="mt-3 flex items-center justify-between">
                       <div>
@@ -268,7 +345,25 @@ const Product = () => {
                   </div>
 
                   {/* Actions */}
-                  <div className="px-3 pb-3 flex justify-end gap-2">
+                  <div className="px-3 pb-3 flex justify-end gap-1">
+                    <button
+                      onClick={() => handleToggleActive(product)}
+                      className="p-1.5 rounded-lg hover:bg-gray-50 transition-colors"
+                      title={product.active ? "Desativar produto" : "Ativar produto"}
+                    >
+                      {product.active ? (
+                        <MdToggleOn size={22} className="text-green-primary" />
+                      ) : (
+                        <MdToggleOff size={22} className="text-gray-400" />
+                      )}
+                    </button>
+                    <button
+                      onClick={() => handleDuplicate(product)}
+                      className="p-1.5 rounded-lg hover:bg-amber-50 text-amber-500 hover:text-amber-600 transition-colors"
+                      title="Duplicar produto"
+                    >
+                      <MdContentCopy size={18} />
+                    </button>
                     <button
                       onClick={() => router.push(`/product/${product.id}/edit`)}
                       className="p-1.5 rounded-lg hover:bg-blue-50 text-blue-500 hover:text-blue-600 transition-colors"

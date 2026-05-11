@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -21,10 +21,13 @@ import { useUploadService } from "@/services/upload.service";
 import { ReturnUpload } from "@/models/upload";
 import { useParams, useRouter } from "next/navigation";
 import { TiDelete } from "react-icons/ti";
+import { MdCloudUpload } from "react-icons/md";
 import Image from "next/image";
 import Loader from "@/components/loader";
 import ContentMain from "@/components/content-main";
+import { FormSkeleton } from "@/components/ui/skeleton";
 import { Category } from "@/models/category";
+import { useUnsavedChanges } from "@/utils/hooks/useUnsavedChanges";
 
 const formSchema = z.object({
   name: z.string().min(1, "Nome da categoria é obrigatório"),
@@ -36,10 +39,10 @@ const CategoryEditPage = () => {
   const params = useParams()!;
   const categoryId = params.id as string;
   const router = useRouter();
-  const inputFileRef = useRef<any>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [filePreview, setFilePreview] = useState<any>(null);
+  const [filePreview, setFilePreview] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
   const [category, setCategory] = useState<Category>();
 
   const categoryService = useCategoryService();
@@ -51,6 +54,7 @@ const CategoryEditPage = () => {
   });
 
   const { setValue } = form;
+  const { confirmLeave } = useUnsavedChanges(form.formState.isDirty);
 
   const setCustomValue = (id: keyof z.infer<typeof formSchema>, value: any) => {
     setValue(id, value, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
@@ -77,8 +81,14 @@ const CategoryEditPage = () => {
     fetchCategory();
   }, [session?.user?.accessToken, categoryId]);
 
+  const processFile = (file: File) => {
+    setCustomValue("image_url", file);
+    const reader = new FileReader();
+    reader.onloadend = () => setFilePreview(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
   const handleDeleteFile = () => {
-    if (inputFileRef.current) inputFileRef.current.value = "";
     setCustomValue("image_url", "");
     setFilePreview(null);
   };
@@ -118,9 +128,7 @@ const CategoryEditPage = () => {
   if (loading) {
     return (
       <ContentMain title="Editar Categoria">
-        <div className="flex justify-center py-20">
-          <Loader color="text-green-primary" />
-        </div>
+        <FormSkeleton rows={3} />
       </ContentMain>
     );
   }
@@ -158,55 +166,61 @@ const CategoryEditPage = () => {
               <h2 className="my-4 font-semibold text-green-primary">
                 Informações adicionais
               </h2>
-              <FormField
-                control={form.control}
-                name="image_url"
-                render={({ field: { value, onChange, ...fieldProps } }) => (
-                  <FormItem>
-                    <FormLabel>Imagem da Categoria</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...fieldProps}
-                        ref={inputFileRef}
-                        type="file"
-                        accept="image/*, application/pdf"
-                        onChange={(event) => {
-                          onChange(event.target.files && event.target.files[0]);
-                          if (event.target.files?.[0]) {
-                            const reader = new FileReader();
-                            reader.onloadend = () => setFilePreview(reader.result);
-                            reader.readAsDataURL(event.target.files[0]);
-                          }
-                        }}
-                      />
-                    </FormControl>
-                    {filePreview && (
-                      <div className="relative mt-3 w-[300px]">
-                        <div
-                          className="absolute top-0 right-0 cursor-pointer"
-                          onClick={handleDeleteFile}
-                        >
-                          <TiDelete color="red" size={24} />
-                        </div>
-                        <Image
-                          src={filePreview}
-                          alt="Preview"
-                          width={300}
-                          height={300}
-                        />
-                      </div>
-                    )}
-                    <FormMessage />
-                  </FormItem>
+              <FormItem>
+                <FormLabel>Imagem da Categoria</FormLabel>
+                {filePreview ? (
+                  <div className="relative mt-2 w-[300px]">
+                    <button
+                      type="button"
+                      className="absolute top-0 right-0 z-10"
+                      onClick={handleDeleteFile}
+                    >
+                      <TiDelete color="red" size={24} />
+                    </button>
+                    <Image
+                      src={filePreview}
+                      alt="Preview"
+                      width={300}
+                      height={300}
+                      className="rounded-md"
+                    />
+                  </div>
+                ) : (
+                  <div
+                    onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                    onDragLeave={(e) => { e.preventDefault(); setIsDragging(false); }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      setIsDragging(false);
+                      const file = e.dataTransfer.files[0];
+                      if (file?.type.startsWith("image/")) processFile(file);
+                    }}
+                    onClick={() => document.getElementById("cat-edit-image-input")?.click()}
+                    className={`mt-2 border-2 border-dashed rounded-xl p-8 flex flex-col items-center gap-2 cursor-pointer transition-colors
+                      ${isDragging ? "border-green-primary bg-green-primary/5" : "border-gray-200 bg-gray-50 hover:border-green-primary/50"}`}
+                  >
+                    <MdCloudUpload size={36} className="text-gray-400" />
+                    <p className="text-sm text-gray-500">
+                      Arraste uma imagem ou{" "}
+                      <span className="text-green-primary underline underline-offset-2">clique para selecionar</span>
+                    </p>
+                  </div>
                 )}
-              />
+                <input
+                  id="cat-edit-image-input"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => { const f = e.target.files?.[0]; if (f) processFile(f); }}
+                />
+              </FormItem>
             </div>
 
             <div className="mt-10 flex gap-3">
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => router.push("/category")}
+                onClick={() => { if (confirmLeave()) router.push("/category"); }}
                 className="flex-1"
               >
                 Cancelar

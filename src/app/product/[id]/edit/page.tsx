@@ -19,7 +19,6 @@ import { useUploadService } from "@/services/upload.service";
 import { useProductService } from "@/services/product.service";
 import { useCategoryService } from "@/services/category.service";
 import { Category } from "@/models/category";
-import { LuMoveLeft, LuMoveRight } from "react-icons/lu";
 import {
   Select as SelectComponent,
   SelectContent,
@@ -28,21 +27,20 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useParams, useRouter } from "next/navigation";
-import { TiDelete } from "react-icons/ti";
-import Image from "next/image";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Textarea } from "@/components/ui/textarea";
-import Loader from "@/components/loader";
 import { IoMdAdd } from "react-icons/io";
 import { useSizeService } from "@/services/size.service";
 import { Size } from "@/models/size";
 import { useProductSizeService } from "@/services/productSize.service";
-import { Attribute } from "@/models/attribute";
-import { useAttributeService } from "@/services/attribute.service";
 import { TbTrash } from "react-icons/tb";
 import { FaSave } from "react-icons/fa";
 import { Product } from "@/models/product";
 import ContentMain from "@/components/content-main";
+import Loader from "@/components/loader";
+import { ImageDropzone, ImagePreviewItem } from "@/components/image-dropzone";
+import { RichTextEditor } from "@/components/rich-text-editor";
+import { FormSkeleton } from "@/components/ui/skeleton";
+import { useUnsavedChanges } from "@/utils/hooks/useUnsavedChanges";
 
 const formSchema = z
   .object({
@@ -90,7 +88,6 @@ const ProductEditPage = () => {
   const categoryService = useCategoryService();
   const sizeService = useSizeService();
   const productSizeService = useProductSizeService();
-  const attributeService = useAttributeService();
   const uploadService = useUploadService();
 
   const [loading, setLoading] = useState(true);
@@ -98,7 +95,7 @@ const ProductEditPage = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [product, setProduct] = useState<Product>();
   const [sizes, setSizes] = useState<Size[]>([]);
-  const [filePreviews, setFilePreviews] = useState<any[]>([]);
+  const [filePreviews, setFilePreviews] = useState<ImagePreviewItem[]>([]);
   const [sizeList, setSizeList] = useState<
     Array<{
       productSizeId?: string;
@@ -116,6 +113,7 @@ const ProductEditPage = () => {
       description: "",
       category_id: "",
       size_ids: [],
+      attribute_ids: [],
       images: "",
       currency: "",
       featured: false,
@@ -134,6 +132,7 @@ const ProductEditPage = () => {
   });
 
   const { setValue, watch } = form;
+  const { confirmLeave } = useUnsavedChanges(form.formState.isDirty);
 
   type FormSchemaType = z.infer<typeof formSchema>;
   type FormFieldKey = keyof FormSchemaType;
@@ -205,7 +204,7 @@ const ProductEditPage = () => {
           setCustomValue("user_id", fetchedProduct.user_id);
 
           if (fetchedProduct.images) {
-            setFilePreviews(fetchedProduct.images.map((img) => img));
+            setFilePreviews(fetchedProduct.images as ImagePreviewItem[]);
           }
 
           if (fetchedProduct.product_size) {
@@ -233,26 +232,32 @@ const ProductEditPage = () => {
     fetchAll();
   }, [session?.user?.accessToken, productId]);
 
+  const handleAddImages = (files: File[]) => {
+    const newItems: ImagePreviewItem[] = files.map((file) => ({
+      file,
+      preview: URL.createObjectURL(file),
+    }));
+    setFilePreviews((prev) => [...prev, ...newItems]);
+  };
+
   const handleDeleteFile = (index: number) => {
-    const updated = [...filePreviews];
-    updated.splice(index, 1);
-    setFilePreviews(updated);
-    setProduct({
-      ...(product as Product),
-      images: updated.map((p) => (typeof p === "string" ? p : p.file)),
+    setFilePreviews((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleMoveLeft = (index: number) => {
+    setFilePreviews((prev) => {
+      const updated = [...prev];
+      [updated[index], updated[index - 1]] = [updated[index - 1], updated[index]];
+      return updated;
     });
   };
 
-  const handleMoveUp = (index: number) => {
-    const updated = [...filePreviews];
-    [updated[index], updated[index - 1]] = [updated[index - 1], updated[index]];
-    setFilePreviews(updated);
-  };
-
-  const handleMoveDown = (index: number) => {
-    const updated = [...filePreviews];
-    [updated[index], updated[index + 1]] = [updated[index + 1], updated[index]];
-    setFilePreviews(updated);
+  const handleMoveRight = (index: number) => {
+    setFilePreviews((prev) => {
+      const updated = [...prev];
+      [updated[index], updated[index + 1]] = [updated[index + 1], updated[index]];
+      return updated;
+    });
   };
 
   const handleUpdateSizePrice = async (index: number) => {
@@ -369,42 +374,6 @@ const ProductEditPage = () => {
         session?.user?.accessToken
       );
 
-      const currentAttributeIds = form.watch("attribute_ids");
-      if (
-        currentAttributeIds?.length >
-        (product?.product_attribute?.length ?? 0)
-      ) {
-        const newAttrs = currentAttributeIds.filter(
-          (attr: any) =>
-            !product?.product_attribute?.some(
-              (pa: any) => pa.attribute.id === attr.value
-            )
-        );
-        for (const attr of newAttrs) {
-          await attributeService.POSTPRODUCTOPTION(
-            {
-              user_id: session?.user?.user?.id,
-              product_id: product?.id,
-              attribute_id: attr.value,
-            },
-            session?.user?.accessToken
-          );
-        }
-      } else {
-        const removed = product?.product_attribute?.filter(
-          (pa) =>
-            !currentAttributeIds?.some(
-              (attr: any) => attr.value === pa.attribute.id
-            )
-        );
-        for (const pa of removed ?? []) {
-          await attributeService.DELETEPRODUCTOPTION(
-            (pa as any).id,
-            session?.user?.accessToken
-          );
-        }
-      }
-
       toast.success(`${data.name} atualizado com sucesso`);
       router.push("/product");
     } catch (error) {
@@ -417,9 +386,7 @@ const ProductEditPage = () => {
   if (loading) {
     return (
       <ContentMain title="Editar Produto">
-        <div className="flex justify-center py-20">
-          <Loader color="text-green-primary" />
-        </div>
+        <FormSkeleton rows={7} />
       </ContentMain>
     );
   }
@@ -432,7 +399,6 @@ const ProductEditPage = () => {
       <div className="max-w-2xl">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onUpdate)} className="w-full">
-            {/* Informações do produto */}
             <div>
               <h2 className="my-4 font-semibold text-green-primary">
                 Informações do produto
@@ -446,10 +412,7 @@ const ProductEditPage = () => {
                     <FormItem>
                       <FormLabel className="text-blue-primary">Nome</FormLabel>
                       <FormControl>
-                        <Input
-                          placeholder="Insira o nome do produto"
-                          {...field}
-                        />
+                        <Input placeholder="Insira o nome do produto" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -495,10 +458,7 @@ const ProductEditPage = () => {
                 <div className="flex-1">
                   <FormItem>
                     <FormLabel>Usuário</FormLabel>
-                    <SelectComponent
-                      disabled
-                      defaultValue={session?.user?.user?.name}
-                    >
+                    <SelectComponent disabled defaultValue={session?.user?.user?.name}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -513,9 +473,7 @@ const ProductEditPage = () => {
               </div>
 
               <div className="mb-3">
-                <h3 className="font-bold">
-                  Deseja adicionar preço promocional no produto?
-                </h3>
+                <h3 className="font-bold">Deseja adicionar preço promocional no produto?</h3>
               </div>
               <div className="mb-5">
                 <FormField
@@ -545,11 +503,7 @@ const ProductEditPage = () => {
                       <FormItem>
                         <FormLabel className="text-blue-primary">Preço</FormLabel>
                         <FormControl>
-                          <InputCurrency
-                            placeholder="Preço do produto"
-                            type="number"
-                            {...field}
-                          />
+                          <InputCurrency placeholder="Preço do produto" type="number" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -563,15 +517,9 @@ const ProductEditPage = () => {
                       name="promotion_price"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-blue-primary">
-                            Preço Promocional
-                          </FormLabel>
+                          <FormLabel className="text-blue-primary">Preço Promocional</FormLabel>
                           <FormControl>
-                            <InputCurrency
-                              placeholder="Preço Promocional"
-                              type="number"
-                              {...field}
-                            />
+                            <InputCurrency placeholder="Preço Promocional" type="number" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -589,10 +537,10 @@ const ProductEditPage = () => {
                     <FormItem>
                       <FormLabel>Descrição</FormLabel>
                       <FormControl>
-                        <Textarea
+                        <RichTextEditor
+                          value={field.value}
+                          onChange={field.onChange}
                           placeholder="Descrição do produto"
-                          className="resize-none"
-                          {...field}
                         />
                       </FormControl>
                       <FormMessage />
@@ -602,7 +550,6 @@ const ProductEditPage = () => {
               </div>
             </div>
 
-            {/* Informações adicionais */}
             <div className="mt-8">
               <h2 className="my-4 font-semibold text-green-primary">
                 Informações adicionais
@@ -641,9 +588,7 @@ const ProductEditPage = () => {
                           key={item.sizeId}
                           className="flex items-center gap-2 border rounded-md p-2"
                         >
-                          <span className="flex-1 text-sm font-medium">
-                            {item.sizeName}
-                          </span>
+                          <span className="flex-1 text-sm font-medium">{item.sizeName}</span>
                           <Input
                             className="w-32 text-sm"
                             type="number"
@@ -653,10 +598,7 @@ const ProductEditPage = () => {
                             value={item.price}
                             onChange={(e) => {
                               const updated = [...sizeList];
-                              updated[index] = {
-                                ...updated[index],
-                                price: e.target.value,
-                              };
+                              updated[index] = { ...updated[index], price: e.target.value };
                               setSizeList(updated);
                             }}
                           />
@@ -682,10 +624,7 @@ const ProductEditPage = () => {
                   )}
 
                   <div className="flex items-center gap-2 mt-2">
-                    <SelectComponent
-                      value={selectedNewSizeId}
-                      onValueChange={setSelectedNewSizeId}
-                    >
+                    <SelectComponent value={selectedNewSizeId} onValueChange={setSelectedNewSizeId}>
                       <SelectTrigger className="flex-1 text-sm">
                         <SelectValue placeholder="Selecione um tamanho" />
                       </SelectTrigger>
@@ -816,108 +755,17 @@ const ProductEditPage = () => {
               )}
 
               <div className="mb-5">
-                <FormField
-                  control={form.control}
-                  name="images"
-                  render={({ field: { value, onChange, ...fieldProps } }) => (
-                    <FormItem>
-                      <FormLabel>Imagens do produto</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...fieldProps}
-                          id="images"
-                          type="file"
-                          accept="image/*, application/pdf"
-                          multiple
-                          onChange={(event: any) => {
-                            onChange(event.target.files);
-                            const files = event.target.files;
-                            if (files && files.length > 0) {
-                              const newPreviews = Array.from(files).map(
-                                (file: any) => ({
-                                  file,
-                                  preview: URL.createObjectURL(
-                                    new Blob([file], { type: file.type })
-                                  ),
-                                })
-                              );
-                              setFilePreviews([...filePreviews, ...newPreviews]);
-                            }
-                          }}
-                        />
-                      </FormControl>
-                      <div className="flex flex-row items-center flex-wrap gap-6">
-                        {filePreviews.map((preview, index) => (
-                          <div
-                            key={index}
-                            className="relative mt-3 w-auto lg:w-[100px]"
-                          >
-                            <div
-                              className="absolute top-0 right-0 cursor-pointer"
-                              onClick={() => handleDeleteFile(index)}
-                            >
-                              <TiDelete color="red" size={24} />
-                            </div>
-                            {typeof preview === "string" ||
-                            typeof preview === "object" ? (
-                              <div className="flex flex-col items-center">
-                                <Image
-                                  className="w-[100px] h-[100px] border border-gray-200 rounded-md"
-                                  src={
-                                    typeof preview === "string"
-                                      ? preview
-                                      : preview?.preview
-                                  }
-                                  alt={`Preview ${index + 1}`}
-                                  width={100}
-                                  height={100}
-                                />
-                                <div className="flex flex-col">
-                                  {index < filePreviews.length - 1 && (
-                                    <LuMoveRight
-                                      className="cursor-pointer"
-                                      onClick={() => handleMoveDown(index)}
-                                      size={24}
-                                      color="#2c6e49"
-                                    />
-                                  )}
-                                  {index > 0 && (
-                                    <LuMoveLeft
-                                      className="cursor-pointer"
-                                      onClick={() => handleMoveUp(index)}
-                                      size={24}
-                                      color="#2c6e49"
-                                    />
-                                  )}
-                                </div>
-                              </div>
-                            ) : (
-                              <Image
-                                className="w-[100px] h-[100px]"
-                                src={URL.createObjectURL(preview.file)}
-                                alt={`Preview ${index + 1}`}
-                                width={100}
-                                height={100}
-                              />
-                            )}
-                          </div>
-                        ))}
-                        {filePreviews.length > 0 && (
-                          <button
-                            type="button"
-                            onClick={() =>
-                              document.getElementById("images")?.click()
-                            }
-                            className="px-3 bg-green-primary rounded-md h-[40px]"
-                          >
-                            <IoMdAdd size={24} color="#fff" />
-                          </button>
-                        )}
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <FormItem>
+                  <FormLabel>Imagens do produto</FormLabel>
+                  <ImageDropzone
+                    id="product-images"
+                    previews={filePreviews}
+                    onAdd={handleAddImages}
+                    onDelete={handleDeleteFile}
+                    onMoveLeft={handleMoveLeft}
+                    onMoveRight={handleMoveRight}
+                  />
+                </FormItem>
               </div>
 
               <div>
@@ -965,12 +813,11 @@ const ProductEditPage = () => {
               </div>
             </div>
 
-            {/* Actions */}
             <div className="mt-10 flex gap-3">
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => router.push("/product")}
+                onClick={() => { if (confirmLeave()) router.push("/product"); }}
                 className="flex-1"
               >
                 Cancelar

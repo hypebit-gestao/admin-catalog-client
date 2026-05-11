@@ -20,6 +20,7 @@ import { useSizeService } from "@/services/size.service";
 import { useRouter } from "next/navigation";
 import Loader from "@/components/loader";
 import ContentMain from "@/components/content-main";
+import { useUnsavedChanges } from "@/utils/hooks/useUnsavedChanges";
 
 const formSchema = z.object({
   size: z.string().min(1, "Tamanho é obrigatório"),
@@ -36,10 +37,11 @@ const SizeNewPage = () => {
     defaultValues: { size: "" },
   });
 
+  const { confirmLeave } = useUnsavedChanges(form.formState.isDirty);
+
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     if (loading) return;
     setLoading(true);
-
     try {
       await sizeService.POST(
         { size: data.size, user_id: session?.user?.user?.id },
@@ -60,9 +62,7 @@ const SizeNewPage = () => {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="w-full">
             <div>
-              <h2 className="my-4 font-semibold text-green-primary">
-                Informações do tamanho
-              </h2>
+              <h2 className="my-4 font-semibold text-green-primary">Informações do tamanho</h2>
               <div className="mb-5">
                 <FormField
                   control={form.control}
@@ -84,7 +84,7 @@ const SizeNewPage = () => {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => router.push("/size")}
+                onClick={() => { if (confirmLeave()) router.push("/size"); }}
                 className="flex-1"
               >
                 Cancelar
