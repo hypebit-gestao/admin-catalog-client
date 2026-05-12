@@ -9,11 +9,11 @@ import usePersonalizationStoreModal from "@/utils/hooks/pesonalization-store/use
 import PersonalizationStore from "@/components/personalization_store/personalization-store";
 import useGoogleAnalyticsModal from "@/utils/hooks/analytics/useGoogleAnalyticsModal";
 import GoogleAnalyticsModal from "@/components/google-analytics/google-analytics-modal";
-import { MdLocalShipping, MdPalette, MdChevronRight, MdAnalytics, MdQrCode2, MdCreditCard, MdOpenInNew } from "react-icons/md";
+import { MdLocalShipping, MdPalette, MdChevronRight, MdAnalytics, MdQrCode2, MdCreditCard, MdOpenInNew, MdReceipt, MdDownload } from "react-icons/md";
 import useQRCodeModal from "@/utils/hooks/qrcode/useQRCodeModal";
 import QRCodeModal from "@/components/qrcode/qrcode-modal";
 import { cn } from "@/lib/utils";
-import { useStripeService, SubscriptionInfo } from "@/services/stripe.service";
+import { useStripeService, SubscriptionInfo, InvoiceInfo } from "@/services/stripe.service";
 import toast from "react-hot-toast";
 
 const configCards = [
@@ -84,6 +84,7 @@ const Configurations = () => {
   const stripeService = useStripeService();
 
   const [subscription, setSubscription] = useState<SubscriptionInfo | null>(null);
+  const [invoices, setInvoices] = useState<InvoiceInfo[]>([]);
   const [loadingPortal, setLoadingPortal] = useState(false);
 
   useEffect(() => {
@@ -92,6 +93,7 @@ const Configurations = () => {
     if (!userId || !token) return;
 
     stripeService.getSubscription(userId, token).then(setSubscription).catch(() => null);
+    stripeService.getInvoices(userId, token).then(setInvoices).catch(() => null);
   }, [session?.user?.user?.id, session?.user?.accessToken]);
 
   const handleCardClick = (id: string) => {
@@ -180,6 +182,53 @@ const Configurations = () => {
             </div>
           </div>
         </div>
+
+        {/* Invoice history */}
+        {invoices.length > 0 && (
+          <div className="mb-8 bg-white rounded-xl border border-gray-200/80 shadow-sm max-w-3xl overflow-hidden">
+            <div className="flex items-center gap-3 px-6 py-4 border-b border-gray-100">
+              <div className="p-2 rounded-lg bg-gray-50 text-gray-500">
+                <MdReceipt size={20} />
+              </div>
+              <h3 className="font-semibold text-gray-900 text-base">Histórico de faturas</h3>
+            </div>
+            <div className="divide-y divide-gray-50">
+              {invoices.map((inv) => {
+                const date = new Date(inv.date * 1000).toLocaleDateString("pt-BR");
+                const amount = (inv.amount / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+                const statusLabel: Record<string, string> = { paid: "Paga", open: "Em aberto", void: "Cancelada", uncollectible: "Inadimplente" };
+                const statusColor: Record<string, string> = { paid: "text-emerald-600 bg-emerald-50", open: "text-amber-600 bg-amber-50", void: "text-gray-500 bg-gray-100", uncollectible: "text-red-600 bg-red-50" };
+                return (
+                  <div key={inv.id} className="flex items-center justify-between px-6 py-3 gap-4">
+                    <div className="flex items-center gap-4 min-w-0">
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-gray-900">{date}</p>
+                        <p className="text-sm text-gray-500">{amount}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 flex-shrink-0">
+                      <span className={cn("text-xs font-semibold px-2 py-0.5 rounded-full", statusColor[inv.status] ?? "text-gray-500 bg-gray-100")}>
+                        {statusLabel[inv.status] ?? inv.status}
+                      </span>
+                      <div className="flex gap-2">
+                        {inv.hostedUrl && (
+                          <a href={inv.hostedUrl} target="_blank" rel="noopener noreferrer" title="Ver fatura" className="text-gray-400 hover:text-gray-700 transition-colors">
+                            <MdOpenInNew size={18} />
+                          </a>
+                        )}
+                        {inv.pdfUrl && (
+                          <a href={inv.pdfUrl} target="_blank" rel="noopener noreferrer" title="Baixar PDF" className="text-gray-400 hover:text-gray-700 transition-colors">
+                            <MdDownload size={18} />
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Config cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-3xl">

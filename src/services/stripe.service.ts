@@ -7,6 +7,15 @@ export interface SubscriptionInfo {
   subscriptionId: string;
 }
 
+export interface InvoiceInfo {
+  id: string;
+  date: number;
+  amount: number;
+  status: string;
+  hostedUrl: string | null;
+  pdfUrl: string | null;
+}
+
 export const useStripeService = () => {
   const createBillingPortalSession = async (
     customerId: string,
@@ -52,9 +61,20 @@ export const useStripeService = () => {
     });
   };
 
+  const getInvoices = async (
+    userId: string,
+    session: string | any,
+  ): Promise<InvoiceInfo[]> => {
+    return fetchWrapper<InvoiceInfo[]>(`stripe/invoices/${userId}`, {
+      method: 'GET',
+      headers: { Authorization: `${session}` },
+    });
+  };
+
   return {
     createBillingPortalSession,
     createCheckoutSession,
     getSubscription,
+    getInvoices,
   };
 };
