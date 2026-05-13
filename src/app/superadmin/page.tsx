@@ -242,7 +242,7 @@ const DashboardTab = ({ dashboard, store }: { dashboard: OrderDashboardResponse 
         <div className="flex justify-between text-sm">
           <span className="text-gray-500">Tipo de frete</span>
           <span className="font-medium">
-            {store.shipping_type === 1 ? "Fixo" : store.shipping_type === 2 ? "Correios" : "A combinar"}
+            {store.shipping_type === "1" ? "Fixo" : store.shipping_type === "2" ? "Correios" : "A combinar"}
           </span>
         </div>
         {waLink && (
