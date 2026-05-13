@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { IoIosAddCircle } from "react-icons/io";
 import ContentMain from "@/components/content-main";
@@ -9,6 +9,7 @@ import Loader from "@/components/loader";
 import { useProductService } from "@/services/product.service";
 import { Product as ProductModel } from "@/models/product";
 import Image from "next/image";
+import * as XLSX from "xlsx";
 import {
   MdContentCopy,
   MdDelete,
@@ -17,6 +18,10 @@ import {
   MdSearch,
   MdToggleOff,
   MdToggleOn,
+  MdDownload,
+  MdUpload,
+  MdStar,
+  MdStarBorder,
 } from "react-icons/md";
 import ProductDelete from "@/components/product/product-delete";
 import useProductDeleteModal from "@/utils/hooks/product/useDeleteProductModal";
@@ -50,6 +55,8 @@ const Product = () => {
   const [filterCategory, setFilterCategory] = useState<string>("");
   const [searchName, setSearchName] = useState("");
   const [refreshKey, setRefreshKey] = useState(0);
+  const [importing, setImporting] = useState(false);
+  const importInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
   const productService = useProductService();
@@ -132,6 +139,113 @@ const Product = () => {
         prev.map((p) => (p.id === product.id ? { ...p, active: product.active } : p))
       );
       toast.error(err.message);
+    }
+  };
+
+  const handleToggleBestSeller = async (product: ProductModel) => {
+    const newVal = !product.best_seller;
+    setProducts((prev) =>
+      prev.map((p) => (p.id === product.id ? { ...p, best_seller: newVal } : p))
+    );
+    try {
+      await productService.PUT(
+        {
+          id: product.id,
+          name: product.name,
+          description: product.description ?? "",
+          category_id: product.category_id,
+          images: product.images,
+          currency: product.currency ?? "brl",
+          price: product.price,
+          promotion_price: product.promotion_price ?? null,
+          user_id: product.user_id,
+          featured: product.featured,
+          active: product.active,
+          archived: product.archived,
+          best_seller: newVal,
+          installment_available: product.installment_available,
+          installment_with_interest: product.installment_with_interest,
+          installment_interest_value: product.installment_interest_value ?? null,
+          max_installments: product.max_installments ?? 1,
+        },
+        session?.user?.accessToken
+      );
+      toast.success(newVal ? "Marcado como mais vendido" : "Removido dos mais vendidos");
+    } catch (err: any) {
+      setProducts((prev) =>
+        prev.map((p) => (p.id === product.id ? { ...p, best_seller: product.best_seller } : p))
+      );
+      toast.error(err.message);
+    }
+  };
+
+  const handleExport = () => {
+    const rows = filteredProducts.map((p) => ({
+      Nome: p.name,
+      Descricao: p.description?.replace(/<[^>]+>/g, "") ?? "",
+      Categoria: p.category?.name ?? "",
+      Preco: p.price,
+      PrecoPromocional: p.promotion_price ?? "",
+      Destaque: p.featured ? "Sim" : "Não",
+      MaisVendido: p.best_seller ? "Sim" : "Não",
+      Ativo: p.active ? "Sim" : "Não",
+    }));
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Produtos");
+    XLSX.writeFile(wb, "produtos.xlsx");
+    toast.success("Exportado com sucesso");
+  };
+
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !session?.user?.accessToken) return;
+    setImporting(true);
+    try {
+      const buffer = await file.arrayBuffer();
+      const wb = XLSX.read(buffer, { type: "array" });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json<any>(ws);
+
+      let created = 0;
+      let skipped = 0;
+      for (const row of rows) {
+        const name = row["Nome"] ?? row["name"];
+        const price = parseFloat(row["Preco"] ?? row["price"] ?? "0");
+        if (!name || isNaN(price) || price <= 0) { skipped++; continue; }
+        try {
+          await productService.POST(
+            {
+              name: String(name),
+              description: String(row["Descricao"] ?? row["description"] ?? ""),
+              category_id: null,
+              images: null,
+              currency: "brl",
+              price,
+              promotion_price: parseFloat(row["PrecoPromocional"] ?? "0") || null,
+              user_id: session.user.user?.id,
+              featured: false,
+              active: true,
+              archived: false,
+              installment_available: false,
+              installment_with_interest: false,
+              installment_interest_value: null,
+              max_installments: 1,
+            },
+            session.user.accessToken
+          );
+          created++;
+        } catch {
+          skipped++;
+        }
+      }
+      toast.success(`${created} produto(s) importado(s)${skipped > 0 ? `, ${skipped} ignorado(s)` : ""}`);
+      setRefreshKey((k) => k + 1);
+    } catch {
+      toast.error("Erro ao ler o arquivo");
+    } finally {
+      setImporting(false);
+      if (importInputRef.current) importInputRef.current.value = "";
     }
   };
 
@@ -219,6 +333,31 @@ const Product = () => {
             </Select>
           </div>
 
+          <input
+            ref={importInputRef}
+            type="file"
+            accept=".xlsx,.xls,.csv"
+            className="hidden"
+            onChange={handleImport}
+          />
+          <Button
+            onClick={() => importInputRef.current?.click()}
+            variant="outline"
+            disabled={importing}
+            className="gap-2 flex-shrink-0"
+          >
+            <MdUpload size={18} />
+            {importing ? "Importando…" : "Importar"}
+          </Button>
+          <Button
+            onClick={handleExport}
+            variant="outline"
+            disabled={filteredProducts.length === 0}
+            className="gap-2 flex-shrink-0"
+          >
+            <MdDownload size={18} />
+            Exportar
+          </Button>
           <Button
             onClick={() => router.push("/product/new")}
             className="bg-green-primary hover:bg-green-primary/90 gap-2 sm:ml-auto flex-shrink-0"
@@ -346,6 +485,17 @@ const Product = () => {
 
                   {/* Actions */}
                   <div className="px-3 pb-3 flex justify-end gap-1">
+                    <button
+                      onClick={() => handleToggleBestSeller(product)}
+                      className="p-1.5 rounded-lg hover:bg-yellow-50 transition-colors"
+                      title={product.best_seller ? "Remover dos mais vendidos" : "Marcar como mais vendido"}
+                    >
+                      {product.best_seller ? (
+                        <MdStar size={20} className="text-yellow-500" />
+                      ) : (
+                        <MdStarBorder size={20} className="text-gray-400" />
+                      )}
+                    </button>
                     <button
                       onClick={() => handleToggleActive(product)}
                       className="p-1.5 rounded-lg hover:bg-gray-50 transition-colors"

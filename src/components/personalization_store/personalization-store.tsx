@@ -42,11 +42,33 @@ const formSchema = z.object({
   debit_discount: z.string(),
 });
 
+const THEMES = [
+  {
+    id: "modern",
+    label: "Moderno",
+    desc: "Bordas arredondadas, sombras suaves, visual atual",
+    preview: "rounded-2xl shadow-md border border-gray-100",
+  },
+  {
+    id: "minimal",
+    label: "Minimalista",
+    desc: "Design limpo, sem sombras, muito espaço em branco",
+    preview: "rounded-none border-b-2 border-gray-400 shadow-none",
+  },
+  {
+    id: "bold",
+    label: "Arrojado",
+    desc: "Bordas marcadas, tipografia forte, alto contraste",
+    preview: "rounded-xl border-2 border-gray-900 shadow-lg",
+  },
+];
+
 const PersonalizationStore = ({ isOpen, onClose }: ShippingRegisterProps) => {
   const { data: session } = useSession();
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<User>()
   const [currentColor, setCurrentColor] = useState("");
+  const [selectedTheme, setSelectedTheme] = useState("modern");
 
   const userService = useUserService();
 
@@ -77,6 +99,7 @@ const PersonalizationStore = ({ isOpen, onClose }: ShippingRegisterProps) => {
           pix_discount: Number(data.pix_discount),
           credit_discount: Number(data.credit_discount),
           debit_discount: Number(data.debit_discount),
+          theme: selectedTheme,
         },
         session?.user.accessToken
       )
@@ -133,6 +156,7 @@ const PersonalizationStore = ({ isOpen, onClose }: ShippingRegisterProps) => {
         setCustomValue("pix_discount", String(user.pix_discount));
         setCustomValue("credit_discount", String(user.credit_discount));
         setCustomValue("debit_discount", String(user.debit_discount));
+        setSelectedTheme(user.theme ?? "modern");
       }
     }
   }, [isOpen]);
@@ -174,6 +198,36 @@ const PersonalizationStore = ({ isOpen, onClose }: ShippingRegisterProps) => {
                     )}
                   />
                 </div>
+                {/* Theme selector */}
+                <div className="mt-6">
+                  <h2 className="font-semibold text-green-primary mb-3">Layout dos cards</h2>
+                  <div className="grid grid-cols-1 gap-3">
+                    {THEMES.map((t) => (
+                      <button
+                        key={t.id}
+                        type="button"
+                        onClick={() => setSelectedTheme(t.id)}
+                        className={`flex items-center gap-4 p-3 rounded-xl border-2 text-left transition-colors ${
+                          selectedTheme === t.id
+                            ? "border-green-primary bg-green-primary/5"
+                            : "border-gray-200 hover:border-gray-300"
+                        }`}
+                      >
+                        <div className={`w-14 h-10 bg-gray-100 flex items-center justify-center text-[10px] text-gray-500 shrink-0 ${t.preview}`}>
+                          Abc
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-gray-800">{t.label}</p>
+                          <p className="text-xs text-gray-500">{t.desc}</p>
+                        </div>
+                        {selectedTheme === t.id && (
+                          <span className="ml-auto text-green-primary text-lg">✓</span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 <div className="mt-10">
                 <h1 className="my-4 font-semibold text-green-primary">
                    Financeiro

@@ -19,12 +19,15 @@ export interface User {
   credit_discount?: number | null;
   debit_discount?: number | null;
   ga_measurement_id?: string | null;
+  theme?: string | null;
+  origin_cep?: string | null;
 }
 
 export interface UserShippingPut {
   id?: string;
   shipping_type: string | undefined;
   shipping_taxes: number | undefined;
+  origin_cep?: string;
 }
 
 export interface UserPersonalizationColorPut {

@@ -33,5 +33,6 @@ export interface Product {
   installment_with_interest?: boolean;
   installment_interest_value?: number | null;
   max_installments?: number;
-  archived?: boolean
+  archived?: boolean;
+  best_seller?: boolean;
 }

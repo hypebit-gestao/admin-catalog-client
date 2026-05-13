@@ -53,6 +53,7 @@ interface ShippingRegisterProps {
 const formSchema = z.object({
   shipping_type: z.string().min(1, "Tipo do frete é obrigatório"),
   shipping_taxes: z.string(),
+  origin_cep: z.string().max(9),
 });
 
 const ShippingRegister = ({ isOpen, onClose }: ShippingRegisterProps) => {
@@ -72,6 +73,7 @@ const ShippingRegister = ({ isOpen, onClose }: ShippingRegisterProps) => {
     defaultValues: {
       shipping_type: "",
       shipping_taxes: "",
+      origin_cep: "",
     },
   });
 
@@ -99,6 +101,7 @@ const ShippingRegister = ({ isOpen, onClose }: ShippingRegisterProps) => {
           id: session?.user?.user?.id,
           shipping_type: data.shipping_type,
           shipping_taxes: Number(data.shipping_taxes),
+          origin_cep: data.origin_cep.replace(/\D/g, "") || undefined,
         },
         session?.user.accessToken
       )
@@ -148,6 +151,7 @@ const ShippingRegister = ({ isOpen, onClose }: ShippingRegisterProps) => {
     if (user) {
       setCustomValue("shipping_type", String(user.shipping_type));
       setCustomValue("shipping_taxes", String(user.shipping_taxes));
+      setCustomValue("origin_cep", user.origin_cep ?? "");
     }
   }, [user, isOpen]);
 
@@ -186,10 +190,10 @@ const ShippingRegister = ({ isOpen, onClose }: ShippingRegisterProps) => {
                           </FormControl>
                           <SelectContent className="z-[300]">
                             <SelectItem value="1">Preço Fixo</SelectItem>
-                            <SelectItem value="2">Preço a Combinar</SelectItem>
+                            <SelectItem value="2">Calcular via Correios</SelectItem>
+                            <SelectItem value="3">A Combinar</SelectItem>
                           </SelectContent>
                         </Select>
-
                         <FormMessage />
                       </FormItem>
                     )}
@@ -213,6 +217,38 @@ const ShippingRegister = ({ isOpen, onClose }: ShippingRegisterProps) => {
                               {...field}
                             />
                           </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                )}
+
+                {shippingType === "2" && (
+                  <div className="w-full mt-5">
+                    <FormField
+                      control={form.control}
+                      name="origin_cep"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-blue-primary">
+                            CEP de origem (sua loja)
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="00000-000"
+                              maxLength={9}
+                              {...field}
+                              onChange={(e) => {
+                                let v = e.target.value.replace(/\D/g, "");
+                                if (v.length > 5) v = v.slice(0, 5) + "-" + v.slice(5, 8);
+                                field.onChange(v);
+                              }}
+                            />
+                          </FormControl>
+                          <p className="text-xs text-gray-500 mt-1">
+                            Usado para calcular frete via Correios (SEDEX/PAC)
+                          </p>
                           <FormMessage />
                         </FormItem>
                       )}
