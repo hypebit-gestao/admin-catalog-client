@@ -26,6 +26,7 @@ const pathLabels: Record<string, string> = {
   analytics: "Análises",
   calculator: "Calculadora de Preços",
   help: "Central de Ajuda",
+  superadmin: "Painel Master",
   new: "Novo",
   edit: "Editar",
 };
