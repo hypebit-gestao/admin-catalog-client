@@ -16,6 +16,7 @@ export interface User {
   shipping_taxes: number | undefined | null;
   image_url?: string | null;
   banner_url?: string | null;
+  og_image_url?: string | null;
   background_color?: string | null;
   pix_discount?: number | null;
   credit_discount?: number | null;

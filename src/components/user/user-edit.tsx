@@ -49,6 +49,7 @@ const formSchema = z.object({
   person_link: z.string().min(1, "O campo Link personalizado é obrigatório"),
   image_url: z.any(),
   banner_url: z.any(),
+  og_image_url: z.any(),
   cep: z.string().min(1, "CEP é obrigatório"),
   street: z.string().min(1, "Logradouro é obrigatório"),
   number: z.number(),
@@ -72,8 +73,10 @@ const UserEdit = ({ isOpen, onClose }: UserEditProps) => {
   const router = useRouter();
   const inputFileRef = useRef<any>(null);
   const bannerInputFileRef = useRef<any>(null);
+  const ogImageInputFileRef = useRef<any>(null);
   const [filePreview, setFilePreview] = useState<any>(null);
   const [bannerFilePreview, setBannerFilePreview] = useState<any>(null);
+  const [ogImageFilePreview, setOgImageFilePreview] = useState<any>(null);
 
   const handleDeleteFile = () => {
     if (inputFileRef.current) {
@@ -91,6 +94,14 @@ const UserEdit = ({ isOpen, onClose }: UserEditProps) => {
     setBannerFilePreview(null);
   };
 
+  const handleDeleteOgImageFile = () => {
+    if (ogImageInputFileRef.current) {
+      ogImageInputFileRef.current.value = "";
+    }
+    setCustomValue("og_image_url", "");
+    setOgImageFilePreview(null);
+  };
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -102,6 +113,7 @@ const UserEdit = ({ isOpen, onClose }: UserEditProps) => {
       // password: "",
       image_url: "",
       banner_url: "",
+      og_image_url: "",
       cep: "",
       street: "",
       number: 0,
@@ -191,6 +203,10 @@ const UserEdit = ({ isOpen, onClose }: UserEditProps) => {
           if (fetchedUser.banner_url) {
             setBannerFilePreview(fetchedUser.banner_url);
           }
+          setCustomValue("og_image_url", fetchedUser.og_image_url);
+          if (fetchedUser.og_image_url) {
+            setOgImageFilePreview(fetchedUser.og_image_url);
+          }
           setLoading(false);
         }
       }
@@ -245,6 +261,7 @@ const UserEdit = ({ isOpen, onClose }: UserEditProps) => {
     try {
       let imageUrl = user?.image_url ?? "";
       let bannerUrl = user?.banner_url ?? "";
+      let ogImageUrl = user?.og_image_url ?? "";
 
       if (data?.image_url && data.image_url instanceof File) {
         const imageRes = await uploadService.POST({
@@ -276,6 +293,21 @@ const UserEdit = ({ isOpen, onClose }: UserEditProps) => {
         bannerUrl = "";
       }
 
+      if (data?.og_image_url && data.og_image_url instanceof File) {
+        const ogRes = await uploadService.POST({
+          file: data.og_image_url as File,
+          folderName: "user-og-images",
+        });
+        const resArray = Array.isArray(ogRes) ? ogRes : ogRes ? [ogRes] : [];
+        if (resArray.length > 0 && resArray[0].imageUrl) {
+          ogImageUrl = resArray[0].imageUrl;
+        }
+      } else if (data?.og_image_url && typeof data.og_image_url === "string") {
+        ogImageUrl = data.og_image_url;
+      } else if (data?.og_image_url === "" || data?.og_image_url === null) {
+        ogImageUrl = "";
+      }
+
       if (user?.id) {
         await userService.PUT(
           {
@@ -287,6 +319,7 @@ const UserEdit = ({ isOpen, onClose }: UserEditProps) => {
             address_id: user.address_id,
             image_url: imageUrl,
             banner_url: bannerUrl,
+            og_image_url: ogImageUrl,
             shipping_taxes: user.shipping_taxes,
             shipping_type: user.shipping_type,
           },
@@ -700,6 +733,62 @@ const UserEdit = ({ isOpen, onClose }: UserEditProps) => {
                       />
                     </div>
                   </div>
+                </div>
+
+                <div className="mt-8">
+                  <FormField
+                    control={form.control}
+                    name="og_image_url"
+                    render={({
+                      field: { value, onChange, ...fieldProps },
+                    }) => (
+                      <FormItem>
+                        <FormLabel>Imagem para compartilhamento (WhatsApp / redes sociais)</FormLabel>
+                        <FormDescription className="text-xs text-gray-500">
+                          Essa imagem aparece no preview quando o link da loja é compartilhado. Recomendado: 1200×630px.
+                        </FormDescription>
+                        <FormControl>
+                          <Input
+                            {...fieldProps}
+                            ref={ogImageInputFileRef}
+                            placeholder="Imagem de compartilhamento"
+                            type="file"
+                            accept="image/*"
+                            onChange={(event) => {
+                              onChange(
+                                event.target.files && event.target.files[0]
+                              );
+                              if (event.target.files?.[0]) {
+                                const reader = new FileReader();
+                                reader.onloadend = () => {
+                                  setOgImageFilePreview(reader.result);
+                                };
+                                reader.readAsDataURL(event.target.files[0]);
+                              }
+                            }}
+                          />
+                        </FormControl>
+                        {ogImageFilePreview && (
+                          <div className="relative mt-3 w-full max-w-[600px]">
+                            <div
+                              className="absolute top-0 right-0 cursor-pointer z-10"
+                              onClick={handleDeleteOgImageFile}
+                            >
+                              <TiDelete color="red" size={24} />
+                            </div>
+                            <Image
+                              src={ogImageFilePreview}
+                              alt="Preview da imagem de compartilhamento"
+                              width={600}
+                              height={315}
+                              className="w-full h-auto object-cover rounded-md"
+                            />
+                          </div>
+                        )}
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
 
                 <div className="mt-12">
