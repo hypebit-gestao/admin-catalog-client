@@ -87,6 +87,7 @@ const formSchema = z
     isAttribute: z.boolean(),
     promotion_price: z.string(),
     user_id: z.string(),
+    unit: z.string().optional(),
   })
   .refine(
     (data) =>
@@ -176,6 +177,7 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
       installment_interest_value: "",
       max_installments: "1",
       user_id: session?.user?.user?.name,
+      unit: "",
     },
   });
 
@@ -282,6 +284,7 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
           );
    
           setCustomValue("user_id", fetchedProduct.user_id);
+          setCustomValue("unit", fetchedProduct.unit ?? "");
 
           if (fetchedProduct.images) {
             const previews = fetchedProduct.images.map((image) => image);
@@ -477,6 +480,7 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
               data.installment_available && data.installment_with_interest
                 ? Number(data.installment_interest_value)
                 : null,
+            unit: data.unit || null,
           },
           session?.user?.accessToken
         )
@@ -759,6 +763,29 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                         />
                       </div>
                     )}
+                  </div>
+                  <div className="mb-5">
+                    <FormField
+                      control={form.control}
+                      name="unit"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Unidade de venda</FormLabel>
+                          <FormControl>
+                            <select
+                              {...field}
+                              className="w-full border border-input rounded-md px-3 py-2 text-sm bg-background"
+                            >
+                              <option value="">Por unidade (padrão)</option>
+                              <option value="kg">Por kg — cliente digita a quantidade em gramas</option>
+                              <option value="100g">Por 100g — cliente digita a quantidade em gramas</option>
+                              <option value="L">Por litro — cliente digita a quantidade em ml</option>
+                            </select>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </div>
                   <div className="flex flex-row mb-5">
                     <div className="w-full">

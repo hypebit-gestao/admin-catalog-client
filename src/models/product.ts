@@ -35,4 +35,5 @@ export interface Product {
   max_installments?: number;
   archived?: boolean;
   best_seller?: boolean;
+  unit?: string | null;
 }

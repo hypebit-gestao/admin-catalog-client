@@ -83,6 +83,7 @@ const formSchema = z
     installment_interest_value: z.string().optional(),
     max_installments: z.string().optional(),
     user_name: z.string(),
+    unit: z.string().optional(),
   })
   .refine((data) => Number(data.promotion_price) <= Number(data.price), {
     message: "O preço promocional não pode ser maior que o preço normal",
@@ -150,6 +151,7 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
       installment_interest_value: "",
       max_installments: "1",
       user_name: session?.user?.user?.name,
+      unit: "",
     },
   });
 
@@ -293,6 +295,7 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                     max_installments: data.installment_available
                       ? Number(data.max_installments ?? 1)
                       : 1,
+                    unit: data.unit || null,
                   },
                   session?.user?.accessToken
                 )
@@ -336,12 +339,13 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
             max_installments: data.installment_available
               ? Number(data.max_installments ?? 1)
               : 1,
+            unit: data.unit || null,
           },
           session?.user?.accessToken
         )
         .then((res) => {
-    
-      
+
+
           useProductRegisterModal.setState({ isRegister: true });
           toast.success(`${data.name} criado com sucesso`);
           setLoading(false);
@@ -560,6 +564,29 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                       />
                     </div>
                   )}
+                </div>
+                <div className="mb-5">
+                  <FormField
+                    control={form.control}
+                    name="unit"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Unidade de venda</FormLabel>
+                        <FormControl>
+                          <select
+                            {...field}
+                            className="w-full border border-input rounded-md px-3 py-2 text-sm bg-background"
+                          >
+                            <option value="">Por unidade (padrão)</option>
+                            <option value="kg">Por kg — cliente digita a quantidade em gramas</option>
+                            <option value="100g">Por 100g — cliente digita a quantidade em gramas</option>
+                            <option value="L">Por litro — cliente digita a quantidade em ml</option>
+                          </select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
                 <div className="flex flex-row mb-5">
                   <div className="w-full">
