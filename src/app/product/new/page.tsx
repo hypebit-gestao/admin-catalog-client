@@ -54,6 +54,7 @@ const formSchema = z
     installment_with_interest: z.boolean(),
     installment_interest_value: z.string().optional(),
     max_installments: z.string().optional(),
+    unit: z.string().optional(),
   })
   .refine((data) => Number(data.promotion_price) <= Number(data.price), {
     message: "O preço promocional não pode ser maior que o preço normal",
@@ -102,6 +103,7 @@ const ProductNewPage = () => {
       installment_with_interest: false,
       installment_interest_value: "",
       max_installments: "1",
+      unit: "",
     },
   });
 
@@ -186,6 +188,7 @@ const ProductNewPage = () => {
               ? Number(data.installment_interest_value)
               : null,
           max_installments: data.installment_available ? Number(data.max_installments ?? 1) : 1,
+          unit: data.unit || null,
         },
         session?.user?.accessToken
       );
@@ -314,6 +317,30 @@ const ProductNewPage = () => {
                     />
                   </div>
                 )}
+              </div>
+
+              <div className="mb-5">
+                <FormField
+                  control={form.control}
+                  name="unit"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Unidade de venda</FormLabel>
+                      <FormControl>
+                        <select
+                          {...field}
+                          className="w-full border border-input rounded-md px-3 py-2 text-sm bg-background"
+                        >
+                          <option value="">Por unidade (padrão)</option>
+                          <option value="kg">Por kg — cliente digita a quantidade em gramas</option>
+                          <option value="100g">Por 100g — cliente digita a quantidade em gramas</option>
+                          <option value="L">Por litro — cliente digita a quantidade em ml</option>
+                        </select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
 
               <div className="mb-5">
