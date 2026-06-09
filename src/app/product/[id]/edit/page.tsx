@@ -6,6 +6,7 @@ import * as z from "zod";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -64,6 +65,7 @@ const formSchema = z
     promotion_price: z.string(),
     user_id: z.string(),
     unit: z.string().optional(),
+    variation_label: z.string().optional(),
   })
   .refine(
     (data) =>
@@ -130,6 +132,7 @@ const ProductEditPage = () => {
       max_installments: "1",
       user_id: session?.user?.user?.name ?? "",
       unit: "",
+      variation_label: "",
     },
   });
 
@@ -205,6 +208,7 @@ const ProductEditPage = () => {
           );
           setCustomValue("user_id", fetchedProduct.user_id);
           setCustomValue("unit", fetchedProduct.unit ?? "");
+          setCustomValue("variation_label", fetchedProduct.variation_label ?? "");
 
           if (fetchedProduct.images) {
             setFilePreviews(fetchedProduct.images as ImagePreviewItem[]);
@@ -374,6 +378,7 @@ const ProductEditPage = () => {
               ? Number(data.installment_interest_value)
               : null,
           unit: data.unit || null,
+          variation_label: data.variation_label || null,
         },
         session?.user?.accessToken
       );
@@ -584,7 +589,7 @@ const ProductEditPage = () => {
               </h2>
 
               <div className="mb-3">
-                <h3 className="font-bold">Seu produto possui tamanho?</h3>
+                <h3 className="font-bold">Seu produto possui variações?</h3>
               </div>
               <div className="mb-5">
                 <FormField
@@ -607,7 +612,29 @@ const ProductEditPage = () => {
 
               {isSize && (
                 <div className="mb-5">
-                  <FormLabel>Tamanhos do produto</FormLabel>
+                  <div className="mb-4">
+                    <FormField
+                      control={form.control}
+                      name="variation_label"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Como chamar essa variação?</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Ex: Tamanho, Sabor, Cor, Volume..."
+                              maxLength={50}
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormDescription className="text-xs text-gray-400">
+                            Esse nome aparecerá para o cliente na página do produto.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <FormLabel>Variações do produto</FormLabel>
 
                   {sizeList.length > 0 && (
                     <div className="mt-2 mb-3 flex flex-col gap-2">
@@ -654,7 +681,7 @@ const ProductEditPage = () => {
                   <div className="flex items-center gap-2 mt-2">
                     <SelectComponent value={selectedNewSizeId} onValueChange={setSelectedNewSizeId}>
                       <SelectTrigger className="flex-1 text-sm">
-                        <SelectValue placeholder="Selecione um tamanho" />
+                        <SelectValue placeholder="Selecione uma variação" />
                       </SelectTrigger>
                       <SelectContent>
                         {sizes

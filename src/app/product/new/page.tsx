@@ -7,6 +7,7 @@ import * as z from "zod";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -55,6 +56,7 @@ const formSchema = z
     installment_interest_value: z.string().optional(),
     max_installments: z.string().optional(),
     unit: z.string().optional(),
+    variation_label: z.string().optional(),
   })
   .refine((data) => Number(data.promotion_price) <= Number(data.price), {
     message: "O preço promocional não pode ser maior que o preço normal",
@@ -104,6 +106,7 @@ const ProductNewPage = () => {
       installment_interest_value: "",
       max_installments: "1",
       unit: "",
+      variation_label: "",
     },
   });
 
@@ -189,6 +192,7 @@ const ProductNewPage = () => {
               : null,
           max_installments: data.installment_available ? Number(data.max_installments ?? 1) : 1,
           unit: data.unit || null,
+          variation_label: data.variation_label || null,
         },
         session?.user?.accessToken
       );
@@ -368,7 +372,7 @@ const ProductNewPage = () => {
               <h2 className="my-4 font-semibold text-green-primary">Informações adicionais</h2>
 
               <div className="mb-3">
-                <h3 className="font-bold">Seu produto possui tamanho?</h3>
+                <h3 className="font-bold">Seu produto possui variações?</h3>
               </div>
               <div className="mb-5">
                 <FormField
@@ -387,12 +391,34 @@ const ProductNewPage = () => {
 
               {isSize && (
                 <div className="mb-5">
+                  <div className="mb-4">
+                    <FormField
+                      control={form.control}
+                      name="variation_label"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Como chamar essa variação?</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Ex: Tamanho, Sabor, Cor, Volume..."
+                              maxLength={50}
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormDescription className="text-xs text-gray-400">
+                            Esse nome aparecerá para o cliente na página do produto.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                   <FormField
                     control={form.control}
                     name="size_ids"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Tamanho</FormLabel>
+                        <FormLabel>Variações do produto</FormLabel>
                         <Select
                           styles={{
                             control: (p) => ({ ...p, border: "1px solid #e2e8f0", borderRadius: "0.375rem", padding: "0.2rem", fontSize: "0.875rem", boxShadow: "none" }),
@@ -400,7 +426,7 @@ const ProductNewPage = () => {
                             indicatorSeparator: (p) => ({ ...p, display: "none" }),
                           }}
                           isMulti
-                          placeholder="Selecione os tamanhos"
+                          placeholder="Selecione as variações"
                           options={sizeOptions}
                           {...field}
                         />
