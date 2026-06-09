@@ -36,4 +36,5 @@ export interface Product {
   archived?: boolean;
   best_seller?: boolean;
   unit?: string | null;
+  variation_label?: string | null;
 }

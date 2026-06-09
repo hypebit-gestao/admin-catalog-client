@@ -84,6 +84,7 @@ const formSchema = z
     max_installments: z.string().optional(),
     user_name: z.string(),
     unit: z.string().optional(),
+    variation_label: z.string().optional(),
   })
   .refine((data) => Number(data.promotion_price) <= Number(data.price), {
     message: "O preço promocional não pode ser maior que o preço normal",
@@ -152,6 +153,7 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
       max_installments: "1",
       user_name: session?.user?.user?.name,
       unit: "",
+      variation_label: "",
     },
   });
 
@@ -296,6 +298,7 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                       ? Number(data.max_installments ?? 1)
                       : 1,
                     unit: data.unit || null,
+                    variation_label: data.variation_label || null,
                   },
                   session?.user?.accessToken
                 )
@@ -340,6 +343,7 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
               ? Number(data.max_installments ?? 1)
               : 1,
             unit: data.unit || null,
+            variation_label: data.variation_label || null,
           },
           session?.user?.accessToken
         )
@@ -617,7 +621,7 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                   Informações adicionais
                 </h1>
                 <div className="mb-3">
-                  <h1 className="font-bold">Seu produto possui tamanho?</h1>
+                  <h1 className="font-bold">Seu produto possui variações?</h1>
                 </div>
                 <div className="mb-5">
                   <FormField
@@ -733,12 +737,34 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                 )} */}
                 {isSize && (
                   <div className="w-full mb-5">
+                    <div className="mb-4">
+                      <FormField
+                        control={form.control}
+                        name="variation_label"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Como chamar essa variação?</FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="Ex: Tamanho, Sabor, Cor, Volume..."
+                                maxLength={50}
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormDescription className="text-xs text-gray-400">
+                              Esse nome aparecerá para o cliente na página do produto.
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                     <FormField
                       control={form.control}
                       name="size_ids"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Tamanho</FormLabel>
+                          <FormLabel>Variações do produto</FormLabel>
                           <Select
                             styles={{
                               control: (provided, state) => ({
@@ -784,7 +810,7 @@ const ProductRegister = ({ isOpen, onClose }: ProductRegisterProps) => {
                             }}
                             // className="flex h-9 w-full items-center justify-between whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1"
                             isMulti
-                            placeholder="Selecione os tamanhos do produto"
+                            placeholder="Selecione as variações do produto"
                             options={options}
                             {...field}
                           />

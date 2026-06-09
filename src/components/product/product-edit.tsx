@@ -88,6 +88,7 @@ const formSchema = z
     promotion_price: z.string(),
     user_id: z.string(),
     unit: z.string().optional(),
+    variation_label: z.string().optional(),
   })
   .refine(
     (data) =>
@@ -178,6 +179,7 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
       max_installments: "1",
       user_id: session?.user?.user?.name,
       unit: "",
+      variation_label: "",
     },
   });
 
@@ -285,6 +287,7 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
    
           setCustomValue("user_id", fetchedProduct.user_id);
           setCustomValue("unit", fetchedProduct.unit ?? "");
+          setCustomValue("variation_label", fetchedProduct.variation_label ?? "");
 
           if (fetchedProduct.images) {
             const previews = fetchedProduct.images.map((image) => image);
@@ -481,6 +484,7 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                 ? Number(data.installment_interest_value)
                 : null,
             unit: data.unit || null,
+            variation_label: data.variation_label || null,
           },
           session?.user?.accessToken
         )
@@ -816,7 +820,7 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                     Informações adicionais
                   </h1>
                   <div className="mb-3">
-                    <h1 className="font-bold">Seu produto possui tamanho?</h1>
+                    <h1 className="font-bold">Seu produto possui variações?</h1>
                   </div>
                   <div className="mb-5">
                     <FormField
@@ -843,7 +847,29 @@ const ProductEdit = ({ isOpen, onClose }: ProductRegisterProps) => {
                   </div>
                   {isSize && (
                     <div className="w-full mb-5">
-                      <FormLabel>Tamanhos do produto</FormLabel>
+                      <div className="mb-4">
+                        <FormField
+                          control={form.control}
+                          name="variation_label"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Como chamar essa variação?</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="Ex: Tamanho, Sabor, Cor, Volume..."
+                                  maxLength={50}
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormDescription className="text-xs text-gray-400">
+                                Esse nome aparecerá para o cliente na página do produto.
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <FormLabel>Variações do produto</FormLabel>
 
                       {/* Lista de tamanhos já adicionados */}
                       {sizeList.length > 0 && (
