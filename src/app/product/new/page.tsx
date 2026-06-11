@@ -36,6 +36,7 @@ import { useSizeService } from "@/services/size.service";
 import { Size } from "@/models/size";
 import ContentMain from "@/components/content-main";
 import { ImageDropzone, ImagePreviewItem } from "@/components/image-dropzone";
+import { VideoDropzone, VideoPreviewItem } from "@/components/video-dropzone";
 import { RichTextEditor } from "@/components/rich-text-editor";
 import { useUnsavedChanges } from "@/utils/hooks/useUnsavedChanges";
 
@@ -96,6 +97,7 @@ const ProductNewPage = () => {
   const [sizes, setSizes] = useState<Size[]>([]);
   const router = useRouter();
   const [previews, setPreviews] = useState<ImagePreviewItem[]>([]);
+  const [videoPreviews, setVideoPreviews] = useState<VideoPreviewItem[]>([]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -164,6 +166,18 @@ const ProductNewPage = () => {
     });
   };
 
+  const handleAddVideos = (files: File[]) => {
+    const newItems = files.map((file) => ({
+      file,
+      preview: URL.createObjectURL(file),
+    }));
+    setVideoPreviews((prev) => [...prev, ...newItems]);
+  };
+
+  const handleDeleteVideo = (index: number) => {
+    setVideoPreviews((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const sizeOptions = sizes.map((s) => ({ value: s.id, label: s.size }));
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
@@ -171,6 +185,7 @@ const ProductNewPage = () => {
     setLoading(true);
 
     const uploadedUrls: string[] = [];
+    const uploadedVideoUrls: string[] = [];
 
     try {
       for (const item of previews) {
@@ -180,6 +195,16 @@ const ProductNewPage = () => {
             folderName: session?.user?.user?.name,
           });
           res?.forEach((r: any) => { if (r?.imageUrl) uploadedUrls.push(r.imageUrl); });
+        }
+      }
+
+      for (const item of videoPreviews) {
+        if (typeof item !== "string" && item.file) {
+          const res: any = await uploadService.POST({
+            file: item.file,
+            folderName: session?.user?.user?.name,
+          });
+          res?.forEach((r: any) => { if (r?.imageUrl) uploadedVideoUrls.push(r.imageUrl); });
         }
       }
 
@@ -207,6 +232,7 @@ const ProductNewPage = () => {
           variation_label: data.variation_label || null,
           type: data.type,
           price_on_request: data.price_on_request,
+          videos: uploadedVideoUrls.length > 0 ? uploadedVideoUrls : null,
         },
         session?.user?.accessToken
       );
@@ -566,7 +592,7 @@ const ProductNewPage = () => {
               )}
 
               <div className="mb-5">
-                <FormLabel>Imagens do produto</FormLabel>
+                <FormLabel>Imagens do {watch("type") === "service" ? "serviço" : "produto"}</FormLabel>
                 <div className="mt-2">
                   <ImageDropzone
                     previews={previews}
@@ -577,6 +603,20 @@ const ProductNewPage = () => {
                   />
                 </div>
               </div>
+
+              {watch("type") === "service" && (
+                <div className="mb-5">
+                  <FormLabel>Vídeos do portfólio</FormLabel>
+                  <p className="text-xs text-gray-400 mt-1 mb-2">
+                    Adicione vídeos que serão exibidos na galeria do serviço (MP4, MOV, WEBM).
+                  </p>
+                  <VideoDropzone
+                    previews={videoPreviews}
+                    onAdd={handleAddVideos}
+                    onDelete={handleDeleteVideo}
+                  />
+                </div>
+              )}
 
               <div>
                 <FormLabel>Status</FormLabel>

@@ -39,6 +39,7 @@ import { Product } from "@/models/product";
 import ContentMain from "@/components/content-main";
 import Loader from "@/components/loader";
 import { ImageDropzone, ImagePreviewItem } from "@/components/image-dropzone";
+import { VideoDropzone, VideoPreviewItem } from "@/components/video-dropzone";
 import { RichTextEditor } from "@/components/rich-text-editor";
 import { FormSkeleton } from "@/components/ui/skeleton";
 import { useUnsavedChanges } from "@/utils/hooks/useUnsavedChanges";
@@ -105,6 +106,7 @@ const ProductEditPage = () => {
   const [product, setProduct] = useState<Product>();
   const [sizes, setSizes] = useState<Size[]>([]);
   const [filePreviews, setFilePreviews] = useState<ImagePreviewItem[]>([]);
+  const [videoPreviews, setVideoPreviews] = useState<VideoPreviewItem[]>([]);
   const [sizeList, setSizeList] = useState<
     Array<{
       productSizeId?: string;
@@ -163,6 +165,7 @@ const ProductEditPage = () => {
   const installmentAvailable = watch("installment_available");
   const installmentWithInterest = watch("installment_with_interest");
   const priceOnRequest = watch("price_on_request");
+  const productType = watch("type");
 
   useEffect(() => {
     if (!session?.user?.accessToken || !productId) return;
@@ -225,6 +228,10 @@ const ProductEditPage = () => {
             setFilePreviews(fetchedProduct.images as ImagePreviewItem[]);
           }
 
+          if (fetchedProduct.videos) {
+            setVideoPreviews(fetchedProduct.videos as VideoPreviewItem[]);
+          }
+
           if (fetchedProduct.product_size) {
             setSizeList(
               fetchedProduct.product_size.map((ps) => ({
@@ -276,6 +283,18 @@ const ProductEditPage = () => {
       [updated[index], updated[index + 1]] = [updated[index + 1], updated[index]];
       return updated;
     });
+  };
+
+  const handleAddVideos = (files: File[]) => {
+    const newItems: VideoPreviewItem[] = files.map((file) => ({
+      file,
+      preview: URL.createObjectURL(file),
+    }));
+    setVideoPreviews((prev) => [...prev, ...newItems]);
+  };
+
+  const handleDeleteVideo = (index: number) => {
+    setVideoPreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleUpdateSizePrice = async (index: number) => {
@@ -364,6 +383,21 @@ const ProductEditPage = () => {
         }
       }
 
+      const resolvedVideos: string[] = [];
+      for (const item of videoPreviews) {
+        if (typeof item === "string") {
+          resolvedVideos.push(item);
+        } else if (item.file) {
+          const res: any = await uploadService.POST({
+            file: item.file,
+            folderName: session?.user?.user?.name,
+          });
+          if (Array.isArray(res) && res.length > 0) {
+            resolvedVideos.push(res[0].imageUrl);
+          }
+        }
+      }
+
       await productService.PUT(
         {
           id: product?.id,
@@ -392,6 +426,7 @@ const ProductEditPage = () => {
           variation_label: data.variation_label || null,
           type: data.type,
           price_on_request: data.price_on_request,
+          videos: resolvedVideos.length > 0 ? resolvedVideos : [],
         },
         session?.user?.accessToken
       );
@@ -875,7 +910,7 @@ const ProductEditPage = () => {
 
               <div className="mb-5">
                 <FormItem>
-                  <FormLabel>Imagens do produto</FormLabel>
+                  <FormLabel>Imagens do {productType === "service" ? "serviço" : "produto"}</FormLabel>
                   <ImageDropzone
                     id="product-images"
                     previews={filePreviews}
@@ -886,6 +921,20 @@ const ProductEditPage = () => {
                   />
                 </FormItem>
               </div>
+
+              {productType === "service" && (
+                <div className="mb-5">
+                  <FormLabel>Vídeos do portfólio</FormLabel>
+                  <p className="text-xs text-gray-400 mt-1 mb-2">
+                    Adicione vídeos que serão exibidos na galeria do serviço (MP4, MOV, WEBM).
+                  </p>
+                  <VideoDropzone
+                    previews={videoPreviews}
+                    onAdd={handleAddVideos}
+                    onDelete={handleDeleteVideo}
+                  />
+                </div>
+              )}
 
               <div>
                 <FormLabel>Status</FormLabel>
