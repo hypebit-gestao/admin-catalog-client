@@ -66,20 +66,26 @@ const formSchema = z
     user_id: z.string(),
     unit: z.string().optional(),
     variation_label: z.string().optional(),
+    type: z.enum(["product", "service"]),
+    price_on_request: z.boolean(),
   })
   .refine(
     (data) =>
-      data.promotion_price !== null &&
-      Number(data.promotion_price) <= Number(data.price),
+      data.price_on_request ||
+      (data.promotion_price !== null &&
+        Number(data.promotion_price) <= Number(data.price)),
     {
       message: "O preço promocional não pode ser maior que o preço normal",
       path: ["promotion_price"],
     }
   )
-  .refine((data) => Number(data.price) >= Number(data.promotion_price), {
-    message: "O preço normal não pode ser menor que o preço promocional",
-    path: ["price"],
-  });
+  .refine(
+    (data) => data.price_on_request || Number(data.price) >= Number(data.promotion_price),
+    {
+      message: "O preço normal não pode ser menor que o preço promocional",
+      path: ["price"],
+    }
+  );
 
 const ProductEditPage = () => {
   const { data: session } = useSession();
@@ -133,6 +139,8 @@ const ProductEditPage = () => {
       user_id: session?.user?.user?.name ?? "",
       unit: "",
       variation_label: "",
+      type: "product",
+      price_on_request: false,
     },
   });
 
@@ -154,6 +162,7 @@ const ProductEditPage = () => {
   const isSize = watch("isSize");
   const installmentAvailable = watch("installment_available");
   const installmentWithInterest = watch("installment_with_interest");
+  const priceOnRequest = watch("price_on_request");
 
   useEffect(() => {
     if (!session?.user?.accessToken || !productId) return;
@@ -209,6 +218,8 @@ const ProductEditPage = () => {
           setCustomValue("user_id", fetchedProduct.user_id);
           setCustomValue("unit", fetchedProduct.unit ?? "");
           setCustomValue("variation_label", fetchedProduct.variation_label ?? "");
+          setCustomValue("type", (fetchedProduct.type as "product" | "service") ?? "product");
+          setCustomValue("price_on_request", Boolean(fetchedProduct.price_on_request));
 
           if (fetchedProduct.images) {
             setFilePreviews(fetchedProduct.images as ImagePreviewItem[]);
@@ -361,7 +372,7 @@ const ProductEditPage = () => {
           category_id: data.category_id !== "" ? data.category_id : null,
           images: data.images,
           currency: data.currency,
-          price: Number(data.price),
+          price: data.price_on_request ? 0 : Number(data.price),
           promotion_price: data.isPromotion ? Number(data.promotion_price) : null,
           user_id: session?.user?.user?.id,
           featured: data.featured,
@@ -379,6 +390,8 @@ const ProductEditPage = () => {
               : null,
           unit: data.unit || null,
           variation_label: data.variation_label || null,
+          type: data.type,
+          price_on_request: data.price_on_request,
         },
         session?.user?.accessToken
       );
@@ -412,6 +425,28 @@ const ProductEditPage = () => {
               <h2 className="my-4 font-semibold text-green-primary">
                 Informações do produto
               </h2>
+
+              <div className="mb-5">
+                <FormField
+                  control={form.control}
+                  name="type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-blue-primary">Tipo</FormLabel>
+                      <FormControl>
+                        <select
+                          {...field}
+                          className="w-full border border-input rounded-md px-3 py-2 text-sm bg-background"
+                        >
+                          <option value="product">Produto</option>
+                          <option value="service">Serviço</option>
+                        </select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
               <div className="mb-5">
                 <FormField
@@ -481,62 +516,91 @@ const ProductEditPage = () => {
                 </div>
               </div>
 
-              <div className="mb-3">
-                <h3 className="font-bold">Deseja adicionar preço promocional no produto?</h3>
-              </div>
               <div className="mb-5">
                 <FormField
                   control={form.control}
-                  name="isPromotion"
+                  name="price_on_request"
                   render={({ field }) => (
                     <FormItem>
                       <FormControl>
-                        <Checkbox
-                          className="w-5 h-5"
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
+                        <div className="flex items-center gap-2">
+                          <Checkbox
+                            className="w-5 h-5"
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                          <span className="font-medium">Preço a consultar</span>
+                        </div>
                       </FormControl>
+                      <FormDescription className="text-xs text-gray-400 mt-1">
+                        Quando marcado, o catálogo exibirá "A consultar" no lugar do preço.
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
               </div>
 
-              <div className="flex flex-col lg:flex-row gap-5 mb-5">
-                <div className="flex-1">
-                  <FormField
-                    control={form.control}
-                    name="price"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-blue-primary">Preço</FormLabel>
-                        <FormControl>
-                          <InputCurrency placeholder="Preço do produto" type="number" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                {isPromotion && (
-                  <div className="flex-1">
+              {!priceOnRequest && (
+                <>
+                  <div className="mb-3">
+                    <h3 className="font-bold">Deseja adicionar preço promocional no produto?</h3>
+                  </div>
+                  <div className="mb-5">
                     <FormField
                       control={form.control}
-                      name="promotion_price"
+                      name="isPromotion"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-blue-primary">Preço Promocional</FormLabel>
                           <FormControl>
-                            <InputCurrency placeholder="Preço Promocional" type="number" {...field} />
+                            <Checkbox
+                              className="w-5 h-5"
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
                   </div>
-                )}
-              </div>
+
+                  <div className="flex flex-col lg:flex-row gap-5 mb-5">
+                    <div className="flex-1">
+                      <FormField
+                        control={form.control}
+                        name="price"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-blue-primary">Preço</FormLabel>
+                            <FormControl>
+                              <InputCurrency placeholder="Preço do produto" type="number" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    {isPromotion && (
+                      <div className="flex-1">
+                        <FormField
+                          control={form.control}
+                          name="promotion_price"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-blue-primary">Preço Promocional</FormLabel>
+                              <FormControl>
+                                <InputCurrency placeholder="Preço Promocional" type="number" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
 
               <div className="mb-5">
                 <FormField

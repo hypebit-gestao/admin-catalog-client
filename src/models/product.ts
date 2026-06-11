@@ -37,4 +37,6 @@ export interface Product {
   best_seller?: boolean;
   unit?: string | null;
   variation_label?: string | null;
+  type?: string;
+  price_on_request?: boolean;
 }
