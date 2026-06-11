@@ -319,7 +319,7 @@ const ProductNewPage = () => {
                         </div>
                       </FormControl>
                       <FormDescription className="text-xs text-gray-400 mt-1">
-                        Quando marcado, o catálogo exibirá "A consultar" no lugar do preço.
+                        Quando marcado, o catálogo exibirá &quot;A consultar&quot; no lugar do preço.
                       </FormDescription>
                       <FormMessage />
                     </FormItem>

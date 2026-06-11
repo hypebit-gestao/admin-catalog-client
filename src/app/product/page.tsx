@@ -53,6 +53,7 @@ const Product = () => {
   const [products, setProducts] = useState<ProductModel[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [filterCategory, setFilterCategory] = useState<string>("");
+  const [filterType, setFilterType] = useState<"all" | "product" | "service">("all");
   const [searchName, setSearchName] = useState("");
   const [refreshKey, setRefreshKey] = useState(0);
   const [importing, setImporting] = useState(false);
@@ -90,14 +91,18 @@ const Product = () => {
   }, [session?.user?.accessToken]);
 
   const filteredProducts = useMemo(() => {
-    if (!searchName.trim()) return products;
+    let result = products;
+    if (filterType !== "all") {
+      result = result.filter((p) => (p.type ?? "product") === filterType);
+    }
+    if (!searchName.trim()) return result;
     const q = searchName.toLowerCase().trim();
-    return products.filter(
+    return result.filter(
       (p) =>
         p.name?.toLowerCase().includes(q) ||
         p.description?.toLowerCase().includes(q)
     );
-  }, [products, searchName]);
+  }, [products, searchName, filterType]);
 
   const handleDelete = (id: string | undefined) => {
     useProductDeleteModal.setState({ itemId: id });
@@ -287,12 +292,30 @@ const Product = () => {
 
       <ContentMain
         title="Produtos"
-        subtitle={`${filteredProducts.length} produto${filteredProducts.length !== 1 ? "s" : ""}${
+        subtitle={`${filteredProducts.length} item${filteredProducts.length !== 1 ? "s" : ""}${
           searchName
             ? " encontrado" + (filteredProducts.length !== 1 ? "s" : "")
             : " cadastrado" + (filteredProducts.length !== 1 ? "s" : "")
         }`}
       >
+        {/* Type filter tabs */}
+        <div className="flex gap-2 mb-4">
+          {(["all", "product", "service"] as const).map((t) => (
+            <button
+              key={t}
+              onClick={() => setFilterType(t)}
+              className={cn(
+                "px-4 py-1.5 rounded-full text-sm font-medium border transition-colors",
+                filterType === t
+                  ? "bg-green-primary text-white border-green-primary"
+                  : "bg-white text-gray-600 border-gray-200 hover:border-green-primary/40"
+              )}
+            >
+              {t === "all" ? "Todos" : t === "product" ? "Produtos" : "Serviços"}
+            </button>
+          ))}
+        </div>
+
         {/* Filters bar */}
         <div className="flex flex-col sm:flex-row gap-3 mb-6">
           <div className="relative flex-1 max-w-sm">
@@ -422,7 +445,12 @@ const Product = () => {
                   </div>
 
                   {/* Status badges */}
-                  <div className="absolute top-2 left-2 flex gap-1">
+                  <div className="absolute top-2 left-2 flex flex-wrap gap-1">
+                    {product.type === "service" && (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-500 text-white">
+                        Serviço
+                      </span>
+                    )}
                     {product.featured && (
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-400 text-amber-900">
                         Destaque
@@ -457,16 +485,22 @@ const Product = () => {
 
                     <div className="mt-3 flex items-center justify-between">
                       <div>
-                        <p className="font-bold text-green-primary text-base">
-                          {formatter.format(product.price)}
-                        </p>
-                        {product.promotion_price &&
-                          product.promotion_price > 0 &&
-                          product.promotion_price < product.price && (
-                            <p className="text-xs text-muted-foreground line-through">
-                              {formatter.format(product.promotion_price)}
+                        {product.price_on_request ? (
+                          <p className="font-bold text-blue-500 text-base">A consultar</p>
+                        ) : (
+                          <>
+                            <p className="font-bold text-green-primary text-base">
+                              {formatter.format(product.price)}
                             </p>
-                          )}
+                            {product.promotion_price &&
+                              product.promotion_price > 0 &&
+                              product.promotion_price < product.price && (
+                                <p className="text-xs text-muted-foreground line-through">
+                                  {formatter.format(product.promotion_price)}
+                                </p>
+                              )}
+                          </>
+                        )}
                       </div>
                       <span
                         className={cn(
