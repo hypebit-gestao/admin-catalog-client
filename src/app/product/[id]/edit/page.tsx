@@ -229,7 +229,11 @@ const ProductEditPage = () => {
           }
 
           if (fetchedProduct.videos) {
-            setVideoPreviews(fetchedProduct.videos as VideoPreviewItem[]);
+            setVideoPreviews(
+              fetchedProduct.videos.map((v: any) =>
+                typeof v === 'string' ? { url: v, orientation: 'horizontal' as const } : v
+              ) as VideoPreviewItem[]
+            );
           }
 
           if (fetchedProduct.product_size) {
