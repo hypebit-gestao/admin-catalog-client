@@ -613,20 +613,18 @@ const ProductNewPage = () => {
                 </div>
               </div>
 
-              {watch("type") === "service" && (
-                <div className="mb-5">
-                  <FormLabel>Vídeos do portfólio</FormLabel>
-                  <p className="text-xs text-gray-400 mt-1 mb-2">
-                    Adicione vídeos que serão exibidos na galeria do serviço (MP4, MOV, WEBM).
-                  </p>
-                  <VideoDropzone
-                    previews={videoPreviews}
-                    onAdd={handleAddVideos}
-                    onDelete={handleDeleteVideo}
-                    onChangeOrientation={handleChangeVideoOrientation}
-                  />
-                </div>
-              )}
+              <div className="mb-5">
+                <FormLabel>Vídeos</FormLabel>
+                <p className="text-xs text-gray-400 mt-1 mb-2">
+                  Adicione vídeos que serão exibidos na galeria do produto (MP4, MOV, WEBM).
+                </p>
+                <VideoDropzone
+                  previews={videoPreviews}
+                  onAdd={handleAddVideos}
+                  onDelete={handleDeleteVideo}
+                  onChangeOrientation={handleChangeVideoOrientation}
+                />
+              </div>
 
               <div>
                 <FormLabel>Status</FormLabel>
