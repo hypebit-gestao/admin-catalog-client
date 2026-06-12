@@ -26,7 +26,7 @@ export interface Product {
   featured: boolean;
   active: boolean;
   images?: string[] | null;
-  videos?: string[] | null;
+  videos?: { url: string; orientation: 'horizontal' | 'vertical' }[] | null;
   currency: string;
   promotion_price?: number | null;
   price: number;

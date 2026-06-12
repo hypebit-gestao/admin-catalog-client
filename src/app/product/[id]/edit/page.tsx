@@ -289,12 +289,19 @@ const ProductEditPage = () => {
     const newItems: VideoPreviewItem[] = files.map((file) => ({
       file,
       preview: URL.createObjectURL(file),
+      orientation: 'horizontal' as const,
     }));
     setVideoPreviews((prev) => [...prev, ...newItems]);
   };
 
   const handleDeleteVideo = (index: number) => {
     setVideoPreviews((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleChangeVideoOrientation = (index: number, orientation: 'horizontal' | 'vertical') => {
+    setVideoPreviews((prev) =>
+      prev.map((item, i) => (i === index ? { ...item, orientation } : item))
+    );
   };
 
   const handleUpdateSizePrice = async (index: number) => {
@@ -383,17 +390,17 @@ const ProductEditPage = () => {
         }
       }
 
-      const resolvedVideos: string[] = [];
+      const resolvedVideos: { url: string; orientation: 'horizontal' | 'vertical' }[] = [];
       for (const item of videoPreviews) {
-        if (typeof item === "string") {
-          resolvedVideos.push(item);
+        if ('url' in item) {
+          resolvedVideos.push({ url: item.url, orientation: item.orientation });
         } else if (item.file) {
           const res: any = await uploadService.POST({
             file: item.file,
             folderName: session?.user?.user?.name,
           });
           if (Array.isArray(res) && res.length > 0) {
-            resolvedVideos.push(res[0].imageUrl);
+            resolvedVideos.push({ url: res[0].imageUrl, orientation: item.orientation });
           }
         }
       }
@@ -932,6 +939,7 @@ const ProductEditPage = () => {
                     previews={videoPreviews}
                     onAdd={handleAddVideos}
                     onDelete={handleDeleteVideo}
+                    onChangeOrientation={handleChangeVideoOrientation}
                   />
                 </div>
               )}

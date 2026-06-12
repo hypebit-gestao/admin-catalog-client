@@ -5,19 +5,24 @@ import { TiDelete } from "react-icons/ti";
 import { IoMdAdd } from "react-icons/io";
 import { MdCloudUpload } from "react-icons/md";
 
-export type VideoPreviewItem = string | { file: File; preview: string };
+export type VideoOrientation = 'horizontal' | 'vertical';
+
+export type VideoPreviewItem =
+  | { url: string; orientation: VideoOrientation }
+  | { file: File; preview: string; orientation: VideoOrientation };
 
 function getVideoSrc(item: VideoPreviewItem): string {
-  return typeof item === "string" ? item : item.preview;
+  return 'url' in item ? item.url : item.preview;
 }
 
 interface VideoDropzoneProps {
   previews: VideoPreviewItem[];
   onAdd: (files: File[]) => void;
   onDelete: (index: number) => void;
+  onChangeOrientation: (index: number, orientation: VideoOrientation) => void;
 }
 
-export function VideoDropzone({ previews, onAdd, onDelete }: VideoDropzoneProps) {
+export function VideoDropzone({ previews, onAdd, onDelete, onChangeOrientation }: VideoDropzoneProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -100,14 +105,46 @@ export function VideoDropzone({ previews, onAdd, onDelete }: VideoDropzoneProps)
                 </button>
                 <video
                   src={getVideoSrc(item)}
-                  className="w-[160px] h-[100px] object-cover border border-gray-200 rounded-md bg-black"
+                  className={`w-[160px] object-cover border border-gray-200 rounded-md bg-black ${
+                    item.orientation === 'vertical' ? 'h-[220px]' : 'h-[100px]'
+                  }`}
                   muted
                   playsInline
                   preload="metadata"
                 />
+                <div className="flex mt-1 rounded overflow-hidden border border-gray-200 text-xs">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onChangeOrientation(index, 'horizontal');
+                    }}
+                    className={`flex-1 py-1 transition-colors ${
+                      item.orientation === 'horizontal'
+                        ? 'bg-green-primary text-white font-semibold'
+                        : 'bg-white text-gray-500 hover:bg-gray-50'
+                    }`}
+                  >
+                    ↔ Horiz.
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onChangeOrientation(index, 'vertical');
+                    }}
+                    className={`flex-1 py-1 transition-colors ${
+                      item.orientation === 'vertical'
+                        ? 'bg-green-primary text-white font-semibold'
+                        : 'bg-white text-gray-500 hover:bg-gray-50'
+                    }`}
+                  >
+                    ↕ Vert.
+                  </button>
+                </div>
                 <p className="text-xs text-gray-400 mt-1 truncate">
-                  {typeof item === "string"
-                    ? item.split("/").pop()
+                  {'url' in item
+                    ? item.url.split("/").pop()
                     : item.file.name}
                 </p>
               </div>

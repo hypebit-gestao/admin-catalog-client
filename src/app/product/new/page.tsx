@@ -170,12 +170,19 @@ const ProductNewPage = () => {
     const newItems = files.map((file) => ({
       file,
       preview: URL.createObjectURL(file),
+      orientation: 'horizontal' as const,
     }));
     setVideoPreviews((prev) => [...prev, ...newItems]);
   };
 
   const handleDeleteVideo = (index: number) => {
     setVideoPreviews((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleChangeVideoOrientation = (index: number, orientation: 'horizontal' | 'vertical') => {
+    setVideoPreviews((prev) =>
+      prev.map((item, i) => (i === index ? { ...item, orientation } : item))
+    );
   };
 
   const sizeOptions = sizes.map((s) => ({ value: s.id, label: s.size }));
@@ -185,7 +192,7 @@ const ProductNewPage = () => {
     setLoading(true);
 
     const uploadedUrls: string[] = [];
-    const uploadedVideoUrls: string[] = [];
+    const uploadedVideoItems: { url: string; orientation: 'horizontal' | 'vertical' }[] = [];
 
     try {
       for (const item of previews) {
@@ -199,12 +206,14 @@ const ProductNewPage = () => {
       }
 
       for (const item of videoPreviews) {
-        if (typeof item !== "string" && item.file) {
+        if ('file' in item && item.file) {
           const res: any = await uploadService.POST({
             file: item.file,
             folderName: session?.user?.user?.name,
           });
-          res?.forEach((r: any) => { if (r?.imageUrl) uploadedVideoUrls.push(r.imageUrl); });
+          res?.forEach((r: any) => {
+            if (r?.imageUrl) uploadedVideoItems.push({ url: r.imageUrl, orientation: item.orientation });
+          });
         }
       }
 
@@ -232,7 +241,7 @@ const ProductNewPage = () => {
           variation_label: data.variation_label || null,
           type: data.type,
           price_on_request: data.price_on_request,
-          videos: uploadedVideoUrls.length > 0 ? uploadedVideoUrls : null,
+          videos: uploadedVideoItems.length > 0 ? uploadedVideoItems : null,
         },
         session?.user?.accessToken
       );
@@ -614,6 +623,7 @@ const ProductNewPage = () => {
                     previews={videoPreviews}
                     onAdd={handleAddVideos}
                     onDelete={handleDeleteVideo}
+                    onChangeOrientation={handleChangeVideoOrientation}
                   />
                 </div>
               )}
