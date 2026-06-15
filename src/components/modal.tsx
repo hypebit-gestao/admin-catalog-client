@@ -104,9 +104,10 @@ bg-neutral/70
             >
               <div
                 onClick={() => handleClose()}
-                className={`absolute top-2 left-6 cursor-pointer`}
+                className={`absolute top-3 right-4 cursor-pointer text-gray-500 hover:text-gray-800 transition-colors`}
+                aria-label="Fechar"
               >
-                <IoMdClose size={28} />
+                <IoMdClose size={24} />
               </div>
               {/* HEADER */}
               <div className="mt-8 flex justify-center">{header}</div>

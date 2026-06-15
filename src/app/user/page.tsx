@@ -56,10 +56,13 @@ const User = () => {
   useEffect(() => {
     setLoading(true);
     const getUsers = async () => {
-      const fetchedUser = await userService.GETALL(session?.user.accessToken);
-      if (fetchedUser) {
+      try {
+        const fetchedUser = await userService.GETALL(session?.user.accessToken);
+        setRowData((fetchedUser ?? []) as User[]);
+      } catch {
+        // erro já tratado pelo interceptor da API
+      } finally {
         setLoading(false);
-        setRowData(fetchedUser as User[]);
       }
     };
 
@@ -121,9 +124,9 @@ const User = () => {
       params.node.rowIndex !== undefined
     ) {
       if (params.node.rowIndex % 2 === 0) {
-        return { background: "#E8E8E8", color: "#000000" };
+        return { background: "#F8FAFC", color: "#000000" };
       } else {
-        return { background: "#D9D9D9", color: "#000000" };
+        return { background: "#FFFFFF", color: "#000000" };
       }
     }
 
@@ -259,7 +262,14 @@ const User = () => {
 
           <div className="my-10">
             {loading === true ? (
-              <Loader color="text-green-primary" />
+              <div className="flex justify-center py-20">
+                <Loader color="text-green-primary" />
+              </div>
+            ) : rowData.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20 text-muted-foreground gap-2">
+                <p className="text-lg font-medium">Nenhuma loja cadastrada</p>
+                <p className="text-sm">Clique em "Nova Loja" para começar.</p>
+              </div>
             ) : (
               <div className="ag-theme-quartz">
                 <AgGridReact

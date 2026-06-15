@@ -127,7 +127,9 @@ const CategoryPage = () => {
 
         <div className="my-6">
           {loading ? (
-            <Loader color="text-green-primary" />
+            <div className="flex justify-center py-20">
+              <Loader color="text-green-primary" />
+            </div>
           ) : (
             <>
               <div className="lg:hidden space-y-3">

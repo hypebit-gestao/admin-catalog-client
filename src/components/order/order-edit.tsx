@@ -16,7 +16,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { Input, InputCurrency } from "@/components/ui/input";
 import { Button } from "../ui/button";
 
 import { useSession } from "next-auth/react";
@@ -82,19 +82,21 @@ const OrderEdit = ({ isOpen, onClose }: CategoryUpdateProps) => {
   useEffect(() => {
     setLoading(true);
     const getOrder = async () => {
-      const fetchedOrder = await orderService.GETBYID(
-        orderEditModal.itemId,
-        session?.user.accessToken
-      );
-
-      if (fetchedOrder) {
-        if (fetchedOrder.id === orderEditModal.itemId) {
+      try {
+        const fetchedOrder = await orderService.GETBYID(
+          orderEditModal.itemId,
+          session?.user.accessToken
+        );
+        if (fetchedOrder) {
           setOrder(fetchedOrder);
           setCustomValue("observation", fetchedOrder.observation);
           setCustomValue("status", fetchedOrder.status);
           setCustomValue("total", fetchedOrder.total);
-          setLoading(false);
         }
+      } catch {
+        // erro já tratado pelo interceptor da API
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -214,7 +216,11 @@ const OrderEdit = ({ isOpen, onClose }: CategoryUpdateProps) => {
                               Total
                             </FormLabel>
                             <FormControl>
-                              <Input placeholder="Total do pedido" {...field} />
+                              <InputCurrency
+                                placeholder="0,00"
+                                type="number"
+                                {...field}
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>

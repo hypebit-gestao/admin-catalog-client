@@ -270,15 +270,17 @@ const ProductNewPage = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-blue-primary">Tipo</FormLabel>
-                      <FormControl>
-                        <select
-                          {...field}
-                          className="w-full border border-input rounded-md px-3 py-2 text-sm bg-background"
-                        >
-                          <option value="product">Produto</option>
-                          <option value="service">Serviço</option>
-                        </select>
-                      </FormControl>
+                      <SelectComponent onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione o tipo" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent className="z-[300]">
+                          <SelectItem value="product">Produto</SelectItem>
+                          <SelectItem value="service">Serviço</SelectItem>
+                        </SelectContent>
+                      </SelectComponent>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -301,44 +303,31 @@ const ProductNewPage = () => {
                 />
               </div>
 
-              <div className="flex flex-col lg:flex-row gap-5 mb-5">
-                <div className="flex-1">
-                  <FormField
-                    control={form.control}
-                    name="category_id"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Categoria</FormLabel>
-                        <SelectComponent
-                          onValueChange={(value) => field.onChange(value === "null" ? null : value)}
-                          defaultValue="null"
-                        >
-                          <FormControl>
-                            <SelectTrigger><SelectValue placeholder="Selecione a categoria" /></SelectTrigger>
-                          </FormControl>
-                          <SelectContent className="z-[300]">
-                            <SelectItem value="null">Sem categoria</SelectItem>
-                            {categories.map((c, i) => (
-                              <SelectItem key={i} value={c.id as string}>{c.name}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </SelectComponent>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <div className="flex-1">
-                  <FormItem>
-                    <FormLabel>Usuário</FormLabel>
-                    <SelectComponent disabled defaultValue={session?.user?.user?.name}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value={session?.user?.user?.name ?? ""}>{session?.user?.user?.name}</SelectItem>
-                      </SelectContent>
-                    </SelectComponent>
-                  </FormItem>
-                </div>
+              <div className="mb-5">
+                <FormField
+                  control={form.control}
+                  name="category_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Categoria</FormLabel>
+                      <SelectComponent
+                        onValueChange={(value) => field.onChange(value === "null" ? null : value)}
+                        defaultValue="null"
+                      >
+                        <FormControl>
+                          <SelectTrigger><SelectValue placeholder="Selecione a categoria" /></SelectTrigger>
+                        </FormControl>
+                        <SelectContent className="z-[300]">
+                          <SelectItem value="null">Sem categoria</SelectItem>
+                          {categories.map((c, i) => (
+                            <SelectItem key={i} value={c.id as string}>{c.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </SelectComponent>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
 
               <div className="mb-5">
@@ -364,9 +353,6 @@ const ProductNewPage = () => {
 
               {!priceOnRequest && (
                 <>
-                  <div className="mb-3">
-                    <h3 className="font-bold">Possui preço promocional?</h3>
-                  </div>
                   <div className="mb-5">
                     <FormField
                       control={form.control}
@@ -374,7 +360,10 @@ const ProductNewPage = () => {
                       render={({ field }) => (
                         <FormItem>
                           <FormControl>
-                            <Checkbox className="w-5 h-5" checked={field.value} onCheckedChange={field.onChange} />
+                            <label className="flex items-center gap-2 cursor-pointer">
+                              <Checkbox className="w-5 h-5" checked={field.value} onCheckedChange={field.onChange} />
+                              <span className="font-bold">Possui preço promocional?</span>
+                            </label>
                           </FormControl>
                           <FormMessage />
                         </FormItem>

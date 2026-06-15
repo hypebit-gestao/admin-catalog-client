@@ -37,10 +37,13 @@ const Coupon = () => {
   useEffect(() => {
     setLoading(true);
     const getCoupons = async () => {
-      const fetchedCoupon = await couponService.GETALL(session?.user.accessToken);
-      if (fetchedCoupon) {
+      try {
+        const fetchedCoupon = await couponService.GETALL(session?.user.accessToken);
+        setRowData((fetchedCoupon ?? []) as CouponModel[]);
+      } catch {
+        // erro já tratado pelo interceptor da API
+      } finally {
         setLoading(false);
-        setRowData(fetchedCoupon as CouponModel[]);
       }
     };
 
@@ -104,9 +107,9 @@ const Coupon = () => {
       params.node.rowIndex !== undefined
     ) {
       if (params.node.rowIndex % 2 === 0) {
-        return { background: "#E8E8E8", color: "#000000" };
+        return { background: "#F8FAFC", color: "#000000" };
       } else {
-        return { background: "#D9D9D9", color: "#000000" };
+        return { background: "#FFFFFF", color: "#000000" };
       }
     }
 

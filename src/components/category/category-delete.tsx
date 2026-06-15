@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Modal from "../modal";
 import { useSession } from "next-auth/react";
 import { MdDelete } from "react-icons/md";
 import { useCategoryService } from "@/services/category.service";
 import useCategoryDeleteModal from "@/utils/hooks/category/useDeleteCategoryModal";
 import { Button } from "../ui/button";
+import Loader from "../loader";
 import toast from "react-hot-toast";
 
 interface CategoryDeleteProps {
@@ -18,11 +19,20 @@ const CategoryDelete = ({ isOpen, onClose }: CategoryDeleteProps) => {
   const { data: session } = useSession();
   const categoryService = useCategoryService();
   const categoryDelete = useCategoryDeleteModal();
+  const [loading, setLoading] = useState(false);
 
-  const handleDelete = () => {
-    categoryService.DELETE(categoryDelete.itemId, session?.user.accessToken);
-    onClose();
-    toast.success("Categoria excluída com sucesso");
+  const handleDelete = async () => {
+    setLoading(true);
+    try {
+      await categoryService.DELETE(categoryDelete.itemId, session?.user.accessToken);
+      useCategoryDeleteModal.setState({ isDelete: true });
+      toast.success("Categoria excluída com sucesso");
+      onClose();
+    } catch (err: any) {
+      toast.error(err?.message ?? "Erro ao excluir categoria");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -39,24 +49,24 @@ const CategoryDelete = ({ isOpen, onClose }: CategoryDeleteProps) => {
       body={
         <div className="flex flex-col justify-center items-center">
           <MdDelete size={100} color="red" />
-          <div className="my-4 text-lg">
+          <div className="my-4 text-lg text-center">
             <p>Deseja mesmo excluir essa categoria?</p>
+            <p className="text-sm text-muted-foreground mt-1">Essa ação não pode ser desfeita.</p>
           </div>
-          <div className="flex flex-row items-center my-6">
+          <div className="flex flex-row items-center my-6 gap-3">
             <Button
               size={"lg"}
-              onClick={() => {
-                handleDelete();
-                useCategoryDeleteModal.setState({ isDelete: true });
-              }}
-              className="bg-red-600 hover:bg-red-700 mr-5 w-full"
+              onClick={handleDelete}
+              disabled={loading}
+              className="bg-red-600 hover:bg-red-700 w-full"
             >
-              Excluir
+              {loading ? <Loader /> : "Excluir"}
             </Button>
             <Button
               onClick={() => categoryDelete.onClose()}
               size={"lg"}
               variant={"outline"}
+              disabled={loading}
             >
               Cancelar
             </Button>

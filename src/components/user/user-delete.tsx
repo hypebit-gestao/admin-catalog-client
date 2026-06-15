@@ -2,20 +2,13 @@
 
 import React, { useEffect, useState } from "react";
 import Modal from "../modal";
-
 import { useSession } from "next-auth/react";
-
-import { useCategoryService } from "@/services/category.service";
-
-import { useRouter } from "next/navigation";
 import { MdDelete } from "react-icons/md";
-import { Category } from "@/models/category";
-import useCategoryDeleteModal from "@/utils/hooks/category/useDeleteCategoryModal";
-import { Button } from "../ui/button";
-import toast from "react-hot-toast";
-import useUserDeleteModal from "@/utils/hooks/user/useDeleteUserModal";
-import { User } from "@/models/user";
 import { useUserService } from "@/services/user.service";
+import useUserDeleteModal from "@/utils/hooks/user/useDeleteUserModal";
+import { Button } from "../ui/button";
+import Loader from "../loader";
+import toast from "react-hot-toast";
 
 interface UserDeleteProps {
   isOpen: boolean;
@@ -24,59 +17,61 @@ interface UserDeleteProps {
 
 const UserDelete = ({ isOpen, onClose }: UserDeleteProps) => {
   const { data: session } = useSession();
-  const router = useRouter();
-  const categoryService = useCategoryService();
   const userService = useUserService();
-  const categoryDelete = useCategoryDeleteModal();
   const userDelete = useUserDeleteModal();
-  const [user, setUser] = useState<User>();
+  const [loading, setLoading] = useState(false);
 
-  const handleDelete = () => {
-    userService.DELETE(userDelete.itemId, session?.user.accessToken);
-
-    onClose();
-    toast.success("Usuário excluído com sucesso");
+  const handleDelete = async () => {
+    setLoading(true);
+    try {
+      await userService.DELETE(userDelete.itemId, session?.user.accessToken);
+      useUserDeleteModal.setState({ isDelete: true });
+      toast.success("Usuário excluído com sucesso");
+      onClose();
+    } catch (err: any) {
+      toast.error(err?.message ?? "Erro ao excluir usuário");
+    } finally {
+      setLoading(false);
+    }
   };
+
+  useEffect(() => {
+    useUserDeleteModal.setState({ isDelete: false });
+  }, [isOpen]);
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
       header={
-        <>
-          <h1 className="text-primary-blue font-bold text-xl">
-            Excluir usuário
-          </h1>
-        </>
+        <h1 className="text-primary-blue font-bold text-xl">Excluir usuário</h1>
       }
       body={
-        <>
-          <div className="flex flex-col justify-center items-center">
-            <MdDelete size={100} color="red" />
-            <div className="my-4 text-lg">
-              <p>Deseja mesmo excluir esse usuário?</p>
-            </div>
-            <div className="flex flex-row items-center my-6">
-              <Button
-                size={"lg"}
-                onClick={() => {
-                  handleDelete();
-                  useUserDeleteModal.setState({ isDelete: true });
-                }}
-                className="bg-red-600 hover:bg-red-700 mr-5 w-full"
-              >
-                Excluir
-              </Button>
-              <Button
-                onClick={() => userDelete.onClose()}
-                size={"lg"}
-                variant={"outline"}
-              >
-                Cancelar
-              </Button>
-            </div>
+        <div className="flex flex-col justify-center items-center">
+          <MdDelete size={100} color="red" />
+          <div className="my-4 text-lg text-center">
+            <p>Deseja mesmo excluir esse usuário?</p>
+            <p className="text-sm text-muted-foreground mt-1">Essa ação não pode ser desfeita.</p>
           </div>
-        </>
+          <div className="flex flex-row items-center my-6 gap-3">
+            <Button
+              size={"lg"}
+              onClick={handleDelete}
+              disabled={loading}
+              className="bg-red-600 hover:bg-red-700 w-full"
+            >
+              {loading ? <Loader /> : "Excluir"}
+            </Button>
+            <Button
+              onClick={() => userDelete.onClose()}
+              size={"lg"}
+              variant={"outline"}
+              disabled={loading}
+            >
+              Cancelar
+            </Button>
+          </div>
+        </div>
       }
     />
   );

@@ -17,9 +17,10 @@ const Auth: React.FC<Props> = ({ children }) => {
 
   if (status === "loading") {
     return (
-      <>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white gap-3">
         <Loader color="text-green-primary" />
-      </>
+        <p className="text-sm text-gray-400">Carregando...</p>
+      </div>
     );
   }
 

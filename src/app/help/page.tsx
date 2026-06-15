@@ -14,7 +14,7 @@ import {
   MdExpandMore,
   MdExpandLess,
   MdLightbulb,
-  MdCalculate,
+
 } from "react-icons/md";
 import { FaStore, FaRulerHorizontal } from "react-icons/fa";
 import { HiArrowRight } from "react-icons/hi";
@@ -71,7 +71,7 @@ const FAQS = [
   {
     question: "Como funciona o desconto por forma de pagamento?",
     answer:
-      "Em Configurações > Personalização da loja você pode definir percentuais de desconto para PIX, crédito e débito. Esses descontos são exibidos no catálogo para o cliente. Use a Calculadora de Preços para definir preços que já absorvem as taxas da maquininha.",
+      "Em Configurações > Personalização da loja você pode definir percentuais de desconto para PIX, crédito e débito. Esses descontos são exibidos no catálogo para o cliente.",
   },
   {
     question: "Como gerenciar os pedidos recebidos?",
@@ -93,11 +93,6 @@ const FAQS = [
     answer:
       "Sim! Em Configurações > Personalização da loja, você encontra um seletor de cores. A cor escolhida é aplicada em botões, destaques e elementos visuais do seu catálogo público.",
   },
-  {
-    question: "Como usar a Calculadora de Preços?",
-    answer:
-      "Acesse Calculadora no menu. Informe o custo do produto (quanto você paga) e a margem de lucro que deseja (%). A calculadora calcula automaticamente o preço ideal para cada forma de pagamento, já considerando as taxas de maquininha. Na aba 'Taxas', você pode ajustar as taxas cobradas pela sua plataforma.",
-  },
 ];
 
 const TIPS = [
@@ -109,11 +104,11 @@ const TIPS = [
     body: "Use fundo branco ou neutro, boa iluminação natural e mostre o produto de vários ângulos. Produtos com fotos profissionais convertem até 3× mais.",
   },
   {
-    icon: MdCalculate,
+    icon: MdSettings,
     color: "text-blue-600",
     bg: "bg-blue-50",
     title: "Precifique considerando as taxas",
-    body: "Nunca esqueça as taxas da maquininha ao definir preços. Use a Calculadora de Preços para garantir que você lucra em toda forma de pagamento.",
+    body: "Nunca esqueça as taxas da maquininha ao definir preços. Defina preços que já absorvem as taxas para garantir que você lucra em toda forma de pagamento.",
   },
   {
     icon: MdOutlineProductionQuantityLimits,
@@ -287,7 +282,7 @@ const Help = () => {
                 { label: "Novo Produto", href: "/product", icon: MdOutlineProductionQuantityLimits, color: "text-emerald-600", bg: "bg-emerald-50" },
                 { label: "Nova Categoria", href: "/category", icon: MdCategory, color: "text-teal-600", bg: "bg-teal-50" },
                 { label: "Ver Pedidos", href: "/order", icon: MdRequestPage, color: "text-blue-600", bg: "bg-blue-50" },
-                { label: "Calculadora", href: "/calculator", icon: MdCalculate, color: "text-violet-600", bg: "bg-violet-50" },
+                { label: "Cupons", href: "/coupon", icon: MdSettings, color: "text-violet-600", bg: "bg-violet-50" },
                 { label: "Tamanhos", href: "/size", icon: () => <FaRulerHorizontal size={18} />, color: "text-orange-600", bg: "bg-orange-50" },
                 { label: "Configurações", href: "/configurations", icon: MdSettings, color: "text-gray-600", bg: "bg-gray-50" },
               ].map((link) => (

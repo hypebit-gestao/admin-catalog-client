@@ -2,6 +2,7 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 import CurrencyInput from "react-currency-input-field";
+import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 
 export interface InputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -36,6 +37,10 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     }: any,
     ref
   ) => {
+    const [showPassword, setShowPassword] = React.useState(false);
+    const isPassword = type === "password";
+    const inputType = isPassword ? (showPassword ? "text" : "password") : type;
+
     return (
       <>
         <div className="relative w-full">
@@ -43,16 +48,30 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             {icon}
           </div>
           <input
-            type={type}
+            type={inputType}
             className={cn(
               `flex h-9 ${height} w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-black focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 ${
                 icon ? "pl-12" : ""
-              }`,
+              } ${isPassword ? "pr-10" : ""}`,
               className
             )}
             ref={ref}
             {...props}
           />
+          {isPassword && (
+            <button
+              type="button"
+              tabIndex={-1}
+              onClick={() => setShowPassword((v) => !v)}
+              className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              {showPassword ? (
+                <AiOutlineEyeInvisible size={18} />
+              ) : (
+                <AiOutlineEye size={18} />
+              )}
+            </button>
+          )}
         </div>
       </>
     );

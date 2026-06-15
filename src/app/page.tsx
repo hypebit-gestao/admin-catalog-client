@@ -153,6 +153,8 @@ export default function Home() {
                         }
                         height="h-11"
                         placeholder="seu@email.com"
+                        autoComplete="email"
+                        disabled={loading}
                         className="transition-all focus:ring-2 focus:ring-green-primary/20"
                         {...field}
                       />
@@ -178,6 +180,8 @@ export default function Home() {
                         type="password"
                         height="h-11"
                         placeholder="••••••••"
+                        autoComplete="current-password"
+                        disabled={loading}
                         className="transition-all focus:ring-2 focus:ring-green-primary/20"
                         {...field}
                       />

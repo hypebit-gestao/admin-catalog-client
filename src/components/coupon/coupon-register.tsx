@@ -61,7 +61,7 @@ const CouponRegister = ({ isOpen, onClose }: CouponRegisterProps) => {
       code: "",
       discount: "",
       stock: "",
-      active: false,
+      active: true,
       expires_at: "",
     },
   });
