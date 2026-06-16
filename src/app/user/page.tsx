@@ -69,6 +69,7 @@ const User = () => {
     getUsers();
   }, [
     session?.user?.accessToken,
+    userService,
     userEditModal.isUpdate,
     userDeleteModal.isDelete,
     userRegisterModal.isRegister,
@@ -235,7 +236,7 @@ const User = () => {
         },
       ]);
     }
-  }, [screenWidth]);
+  }, [screenWidth, ActionsRenderer]);
 
   return (
     <>
@@ -268,7 +269,7 @@ const User = () => {
             ) : rowData.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 text-muted-foreground gap-2">
                 <p className="text-lg font-medium">Nenhuma loja cadastrada</p>
-                <p className="text-sm">Clique em "Nova Loja" para começar.</p>
+                <p className="text-sm">Clique em &quot;Nova Loja&quot; para começar.</p>
               </div>
             ) : (
               <div className="ag-theme-quartz">
