@@ -178,7 +178,7 @@ const ProductEditPage = () => {
     {}
   );
 
-  const uniqueGroupNames = [...new Set(sizeList.map((s) => s.groupName).filter(Boolean))];
+  const uniqueGroupNames = Array.from(new Set(sizeList.map((s) => s.groupName).filter(Boolean)));
 
   useEffect(() => {
     if (!session?.user?.accessToken || !productId) return;
