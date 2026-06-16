@@ -49,7 +49,6 @@ const formSchema = z
     featured: z.boolean(),
     active: z.boolean(),
     isPromotion: z.boolean(),
-    isSize: z.boolean(),
     promotion_price: z.string(),
     price: z.string(),
     installment_available: z.boolean(),
@@ -57,7 +56,6 @@ const formSchema = z
     installment_interest_value: z.string().optional(),
     max_installments: z.string().optional(),
     unit: z.string().optional(),
-    variation_label: z.string().optional(),
     type: z.enum(["product", "service"]),
     price_on_request: z.boolean(),
   })
@@ -109,7 +107,6 @@ const ProductNewPage = () => {
       featured: false,
       active: true,
       isPromotion: false,
-      isSize: false,
       price: "",
       promotion_price: "",
       installment_available: false,
@@ -117,7 +114,6 @@ const ProductNewPage = () => {
       installment_interest_value: "",
       max_installments: "1",
       unit: "",
-      variation_label: "",
       type: "product",
       price_on_request: false,
     },
@@ -127,7 +123,6 @@ const ProductNewPage = () => {
   const { confirmLeave } = useUnsavedChanges(form.formState.isDirty);
 
   const isPromotion = watch("isPromotion");
-  const isSize = watch("isSize");
   const installmentAvailable = watch("installment_available");
   const installmentWithInterest = watch("installment_with_interest");
   const priceOnRequest = watch("price_on_request");
@@ -238,7 +233,7 @@ const ProductNewPage = () => {
               : null,
           max_installments: data.installment_available ? Number(data.max_installments ?? 1) : 1,
           unit: data.unit || null,
-          variation_label: data.variation_label || null,
+          variation_label: null,
           type: data.type,
           price_on_request: data.price_on_request,
           videos: uploadedVideoItems.length > 0 ? uploadedVideoItems : null,
@@ -456,71 +451,9 @@ const ProductNewPage = () => {
             <div className="mt-8">
               <h2 className="my-4 font-semibold text-green-primary">Informações adicionais</h2>
 
-              <div className="mb-3">
-                <h3 className="font-bold">Seu produto possui variações?</h3>
+              <div className="mb-5 rounded-md border border-dashed border-gray-300 bg-gray-50 p-4 text-sm text-gray-500">
+                Variações (peso, sabor, tamanho, etc.) são gerenciadas na <strong>edição do produto</strong> após o cadastro.
               </div>
-              <div className="mb-5">
-                <FormField
-                  control={form.control}
-                  name="isSize"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Checkbox className="w-5 h-5" checked={field.value} onCheckedChange={field.onChange} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              {isSize && (
-                <div className="mb-5">
-                  <div className="mb-4">
-                    <FormField
-                      control={form.control}
-                      name="variation_label"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Como chamar essa variação?</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="Ex: Tamanho, Sabor, Cor, Volume..."
-                              maxLength={50}
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormDescription className="text-xs text-gray-400">
-                            Esse nome aparecerá para o cliente na página do produto.
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <FormField
-                    control={form.control}
-                    name="size_ids"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Variações do produto</FormLabel>
-                        <Select
-                          styles={{
-                            control: (p) => ({ ...p, border: "1px solid #e2e8f0", borderRadius: "0.375rem", padding: "0.2rem", fontSize: "0.875rem", boxShadow: "none" }),
-                            option: (p, s) => ({ ...p, backgroundColor: s.isSelected ? "#2c6e49" : "#fff", color: s.isSelected ? "#fff" : "#374151", "&:hover": { backgroundColor: "#2c6e49", color: "#fff" } }),
-                            indicatorSeparator: (p) => ({ ...p, display: "none" }),
-                          }}
-                          isMulti
-                          placeholder="Selecione as variações"
-                          options={sizeOptions}
-                          {...field}
-                        />
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              )}
 
               <div className="mb-3"><h3 className="font-bold">Parcelamento</h3></div>
               <div className="mb-5">

@@ -66,7 +66,6 @@ const formSchema = z
     promotion_price: z.string(),
     user_id: z.string(),
     unit: z.string().optional(),
-    variation_label: z.string().optional(),
     type: z.enum(["product", "service"]),
     price_on_request: z.boolean(),
   })
@@ -88,6 +87,14 @@ const formSchema = z
     }
   );
 
+type SizeListItem = {
+  productSizeId?: string;
+  sizeId: string;
+  sizeName: string;
+  price: string;
+  groupName: string;
+};
+
 const ProductEditPage = () => {
   const { data: session } = useSession();
   const params = useParams()!;
@@ -107,16 +114,10 @@ const ProductEditPage = () => {
   const [sizes, setSizes] = useState<Size[]>([]);
   const [filePreviews, setFilePreviews] = useState<ImagePreviewItem[]>([]);
   const [videoPreviews, setVideoPreviews] = useState<VideoPreviewItem[]>([]);
-  const [sizeList, setSizeList] = useState<
-    Array<{
-      productSizeId?: string;
-      sizeId: string;
-      sizeName: string;
-      price: string;
-    }>
-  >([]);
+  const [sizeList, setSizeList] = useState<SizeListItem[]>([]);
   const [selectedNewSizeId, setSelectedNewSizeId] = useState<string>("");
   const [newSizePrice, setNewSizePrice] = useState<string>("");
+  const [newGroupName, setNewGroupName] = useState<string>("");
 
   const form = useForm<z.infer<typeof formSchema>>({
     defaultValues: {
@@ -140,7 +141,6 @@ const ProductEditPage = () => {
       max_installments: "1",
       user_id: session?.user?.user?.name ?? "",
       unit: "",
-      variation_label: "",
       type: "product",
       price_on_request: false,
     },
@@ -167,6 +167,19 @@ const ProductEditPage = () => {
   const priceOnRequest = watch("price_on_request");
   const productType = watch("type");
 
+  // Group sizeList by groupName for display
+  const groupedSizeList = sizeList.reduce<Record<string, SizeListItem[]>>(
+    (acc, item) => {
+      const key = item.groupName || "";
+      if (!acc[key]) acc[key] = [];
+      acc[key].push(item);
+      return acc;
+    },
+    {}
+  );
+
+  const uniqueGroupNames = [...new Set(sizeList.map((s) => s.groupName).filter(Boolean))];
+
   useEffect(() => {
     if (!session?.user?.accessToken || !productId) return;
 
@@ -190,14 +203,8 @@ const ProductEditPage = () => {
           setCustomValue("featured", fetchedProduct.featured);
           setCustomValue("active", fetchedProduct.active);
           setCustomValue("price", fetchedProduct.price.toString());
-          setCustomValue(
-            "installment_available",
-            Boolean(fetchedProduct.installment_available)
-          );
-          setCustomValue(
-            "installment_with_interest",
-            Boolean(fetchedProduct.installment_with_interest)
-          );
+          setCustomValue("installment_available", Boolean(fetchedProduct.installment_available));
+          setCustomValue("installment_with_interest", Boolean(fetchedProduct.installment_with_interest));
           setCustomValue(
             "installment_interest_value",
             fetchedProduct.installment_interest_value != null
@@ -210,17 +217,10 @@ const ProductEditPage = () => {
               ? String(fetchedProduct.max_installments)
               : "1"
           );
-          setCustomValue(
-            "promotion_price",
-            fetchedProduct.promotion_price?.toString() ?? "0"
-          );
-          setCustomValue(
-            "isPromotion",
-            Number(fetchedProduct.promotion_price) > 0
-          );
+          setCustomValue("promotion_price", fetchedProduct.promotion_price?.toString() ?? "0");
+          setCustomValue("isPromotion", Number(fetchedProduct.promotion_price) > 0);
           setCustomValue("user_id", fetchedProduct.user_id);
           setCustomValue("unit", fetchedProduct.unit ?? "");
-          setCustomValue("variation_label", fetchedProduct.variation_label ?? "");
           setCustomValue("type", (fetchedProduct.type as "product" | "service") ?? "product");
           setCustomValue("price_on_request", Boolean(fetchedProduct.price_on_request));
 
@@ -231,23 +231,24 @@ const ProductEditPage = () => {
           if (fetchedProduct.videos) {
             setVideoPreviews(
               fetchedProduct.videos.map((v: any) =>
-                typeof v === 'string' ? { url: v, orientation: 'horizontal' as const } : v
+                typeof v === "string"
+                  ? { url: v, orientation: "horizontal" as const }
+                  : v
               ) as VideoPreviewItem[]
             );
           }
 
-          if (fetchedProduct.product_size) {
+          if (fetchedProduct.product_size && fetchedProduct.product_size.length > 0) {
             setSizeList(
               fetchedProduct.product_size.map((ps) => ({
                 productSizeId: ps.id,
                 sizeId: ps.size.id,
                 sizeName: ps.size.size,
                 price: ps.price?.toString() ?? "",
+                groupName: ps.group_name ?? "",
               }))
             );
-            if (fetchedProduct.product_size.length > 0) {
-              setCustomValue("isSize", true);
-            }
+            setCustomValue("isSize", true);
           }
         }
 
@@ -293,7 +294,7 @@ const ProductEditPage = () => {
     const newItems: VideoPreviewItem[] = files.map((file) => ({
       file,
       preview: URL.createObjectURL(file),
-      orientation: 'horizontal' as const,
+      orientation: "horizontal" as const,
     }));
     setVideoPreviews((prev) => [...prev, ...newItems]);
   };
@@ -302,7 +303,7 @@ const ProductEditPage = () => {
     setVideoPreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleChangeVideoOrientation = (index: number, orientation: 'horizontal' | 'vertical') => {
+  const handleChangeVideoOrientation = (index: number, orientation: "horizontal" | "vertical") => {
     setVideoPreviews((prev) =>
       prev.map((item, i) => (i === index ? { ...item, orientation } : item))
     );
@@ -318,12 +319,13 @@ const ProductEditPage = () => {
           product_id: product?.id,
           size_id: item.sizeId,
           price: item.price ? Number(item.price) : null,
+          group_name: item.groupName || null,
         },
         session?.user?.accessToken
       );
-      toast.success("Preço do tamanho atualizado");
+      toast.success("Variação atualizada");
     } catch {
-      toast.error("Erro ao atualizar preço");
+      toast.error("Erro ao atualizar variação");
     }
   };
 
@@ -331,15 +333,12 @@ const ProductEditPage = () => {
     const item = sizeList[index];
     try {
       if (item.productSizeId) {
-        await productSizeService.DELETE(
-          item.productSizeId,
-          session?.user?.accessToken
-        );
+        await productSizeService.DELETE(item.productSizeId, session?.user?.accessToken);
       }
       setSizeList(sizeList.filter((_, i) => i !== index));
-      toast.success("Tamanho removido");
+      toast.success("Variação removida");
     } catch {
-      toast.error("Erro ao remover tamanho");
+      toast.error("Erro ao remover variação");
     }
   };
 
@@ -353,6 +352,7 @@ const ProductEditPage = () => {
           product_id: product.id,
           size_id: selectedNewSizeId,
           price: newSizePrice ? Number(newSizePrice) : null,
+          group_name: newGroupName.trim() || null,
         },
         session?.user?.accessToken
       );
@@ -363,13 +363,14 @@ const ProductEditPage = () => {
           sizeId: selectedNewSizeId,
           sizeName: selectedSize.size!,
           price: newSizePrice,
+          groupName: newGroupName.trim(),
         },
       ]);
       setSelectedNewSizeId("");
       setNewSizePrice("");
-      toast.success("Tamanho adicionado");
+      toast.success("Variação adicionada");
     } catch {
-      toast.error("Erro ao adicionar tamanho");
+      toast.error("Erro ao adicionar variação");
     }
   };
 
@@ -394,9 +395,9 @@ const ProductEditPage = () => {
         }
       }
 
-      const resolvedVideos: { url: string; orientation: 'horizontal' | 'vertical' }[] = [];
+      const resolvedVideos: { url: string; orientation: "horizontal" | "vertical" }[] = [];
       for (const item of videoPreviews) {
-        if ('url' in item) {
+        if ("url" in item) {
           resolvedVideos.push({ url: item.url, orientation: item.orientation });
         } else if (item.file) {
           const res: any = await uploadService.POST({
@@ -434,7 +435,7 @@ const ProductEditPage = () => {
               ? Number(data.installment_interest_value)
               : null,
           unit: data.unit || null,
-          variation_label: data.variation_label || null,
+          variation_label: null,
           type: data.type,
           price_on_request: data.price_on_request,
           videos: resolvedVideos.length > 0 ? resolvedVideos : [],
@@ -698,8 +699,12 @@ const ProductEditPage = () => {
                 Informações adicionais
               </h2>
 
+              {/* Variações unificadas */}
               <div className="mb-3">
                 <h3 className="font-bold">Seu produto possui variações?</h3>
+                <p className="text-xs text-gray-400 mt-1">
+                  Ex: Peso (250G, 500G, 1KG), Sabor (Morango, Chocolate), Tamanho (P, M, G)
+                </p>
               </div>
               <div className="mb-5">
                 <FormField
@@ -721,107 +726,134 @@ const ProductEditPage = () => {
               </div>
 
               {isSize && (
-                <div className="mb-5">
-                  <div className="mb-4">
-                    <FormField
-                      control={form.control}
-                      name="variation_label"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Como chamar essa variação?</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="Ex: Tamanho, Sabor, Cor, Volume..."
-                              maxLength={50}
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormDescription className="text-xs text-gray-400">
-                            Esse nome aparecerá para o cliente na página do produto.
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <FormLabel>Variações do produto</FormLabel>
-
-                  {sizeList.length > 0 && (
-                    <div className="mt-2 mb-3 flex flex-col gap-2">
-                      {sizeList.map((item, index) => (
-                        <div
-                          key={item.sizeId}
-                          className="flex items-center gap-2 border rounded-md p-2"
-                        >
-                          <span className="flex-1 text-sm font-medium">{item.sizeName}</span>
-                          <Input
-                            className="w-32 text-sm"
-                            type="number"
-                            step="0.01"
-                            min={0}
-                            placeholder="Preço (opcional)"
-                            value={item.price}
-                            onChange={(e) => {
-                              const updated = [...sizeList];
-                              updated[index] = { ...updated[index], price: e.target.value };
-                              setSizeList(updated);
-                            }}
-                          />
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleUpdateSizePrice(index)}
-                          >
-                            <FaSave className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleRemoveSize(index)}
-                          >
-                            <TbTrash className="w-4 h-4 text-red-500" />
-                          </Button>
+                <div className="mb-6">
+                  {/* Variações agrupadas */}
+                  {Object.keys(groupedSizeList).length > 0 && (
+                    <div className="mb-4 flex flex-col gap-4">
+                      {Object.entries(groupedSizeList).map(([groupName, items]) => (
+                        <div key={groupName}>
+                          <div className="text-sm font-semibold text-gray-700 bg-gray-100 px-3 py-1.5 rounded mb-2">
+                            {groupName || "Sem grupo"}
+                          </div>
+                          <div className="flex flex-col gap-2 pl-2">
+                            {items.map((item) => {
+                              const index = sizeList.findIndex(
+                                (s) =>
+                                  s.sizeId === item.sizeId &&
+                                  s.groupName === item.groupName &&
+                                  s.productSizeId === item.productSizeId
+                              );
+                              return (
+                                <div
+                                  key={`${item.productSizeId ?? item.sizeId}-${item.groupName}`}
+                                  className="flex items-center gap-2 border rounded-md p-2"
+                                >
+                                  <span className="flex-1 text-sm font-medium">
+                                    {item.sizeName}
+                                  </span>
+                                  <Input
+                                    className="w-32 text-sm"
+                                    type="number"
+                                    step="0.01"
+                                    min={0}
+                                    placeholder="Preço (opcional)"
+                                    value={item.price}
+                                    onChange={(e) => {
+                                      const updated = [...sizeList];
+                                      updated[index] = {
+                                        ...updated[index],
+                                        price: e.target.value,
+                                      };
+                                      setSizeList(updated);
+                                    }}
+                                  />
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleUpdateSizePrice(index)}
+                                  >
+                                    <FaSave className="w-4 h-4" />
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleRemoveSize(index)}
+                                  >
+                                    <TbTrash className="w-4 h-4 text-red-500" />
+                                  </Button>
+                                </div>
+                              );
+                            })}
+                          </div>
                         </div>
                       ))}
                     </div>
                   )}
 
-                  <div className="flex items-center gap-2 mt-2">
-                    <SelectComponent value={selectedNewSizeId} onValueChange={setSelectedNewSizeId}>
-                      <SelectTrigger className="flex-1 text-sm">
-                        <SelectValue placeholder="Selecione uma variação" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {sizes
-                          .filter((s) => !sizeList.some((sl) => sl.sizeId === s.id))
-                          .map((s) => (
-                            <SelectItem key={s.id} value={s.id!}>
-                              {s.size}
-                            </SelectItem>
-                          ))}
-                      </SelectContent>
-                    </SelectComponent>
-                    <Input
-                      className="w-32 text-sm"
-                      type="number"
-                      step="0.01"
-                      min={0}
-                      placeholder="Preço (opcional)"
-                      value={newSizePrice}
-                      onChange={(e) => setNewSizePrice(e.target.value)}
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={handleAddSize}
-                      disabled={!selectedNewSizeId}
-                    >
-                      <IoMdAdd className="w-4 h-4" />
-                      Adicionar
-                    </Button>
+                  {/* Adicionar nova variação */}
+                  <div className="border rounded-md p-3 bg-gray-50 flex flex-col gap-2">
+                    <p className="text-xs font-medium text-gray-500">Adicionar variação</p>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        placeholder="Grupo (Ex: Peso, Sabor, Tamanho, Cor...)"
+                        value={newGroupName}
+                        onChange={(e) => setNewGroupName(e.target.value)}
+                        list="group-suggestions"
+                        className="flex-1 text-sm"
+                      />
+                      <datalist id="group-suggestions">
+                        {uniqueGroupNames.map((g) => (
+                          <option key={g} value={g} />
+                        ))}
+                      </datalist>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <SelectComponent
+                        value={selectedNewSizeId}
+                        onValueChange={setSelectedNewSizeId}
+                      >
+                        <SelectTrigger className="flex-1 text-sm">
+                          <SelectValue placeholder="Selecione uma opção" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {sizes
+                            .filter(
+                              (s) =>
+                                !sizeList.some(
+                                  (sl) =>
+                                    sl.sizeId === s.id &&
+                                    sl.groupName === newGroupName.trim()
+                                )
+                            )
+                            .map((s) => (
+                              <SelectItem key={s.id} value={s.id!}>
+                                {s.size}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </SelectComponent>
+                      <Input
+                        className="w-32 text-sm"
+                        type="number"
+                        step="0.01"
+                        min={0}
+                        placeholder="Preço (opcional)"
+                        value={newSizePrice}
+                        onChange={(e) => setNewSizePrice(e.target.value)}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleAddSize}
+                        disabled={!selectedNewSizeId}
+                      >
+                        <IoMdAdd className="w-4 h-4 mr-1" />
+                        Adicionar
+                      </Button>
+                    </div>
                   </div>
                 </div>
               )}
@@ -995,7 +1027,9 @@ const ProductEditPage = () => {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => { if (confirmLeave()) router.push("/product"); }}
+                onClick={() => {
+                  if (confirmLeave()) router.push("/product");
+                }}
                 className="flex-1"
               >
                 Cancelar

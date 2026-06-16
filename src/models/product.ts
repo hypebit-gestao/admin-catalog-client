@@ -8,6 +8,7 @@ export interface Product {
   product_size?: Array<{
     id: string;
     price?: number | null;
+    group_name?: string | null;
     size: {
       id: string;
       size: string;

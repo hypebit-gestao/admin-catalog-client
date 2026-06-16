@@ -13,4 +13,5 @@ export interface ProductSize {
   product_id: string | undefined;
   size_id: string | undefined;
   price?: number | null;
+  group_name?: string | null;
 }
