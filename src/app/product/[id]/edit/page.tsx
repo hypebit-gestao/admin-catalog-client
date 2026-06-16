@@ -33,7 +33,7 @@ import { IoMdAdd } from "react-icons/io";
 import { useSizeService } from "@/services/size.service";
 import { Size } from "@/models/size";
 import { useProductSizeService } from "@/services/productSize.service";
-import { TbTrash } from "react-icons/tb";
+import { TbTrash, TbPencil, TbX } from "react-icons/tb";
 import { FaSave } from "react-icons/fa";
 import { Product } from "@/models/product";
 import ContentMain from "@/components/content-main";
@@ -118,6 +118,8 @@ const ProductEditPage = () => {
   const [selectedNewSizeId, setSelectedNewSizeId] = useState<string>("");
   const [newSizePrice, setNewSizePrice] = useState<string>("");
   const [newGroupName, setNewGroupName] = useState<string>("");
+  const [editingGroup, setEditingGroup] = useState<string | null>(null);
+  const [editingGroupValue, setEditingGroupValue] = useState<string>("");
 
   const form = useForm<z.infer<typeof formSchema>>({
     defaultValues: {
@@ -371,6 +373,38 @@ const ProductEditPage = () => {
       toast.success("Variação adicionada");
     } catch {
       toast.error("Erro ao adicionar variação");
+    }
+  };
+
+  const handleRenameGroup = async (originalName: string) => {
+    const newName = editingGroupValue.trim();
+    const itemsToUpdate = sizeList.filter((s) => s.groupName === originalName);
+    try {
+      await Promise.all(
+        itemsToUpdate
+          .filter((item) => item.productSizeId)
+          .map((item) =>
+            productSizeService.PUT(
+              {
+                id: item.productSizeId!,
+                product_id: product?.id,
+                size_id: item.sizeId,
+                price: item.price ? Number(item.price) : null,
+                group_name: newName || null,
+              },
+              session?.user?.accessToken
+            )
+          )
+      );
+      setSizeList((prev) =>
+        prev.map((item) =>
+          item.groupName === originalName ? { ...item, groupName: newName } : item
+        )
+      );
+      setEditingGroup(null);
+      toast.success("Grupo renomeado");
+    } catch {
+      toast.error("Erro ao renomear grupo");
     }
   };
 
@@ -732,8 +766,52 @@ const ProductEditPage = () => {
                     <div className="mb-4 flex flex-col gap-4">
                       {Object.entries(groupedSizeList).map(([groupName, items]) => (
                         <div key={groupName}>
-                          <div className="text-sm font-semibold text-gray-700 bg-gray-100 px-3 py-1.5 rounded mb-2">
-                            {groupName || "Sem grupo"}
+                          <div className="flex items-center gap-1.5 bg-gray-100 px-3 py-1.5 rounded mb-2">
+                            {editingGroup === groupName ? (
+                              <>
+                                <input
+                                  autoFocus
+                                  value={editingGroupValue}
+                                  onChange={(e) => setEditingGroupValue(e.target.value)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter") handleRenameGroup(groupName);
+                                    if (e.key === "Escape") setEditingGroup(null);
+                                  }}
+                                  placeholder="Nome do grupo"
+                                  className="flex-1 text-sm font-semibold bg-white border border-gray-300 rounded px-2 py-0.5 outline-none focus:ring-1 focus:ring-gray-400"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => handleRenameGroup(groupName)}
+                                  className="text-green-600 hover:text-green-700"
+                                >
+                                  <FaSave className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setEditingGroup(null)}
+                                  className="text-gray-400 hover:text-gray-600"
+                                >
+                                  <TbX className="w-3.5 h-3.5" />
+                                </button>
+                              </>
+                            ) : (
+                              <>
+                                <span className="flex-1 text-sm font-semibold text-gray-700">
+                                  {groupName || "Sem grupo"}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setEditingGroup(groupName);
+                                    setEditingGroupValue(groupName);
+                                  }}
+                                  className="text-gray-400 hover:text-gray-600"
+                                >
+                                  <TbPencil className="w-3.5 h-3.5" />
+                                </button>
+                              </>
+                            )}
                           </div>
                           <div className="flex flex-col gap-2 pl-2">
                             {items.map((item) => {
