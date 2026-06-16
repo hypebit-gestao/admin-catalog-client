@@ -9,11 +9,13 @@ import usePersonalizationStoreModal from "@/utils/hooks/pesonalization-store/use
 import PersonalizationStore from "@/components/personalization_store/personalization-store";
 import useGoogleAnalyticsModal from "@/utils/hooks/analytics/useGoogleAnalyticsModal";
 import GoogleAnalyticsModal from "@/components/google-analytics/google-analytics-modal";
-import { MdLocalShipping, MdPalette, MdChevronRight, MdAnalytics, MdQrCode2, MdPayment } from "react-icons/md";
+import { MdLocalShipping, MdPalette, MdChevronRight, MdAnalytics, MdQrCode2, MdPayment, MdCreditScore } from "react-icons/md";
 import useQRCodeModal from "@/utils/hooks/qrcode/useQRCodeModal";
 import QRCodeModal from "@/components/qrcode/qrcode-modal";
 import usePaymentMethodsModal from "@/utils/hooks/usePaymentMethodsModal";
 import PaymentMethodsModal from "@/components/payment-methods-modal";
+import useInstallmentsModal from "@/utils/hooks/useInstallmentsModal";
+import InstallmentsModal from "@/components/installments-modal";
 import { cn } from "@/lib/utils";
 
 const configCards = [
@@ -62,6 +64,15 @@ const configCards = [
     iconColor: "text-teal-600",
     borderHover: "hover:border-teal-200",
   },
+  {
+    id: "installments",
+    title: "Parcelamento",
+    description: "Configure o máximo de parcelas, se há juros e a taxa de juros para pagamentos no cartão de crédito.",
+    icon: MdCreditScore,
+    iconBg: "bg-sky-50",
+    iconColor: "text-sky-600",
+    borderHover: "hover:border-sky-200",
+  },
 ];
 
 const Configurations = () => {
@@ -71,6 +82,7 @@ const Configurations = () => {
   const gaModal = useGoogleAnalyticsModal();
   const qrCodeModal = useQRCodeModal();
   const paymentMethodsModal = usePaymentMethodsModal();
+  const installmentsModal = useInstallmentsModal();
 
   const handleCardClick = (id: string) => {
     if (id === "shipping") shippingModal.onOpen();
@@ -78,6 +90,7 @@ const Configurations = () => {
     if (id === "analytics") gaModal.onOpen();
     if (id === "qrcode") qrCodeModal.onOpen();
     if (id === "payment-methods") paymentMethodsModal.onOpen();
+    if (id === "installments") installmentsModal.onOpen();
   };
 
   return (
@@ -101,6 +114,10 @@ const Configurations = () => {
       <PaymentMethodsModal
         isOpen={paymentMethodsModal.isOpen}
         onClose={paymentMethodsModal.onClose}
+      />
+      <InstallmentsModal
+        isOpen={installmentsModal.isOpen}
+        onClose={installmentsModal.onClose}
       />
       <ContentMain
         title="Configurações da Loja"

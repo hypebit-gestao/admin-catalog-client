@@ -56,10 +56,6 @@ const formSchema = z
     active: z.boolean(),
     currency: z.string(),
     price: z.string(),
-    installment_available: z.boolean().optional(),
-    installment_with_interest: z.boolean().optional(),
-    installment_interest_value: z.string().optional(),
-    max_installments: z.string().optional(),
     isPromotion: z.boolean(),
     isSize: z.boolean(),
     isAttribute: z.boolean(),
@@ -137,10 +133,6 @@ const ProductEditPage = () => {
       isSize: false,
       isAttribute: false,
       promotion_price: "",
-      installment_available: false,
-      installment_with_interest: false,
-      installment_interest_value: "",
-      max_installments: "1",
       user_id: session?.user?.user?.name ?? "",
       unit: "",
       type: "product",
@@ -164,8 +156,6 @@ const ProductEditPage = () => {
 
   const isPromotion = watch("isPromotion");
   const isSize = watch("isSize");
-  const installmentAvailable = watch("installment_available");
-  const installmentWithInterest = watch("installment_with_interest");
   const priceOnRequest = watch("price_on_request");
   const productType = watch("type");
 
@@ -205,20 +195,6 @@ const ProductEditPage = () => {
           setCustomValue("featured", fetchedProduct.featured);
           setCustomValue("active", fetchedProduct.active);
           setCustomValue("price", fetchedProduct.price.toString());
-          setCustomValue("installment_available", Boolean(fetchedProduct.installment_available));
-          setCustomValue("installment_with_interest", Boolean(fetchedProduct.installment_with_interest));
-          setCustomValue(
-            "installment_interest_value",
-            fetchedProduct.installment_interest_value != null
-              ? String(fetchedProduct.installment_interest_value)
-              : ""
-          );
-          setCustomValue(
-            "max_installments",
-            fetchedProduct.max_installments != null
-              ? String(fetchedProduct.max_installments)
-              : "1"
-          );
           setCustomValue("promotion_price", fetchedProduct.promotion_price?.toString() ?? "0");
           setCustomValue("isPromotion", Number(fetchedProduct.promotion_price) > 0);
           setCustomValue("user_id", fetchedProduct.user_id);
@@ -457,17 +433,10 @@ const ProductEditPage = () => {
           user_id: session?.user?.user?.id,
           featured: data.featured,
           active: data.active,
-          max_installments: data.installment_available
-            ? Number(data.max_installments ?? 1)
-            : 1,
-          installment_available: data.installment_available,
-          installment_with_interest: data.installment_available
-            ? data.installment_with_interest
-            : false,
-          installment_interest_value:
-            data.installment_available && data.installment_with_interest
-              ? Number(data.installment_interest_value)
-              : null,
+          max_installments: 1,
+          installment_available: false,
+          installment_with_interest: false,
+          installment_interest_value: null,
           unit: data.unit || null,
           variation_label: null,
           type: data.type,
@@ -933,99 +902,6 @@ const ProductEditPage = () => {
                       </Button>
                     </div>
                   </div>
-                </div>
-              )}
-
-              <div className="mb-3">
-                <h3 className="font-bold">Parcelamento</h3>
-              </div>
-              <div className="mb-5">
-                <FormField
-                  control={form.control}
-                  name="installment_available"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <div className="flex items-center gap-2">
-                          <Checkbox
-                            className="w-5 h-5"
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                          <span>Parcelamento disponível</span>
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              {installmentAvailable && (
-                <div className="mb-5 space-y-3">
-                  <FormField
-                    control={form.control}
-                    name="installment_with_interest"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <div className="flex items-center gap-2">
-                            <Checkbox
-                              className="w-5 h-5"
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                            <span>Com juros</span>
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  {installmentWithInterest && (
-                    <FormField
-                      control={form.control}
-                      name="installment_interest_value"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Valor do juros (%)</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="Ex.: 2.5"
-                              type="number"
-                              step="0.01"
-                              min={0}
-                              max={100}
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  )}
-
-                  <FormField
-                    control={form.control}
-                    name="max_installments"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Máximo de parcelas</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Ex.: 6"
-                            type="number"
-                            step="1"
-                            min={1}
-                            max={36}
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
                 </div>
               )}
 

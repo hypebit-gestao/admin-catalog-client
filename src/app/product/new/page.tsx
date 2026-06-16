@@ -51,10 +51,6 @@ const formSchema = z
     isPromotion: z.boolean(),
     promotion_price: z.string(),
     price: z.string(),
-    installment_available: z.boolean(),
-    installment_with_interest: z.boolean(),
-    installment_interest_value: z.string().optional(),
-    max_installments: z.string().optional(),
     unit: z.string().optional(),
     type: z.enum(["product", "service"]),
     price_on_request: z.boolean(),
@@ -70,19 +66,7 @@ const formSchema = z
       path: ["promotion_price"],
     }
   )
-  .refine(
-    (data) =>
-      !data.installment_available ||
-      !data.installment_with_interest ||
-      (data.installment_interest_value !== undefined &&
-        data.installment_interest_value !== "" &&
-        Number(data.installment_interest_value) > 0 &&
-        Number(data.installment_interest_value) <= 100),
-    {
-      message: "O valor do juros deve ser maior que 0 e menor ou igual a 100",
-      path: ["installment_interest_value"],
-    }
-  );
+;
 
 const ProductNewPage = () => {
   const { data: session } = useSession();
@@ -109,10 +93,6 @@ const ProductNewPage = () => {
       isPromotion: false,
       price: "",
       promotion_price: "",
-      installment_available: false,
-      installment_with_interest: false,
-      installment_interest_value: "",
-      max_installments: "1",
       unit: "",
       type: "product",
       price_on_request: false,
@@ -123,8 +103,6 @@ const ProductNewPage = () => {
   const { confirmLeave } = useUnsavedChanges(form.formState.isDirty);
 
   const isPromotion = watch("isPromotion");
-  const installmentAvailable = watch("installment_available");
-  const installmentWithInterest = watch("installment_with_interest");
   const priceOnRequest = watch("price_on_request");
 
   useEffect(() => {
@@ -225,13 +203,10 @@ const ProductNewPage = () => {
           active: data.active,
           description: data.description ?? "",
           archived: false,
-          installment_available: data.installment_available,
-          installment_with_interest: data.installment_available ? data.installment_with_interest : false,
-          installment_interest_value:
-            data.installment_available && data.installment_with_interest
-              ? Number(data.installment_interest_value)
-              : null,
-          max_installments: data.installment_available ? Number(data.max_installments ?? 1) : 1,
+          installment_available: false,
+          installment_with_interest: false,
+          installment_interest_value: null,
+          max_installments: 1,
           unit: data.unit || null,
           variation_label: null,
           type: data.type,
@@ -454,73 +429,6 @@ const ProductNewPage = () => {
               <div className="mb-5 rounded-md border border-dashed border-gray-300 bg-gray-50 p-4 text-sm text-gray-500">
                 Variações (peso, sabor, tamanho, etc.) são gerenciadas na <strong>edição do produto</strong> após o cadastro.
               </div>
-
-              <div className="mb-3"><h3 className="font-bold">Parcelamento</h3></div>
-              <div className="mb-5">
-                <FormField
-                  control={form.control}
-                  name="installment_available"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <div className="flex items-center gap-2">
-                          <Checkbox className="w-5 h-5" checked={field.value} onCheckedChange={field.onChange} />
-                          <span>Parcelamento disponível</span>
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              {installmentAvailable && (
-                <div className="mb-5 space-y-3">
-                  <FormField
-                    control={form.control}
-                    name="installment_with_interest"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <div className="flex items-center gap-2">
-                            <Checkbox className="w-5 h-5" checked={field.value} onCheckedChange={field.onChange} />
-                            <span>Com juros</span>
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  {installmentWithInterest && (
-                    <FormField
-                      control={form.control}
-                      name="installment_interest_value"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Valor do juros (%)</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Ex.: 2.5" type="number" step="0.01" min={0} max={100} {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  )}
-                  <FormField
-                    control={form.control}
-                    name="max_installments"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Máximo de parcelas</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Ex.: 6" type="number" step="1" min={1} max={36} {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              )}
 
               <div className="mb-5">
                 <FormLabel>Imagens do {watch("type") === "service" ? "serviço" : "produto"}</FormLabel>

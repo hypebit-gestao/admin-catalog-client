@@ -4,6 +4,7 @@ import {
   UserDiscountsMethods,
   UserPersonalizationColorPut,
   UserShippingPut,
+  UserStoreSettingsPut,
 } from "../models/user";
 
 export const useUserService = () => {
@@ -61,7 +62,7 @@ export const useUserService = () => {
   };
 
   const PUT = async (
-    data: User | UserShippingPut | UserPersonalizationColorPut | UserDiscountsMethods,
+    data: User | UserShippingPut | UserPersonalizationColorPut | UserDiscountsMethods | UserStoreSettingsPut,
     session: string | any
   ): Promise<
     User | UserShippingPut | UserPersonalizationColorPut | undefined

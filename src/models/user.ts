@@ -26,6 +26,10 @@ export interface User {
   origin_cep?: string | null;
   payment_methods?: string[] | null;
   pix_key?: string | null;
+  installments_enabled?: boolean | null;
+  max_installments?: number | null;
+  installment_with_interest?: boolean | null;
+  installment_interest_value?: number | null;
 }
 
 export interface UserShippingPut {
@@ -44,4 +48,14 @@ export interface UserDiscountsMethods {
   pix_discount?: number | null;
   credit_discount?: number | null;
   debit_discount?: number | null;
+}
+
+export interface UserStoreSettingsPut {
+  id?: string;
+  payment_methods?: string[] | null;
+  pix_key?: string | null;
+  installments_enabled?: boolean | null;
+  max_installments?: number | null;
+  installment_with_interest?: boolean | null;
+  installment_interest_value?: number | null;
 }
