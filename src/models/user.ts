@@ -24,6 +24,8 @@ export interface User {
   ga_measurement_id?: string | null;
   theme?: string | null;
   origin_cep?: string | null;
+  payment_methods?: string[] | null;
+  pix_key?: string | null;
 }
 
 export interface UserShippingPut {

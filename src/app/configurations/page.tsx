@@ -9,9 +9,11 @@ import usePersonalizationStoreModal from "@/utils/hooks/pesonalization-store/use
 import PersonalizationStore from "@/components/personalization_store/personalization-store";
 import useGoogleAnalyticsModal from "@/utils/hooks/analytics/useGoogleAnalyticsModal";
 import GoogleAnalyticsModal from "@/components/google-analytics/google-analytics-modal";
-import { MdLocalShipping, MdPalette, MdChevronRight, MdAnalytics, MdQrCode2 } from "react-icons/md";
+import { MdLocalShipping, MdPalette, MdChevronRight, MdAnalytics, MdQrCode2, MdPayment } from "react-icons/md";
 import useQRCodeModal from "@/utils/hooks/qrcode/useQRCodeModal";
 import QRCodeModal from "@/components/qrcode/qrcode-modal";
+import usePaymentMethodsModal from "@/utils/hooks/usePaymentMethodsModal";
+import PaymentMethodsModal from "@/components/payment-methods-modal";
 import { cn } from "@/lib/utils";
 
 const configCards = [
@@ -51,6 +53,15 @@ const configCards = [
     iconColor: "text-green-600",
     borderHover: "hover:border-green-200",
   },
+  {
+    id: "payment-methods",
+    title: "Métodos de Pagamento",
+    description: "Escolha quais formas de pagamento (Dinheiro, Pix, Crédito, Débito) aparecem para seus clientes no carrinho.",
+    icon: MdPayment,
+    iconBg: "bg-teal-50",
+    iconColor: "text-teal-600",
+    borderHover: "hover:border-teal-200",
+  },
 ];
 
 const Configurations = () => {
@@ -59,11 +70,14 @@ const Configurations = () => {
   const personalizationStoreModal = usePersonalizationStoreModal();
   const gaModal = useGoogleAnalyticsModal();
   const qrCodeModal = useQRCodeModal();
+  const paymentMethodsModal = usePaymentMethodsModal();
+
   const handleCardClick = (id: string) => {
     if (id === "shipping") shippingModal.onOpen();
     if (id === "personalization") personalizationStoreModal.onOpen();
     if (id === "analytics") gaModal.onOpen();
     if (id === "qrcode") qrCodeModal.onOpen();
+    if (id === "payment-methods") paymentMethodsModal.onOpen();
   };
 
   return (
@@ -83,6 +97,10 @@ const Configurations = () => {
       <QRCodeModal
         isOpen={qrCodeModal.isOpen}
         onClose={qrCodeModal.onClose}
+      />
+      <PaymentMethodsModal
+        isOpen={paymentMethodsModal.isOpen}
+        onClose={paymentMethodsModal.onClose}
       />
       <ContentMain
         title="Configurações da Loja"
