@@ -19,6 +19,7 @@ export interface User {
   banner_url?: string | null;
   banners?: string[] | null;
   og_image_url?: string | null;
+  instagram_url?: string | null;
   background_color?: string | null;
   pix_discount?: number | null;
   credit_discount?: number | null;

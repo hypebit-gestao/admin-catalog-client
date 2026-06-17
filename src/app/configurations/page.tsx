@@ -10,12 +10,15 @@ import PersonalizationStore from "@/components/personalization_store/personaliza
 import useGoogleAnalyticsModal from "@/utils/hooks/analytics/useGoogleAnalyticsModal";
 import GoogleAnalyticsModal from "@/components/google-analytics/google-analytics-modal";
 import { MdLocalShipping, MdPalette, MdChevronRight, MdAnalytics, MdQrCode2, MdPayment, MdCreditScore } from "react-icons/md";
+import { FaInstagram } from "react-icons/fa";
 import useQRCodeModal from "@/utils/hooks/qrcode/useQRCodeModal";
 import QRCodeModal from "@/components/qrcode/qrcode-modal";
 import usePaymentMethodsModal from "@/utils/hooks/usePaymentMethodsModal";
 import PaymentMethodsModal from "@/components/payment-methods-modal";
 import useInstallmentsModal from "@/utils/hooks/useInstallmentsModal";
 import InstallmentsModal from "@/components/installments-modal";
+import useSocialModal from "@/utils/hooks/useSocialModal";
+import SocialModal from "@/components/social/social-modal";
 import { cn } from "@/lib/utils";
 
 const configCards = [
@@ -73,6 +76,15 @@ const configCards = [
     iconColor: "text-sky-600",
     borderHover: "hover:border-sky-200",
   },
+  {
+    id: "social",
+    title: "Redes Sociais",
+    description: "Adicione o link do seu Instagram para exibir no rodapé da sua loja e facilitar o contato.",
+    icon: FaInstagram,
+    iconBg: "bg-pink-50",
+    iconColor: "text-pink-600",
+    borderHover: "hover:border-pink-200",
+  },
 ];
 
 const Configurations = () => {
@@ -83,6 +95,7 @@ const Configurations = () => {
   const qrCodeModal = useQRCodeModal();
   const paymentMethodsModal = usePaymentMethodsModal();
   const installmentsModal = useInstallmentsModal();
+  const socialModal = useSocialModal();
 
   const handleCardClick = (id: string) => {
     if (id === "shipping") shippingModal.onOpen();
@@ -91,6 +104,7 @@ const Configurations = () => {
     if (id === "qrcode") qrCodeModal.onOpen();
     if (id === "payment-methods") paymentMethodsModal.onOpen();
     if (id === "installments") installmentsModal.onOpen();
+    if (id === "social") socialModal.onOpen();
   };
 
   return (
@@ -118,6 +132,10 @@ const Configurations = () => {
       <InstallmentsModal
         isOpen={installmentsModal.isOpen}
         onClose={installmentsModal.onClose}
+      />
+      <SocialModal
+        isOpen={socialModal.isOpen}
+        onClose={socialModal.onClose}
       />
       <ContentMain
         title="Configurações da Loja"

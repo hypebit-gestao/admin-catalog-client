@@ -78,6 +78,7 @@ const UserEdit = ({ isOpen, onClose }: UserEditProps) => {
   const [banners, setBanners] = useState<string[]>([]);
   const [uploadingBanner, setUploadingBanner] = useState(false);
   const addBannerInputRef = useRef<HTMLInputElement>(null);
+  const [instagramUrl, setInstagramUrl] = useState("");
 
   const handleDeleteFile = () => {
     if (inputFileRef.current) {
@@ -192,6 +193,7 @@ const UserEdit = ({ isOpen, onClose }: UserEditProps) => {
           if (fetchedUser.image_url) {
             setFilePreview(fetchedUser.image_url);
           }
+          setInstagramUrl(fetchedUser.instagram_url ?? "");
           if (fetchedUser.banners && fetchedUser.banners.length > 0) {
             setBanners(fetchedUser.banners);
           } else if (fetchedUser.banner_url) {
@@ -300,6 +302,7 @@ const UserEdit = ({ isOpen, onClose }: UserEditProps) => {
             image_url: imageUrl,
             banner_url: banners[0] ?? user?.banner_url ?? "",
             banners,
+            instagram_url: instagramUrl || null,
             og_image_url: ogImageUrl,
             shipping_taxes: user.shipping_taxes,
             shipping_type: user.shipping_type,
@@ -578,15 +581,15 @@ const UserEdit = ({ isOpen, onClose }: UserEditProps) => {
                     Informações adicionais
                   </h1>
 
-                  <div className="mb-5">
-                    <div>
+                  <div className="mb-5 flex flex-col lg:flex-row gap-5">
+                    <div className="w-full">
                       <FormField
                         control={form.control}
                         name="person_link"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel className="text-blue-primary">
-                              URL
+                              URL da Loja
                             </FormLabel>
                             <FormControl>
                               <Input
@@ -597,6 +600,14 @@ const UserEdit = ({ isOpen, onClose }: UserEditProps) => {
                             <FormMessage />
                           </FormItem>
                         )}
+                      />
+                    </div>
+                    <div className="w-full">
+                      <p className="text-sm font-medium text-blue-primary mb-1.5">Instagram</p>
+                      <Input
+                        placeholder="https://instagram.com/sualoja"
+                        value={instagramUrl}
+                        onChange={(e) => setInstagramUrl(e.target.value)}
                       />
                     </div>
                   </div>
