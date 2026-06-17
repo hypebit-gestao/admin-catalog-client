@@ -81,6 +81,7 @@ const StoreDetail = ({ store, token, onClose, websiteBase }: StoreDetailProps) =
   const [loadingTab, setLoadingTab] = useState(false);
   const [asaasId, setAsaasId] = useState(store.asaas_customer_id ?? "");
   const [savingAsaas, setSavingAsaas] = useState(false);
+  const [searchingAsaas, setSearchingAsaas] = useState(false);
 
   const loadTab = useCallback(async (tab: TabKey) => {
     setLoadingTab(true);
@@ -106,6 +107,23 @@ const StoreDetail = ({ store, token, onClose, websiteBase }: StoreDetailProps) =
   const handleTabChange = (tab: TabKey) => {
     setActiveTab(tab);
     loadTab(tab);
+  };
+
+  const handleSearchAsaas = async () => {
+    if (!store.email) return;
+    setSearchingAsaas(true);
+    try {
+      const result = await asaasService.findCustomerByEmail(token, store.email);
+      if (result?.id) {
+        setAsaasId(result.id);
+        toast.success(`Cliente encontrado: ${result.name}`);
+      } else {
+        toast.error("Nenhum cliente encontrado com esse e-mail no Asaas");
+      }
+    } catch {
+      toast.error("Erro ao buscar no Asaas");
+    }
+    setSearchingAsaas(false);
   };
 
   const handleSaveAsaasId = async () => {
@@ -201,8 +219,10 @@ const StoreDetail = ({ store, token, onClose, websiteBase }: StoreDetailProps) =
               store={store}
               asaasId={asaasId}
               savingAsaas={savingAsaas}
+              searchingAsaas={searchingAsaas}
               onAsaasIdChange={setAsaasId}
               onSaveAsaasId={handleSaveAsaasId}
+              onSearchAsaas={handleSearchAsaas}
             />
           ) : activeTab === "products" ? (
             <ProductsTab products={products} />
@@ -218,14 +238,16 @@ const StoreDetail = ({ store, token, onClose, websiteBase }: StoreDetailProps) =
 // ─── Dashboard tab ─────────────────────────────────────────────────────────────
 
 const DashboardTab = ({
-  dashboard, store, asaasId, savingAsaas, onAsaasIdChange, onSaveAsaasId,
+  dashboard, store, asaasId, savingAsaas, searchingAsaas, onAsaasIdChange, onSaveAsaasId, onSearchAsaas,
 }: {
   dashboard: OrderDashboardResponse | null;
   store: User;
   asaasId: string;
   savingAsaas: boolean;
+  searchingAsaas: boolean;
   onAsaasIdChange: (v: string) => void;
   onSaveAsaasId: () => void;
+  onSearchAsaas: () => void;
 }) => {
   if (!dashboard) return <p className="text-center text-gray-400 py-12">Sem dados</p>;
 
@@ -301,15 +323,23 @@ const DashboardTab = ({
               className="flex-1 text-xs px-3 py-2 border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-green-500/30"
             />
             <button
+              onClick={onSearchAsaas}
+              disabled={searchingAsaas}
+              title={`Buscar pelo e-mail ${store.email}`}
+              className="px-3 py-2 rounded-lg bg-blue-500 text-white text-xs font-semibold hover:bg-blue-600 disabled:opacity-60 transition-colors whitespace-nowrap"
+            >
+              {searchingAsaas ? "Buscando…" : "Buscar"}
+            </button>
+            <button
               onClick={onSaveAsaasId}
-              disabled={savingAsaas}
+              disabled={savingAsaas || !asaasId}
               className="px-3 py-2 rounded-lg bg-green-600 text-white text-xs font-semibold hover:bg-green-700 disabled:opacity-60 transition-colors whitespace-nowrap"
             >
               {savingAsaas ? "Salvando…" : "Salvar"}
             </button>
           </div>
           <p className="text-[10px] text-gray-400 mt-1">
-            Vincule esta loja a um cliente Asaas para filtrar o painel financeiro.
+            "Buscar" pesquisa pelo e-mail <span className="font-medium">{store.email}</span> no Asaas e preenche o ID automaticamente.
           </p>
         </div>
       </div>

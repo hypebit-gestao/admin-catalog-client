@@ -103,6 +103,16 @@ export const useAsaasService = () => {
     });
   };
 
+  const findCustomerByEmail = async (
+    token: string,
+    email: string,
+  ): Promise<{ id: string; name: string; email: string } | null | undefined> => {
+    return fetchWrapper<{ id: string; name: string; email: string } | null>(
+      `asaas/find-customer?email=${encodeURIComponent(email)}`,
+      { headers: { Authorization: token } },
+    );
+  };
+
   const linkCustomer = async (
     token: string,
     userId: string,
@@ -115,5 +125,5 @@ export const useAsaasService = () => {
     });
   };
 
-  return { getDashboard, getSubscriptions, getPayments, getCustomers, linkCustomer };
+  return { getDashboard, getSubscriptions, getPayments, getCustomers, linkCustomer, findCustomerByEmail };
 };
