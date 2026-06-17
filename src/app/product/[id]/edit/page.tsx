@@ -89,6 +89,7 @@ type SizeListItem = {
   sizeName: string;
   price: string;
   groupName: string;
+  imageIndex: number | null;
 };
 
 const ProductEditPage = () => {
@@ -224,6 +225,7 @@ const ProductEditPage = () => {
                 sizeName: ps.size.size,
                 price: ps.price?.toString() ?? "",
                 groupName: ps.group_name ?? "",
+                imageIndex: ps.image_index ?? null,
               }))
             );
             setCustomValue("isSize", true);
@@ -298,6 +300,7 @@ const ProductEditPage = () => {
           size_id: item.sizeId,
           price: item.price ? Number(item.price) : null,
           group_name: item.groupName || null,
+          image_index: item.imageIndex,
         },
         session?.user?.accessToken
       );
@@ -342,6 +345,7 @@ const ProductEditPage = () => {
           sizeName: selectedSize.size!,
           price: newSizePrice,
           groupName: newGroupName.trim(),
+          imageIndex: null,
         },
       ]);
       setSelectedNewSizeId("");
@@ -793,43 +797,91 @@ const ProductEditPage = () => {
                               return (
                                 <div
                                   key={`${item.productSizeId ?? item.sizeId}-${item.groupName}`}
-                                  className="flex items-center gap-2 border rounded-md p-2"
+                                  className="flex flex-col gap-2 border rounded-md p-2"
                                 >
-                                  <span className="flex-1 text-sm font-medium">
-                                    {item.sizeName}
-                                  </span>
-                                  <Input
-                                    className="w-32 text-sm"
-                                    type="number"
-                                    step="0.01"
-                                    min={0}
-                                    placeholder="Preço (opcional)"
-                                    value={item.price}
-                                    onChange={(e) => {
-                                      const updated = [...sizeList];
-                                      updated[index] = {
-                                        ...updated[index],
-                                        price: e.target.value,
-                                      };
-                                      setSizeList(updated);
-                                    }}
-                                  />
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handleUpdateSizePrice(index)}
-                                  >
-                                    <FaSave className="w-4 h-4" />
-                                  </Button>
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handleRemoveSize(index)}
-                                  >
-                                    <TbTrash className="w-4 h-4 text-red-500" />
-                                  </Button>
+                                  <div className="flex items-center gap-2">
+                                    <span className="flex-1 text-sm font-medium">
+                                      {item.sizeName}
+                                    </span>
+                                    <Input
+                                      className="w-32 text-sm"
+                                      type="number"
+                                      step="0.01"
+                                      min={0}
+                                      placeholder="Preço (opcional)"
+                                      value={item.price}
+                                      onChange={(e) => {
+                                        const updated = [...sizeList];
+                                        updated[index] = {
+                                          ...updated[index],
+                                          price: e.target.value,
+                                        };
+                                        setSizeList(updated);
+                                      }}
+                                    />
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => handleUpdateSizePrice(index)}
+                                    >
+                                      <FaSave className="w-4 h-4" />
+                                    </Button>
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => handleRemoveSize(index)}
+                                    >
+                                      <TbTrash className="w-4 h-4 text-red-500" />
+                                    </Button>
+                                  </div>
+                                  {filePreviews.length > 1 && (
+                                    <div>
+                                      <p className="text-xs text-gray-400 mb-1">Imagem desta variação:</p>
+                                      <div className="flex gap-1.5 flex-wrap">
+                                        {filePreviews.map((fp, imgIdx) => {
+                                          const src = typeof fp === "string" ? fp : (fp as any).preview ?? (fp as any).url ?? fp;
+                                          const isSelected = item.imageIndex === imgIdx;
+                                          return (
+                                            <button
+                                              key={imgIdx}
+                                              type="button"
+                                              title={`Imagem ${imgIdx + 1}`}
+                                              onClick={() => {
+                                                const updated = [...sizeList];
+                                                updated[index] = {
+                                                  ...updated[index],
+                                                  imageIndex: isSelected ? null : imgIdx,
+                                                };
+                                                setSizeList(updated);
+                                              }}
+                                              className={`w-10 h-10 rounded border-2 overflow-hidden transition-colors ${isSelected ? "border-green-500" : "border-gray-200 hover:border-gray-400"}`}
+                                            >
+                                              <img
+                                                src={src}
+                                                alt={`img ${imgIdx + 1}`}
+                                                className="w-full h-full object-cover"
+                                              />
+                                            </button>
+                                          );
+                                        })}
+                                        {item.imageIndex !== null && (
+                                          <button
+                                            type="button"
+                                            onClick={() => {
+                                              const updated = [...sizeList];
+                                              updated[index] = { ...updated[index], imageIndex: null };
+                                              setSizeList(updated);
+                                            }}
+                                            className="text-xs text-gray-400 hover:text-gray-600 px-1"
+                                          >
+                                            remover
+                                          </button>
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
                                 </div>
                               );
                             })}

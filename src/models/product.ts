@@ -9,6 +9,7 @@ export interface Product {
     id: string;
     price?: number | null;
     group_name?: string | null;
+    image_index?: number | null;
     size: {
       id: string;
       size: string;
