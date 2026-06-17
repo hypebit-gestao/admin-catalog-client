@@ -22,8 +22,11 @@ import {
 import { FaRegCheckCircle } from "react-icons/fa";
 
 const fmt = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
-const fmtDate = (s?: string) =>
-  s ? new Date(s).toLocaleDateString("pt-BR") : "—";
+const fmtDate = (s?: string) => {
+  if (!s) return "—";
+  const [y, m, d] = s.slice(0, 10).split("-");
+  return `${d}/${m}/${y}`;
+};
 
 const BILLING_TYPE: Record<string, string> = {
   BOLETO: "Boleto",
