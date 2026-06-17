@@ -376,7 +376,7 @@ function SubscriptionsTable({ rows }: { rows: AsaasSubscription[] }) {
             <td className="px-4 py-3 text-gray-600">{CYCLE[s.cycle] ?? s.cycle}</td>
             <td className="px-4 py-3 text-gray-600">{BILLING_TYPE[s.billingType] ?? s.billingType}</td>
             <td className="px-4 py-3 text-right font-semibold text-gray-900">{fmt.format(s.value)}</td>
-            <td className="px-4 py-3 text-gray-600">{fmtDate(s.nextDueDate)}</td>
+            <td className="px-4 py-3 text-gray-600">{fmtDate(s.nextPaymentDueDate ?? s.nextDueDate)}</td>
             <td className="px-4 py-3">
               <StatusBadge map={SUB_STATUS} value={s.status} />
             </td>

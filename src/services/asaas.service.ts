@@ -16,6 +16,7 @@ export interface AsaasSubscription {
   customerName?: string;
   value: number;
   nextDueDate: string;
+  nextPaymentDueDate?: string;
   status: string;
   billingType: string;
   cycle: string;
