@@ -126,5 +126,45 @@ export const useAsaasService = () => {
     });
   };
 
-  return { getDashboard, getSubscriptions, getPayments, getCustomers, linkCustomer, findCustomerByEmail };
+  const getUserSubscription = async (
+    userId: string,
+    token: string,
+  ): Promise<{ status: string; nextDueDate: string | null; value: number; subscriptionId: string } | null> => {
+    return fetchWrapper(`asaas/subscription/${userId}`, {
+      method: "GET",
+      headers: { Authorization: token },
+    });
+  };
+
+  const getUserInvoices = async (
+    userId: string,
+    token: string,
+  ): Promise<Array<{ id: string; value: number; status: string; dueDate: string; invoiceUrl: string | null }>> => {
+    return fetchWrapper(`asaas/invoices/${userId}`, {
+      method: "GET",
+      headers: { Authorization: token },
+    }) as any;
+  };
+
+  const getRenewalUrl = async (
+    email: string,
+  ): Promise<{ invoiceUrl: string }> => {
+    return fetchWrapper("asaas/renewal", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    }) as any;
+  };
+
+  return {
+    getDashboard,
+    getSubscriptions,
+    getPayments,
+    getCustomers,
+    linkCustomer,
+    findCustomerByEmail,
+    getUserSubscription,
+    getUserInvoices,
+    getRenewalUrl,
+  };
 };

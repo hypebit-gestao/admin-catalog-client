@@ -40,19 +40,17 @@ const RenewalSubscription = ({ isOpen, onClose }: RenewalSubscriptionProps) => {
     if (loading) return;
     setLoading(true);
     try {
-      const result = await fetchWrapper<{ url: string }>("stripe/renewal", {
+      const result = await fetchWrapper<{ invoiceUrl: string }>("asaas/renewal", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: data.email,
-          returnUrl: window.location.origin,
-        }),
+        body: JSON.stringify({ email: data.email }),
       });
-      if (result?.url) {
-        window.location.href = result.url;
+      if (result?.invoiceUrl) {
+        window.open(result.invoiceUrl, "_blank");
+        onClose();
       }
     } catch {
-      toast.error("E-mail não encontrado ou assinatura não localizada.");
+      toast.error("E-mail não encontrado ou fatura pendente não localizada.");
     } finally {
       setLoading(false);
     }

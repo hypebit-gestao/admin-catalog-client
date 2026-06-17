@@ -71,26 +71,6 @@ const UserProfile = ({ isOpen, onClose }: ProfileProps) => {
               </div>
             </div>
             <div>
-              <h1 className="font-bold text-center">
-                Gerenciamento da assinatura:
-              </h1>
-              <p className="text-center">
-                {" "}
-                https://billing.stripe.com/p/login/3cs5mq89Ue4l7AI144
-              </p>
-              <div className="flex justify-center my-4">
-                <Button
-                  onClick={() =>
-                    copyToClipboard(
-                      `https://billing.stripe.com/p/login/3cs5mq89Ue4l7AI144`
-                    )
-                  }
-                >
-                  Copiar link
-                </Button>
-              </div>
-            </div>
-            <div>
               <h1 className="font-bold text-center">Editar informações</h1>
               <div className="flex justify-center items-center mt-3">
                 <span className="mr-3">Editar</span>
