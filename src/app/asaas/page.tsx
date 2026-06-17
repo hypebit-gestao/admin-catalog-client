@@ -223,7 +223,7 @@ export default function AsaasPage() {
               value={subStatusFilter}
               onChange={setSubStatusFilter}
               options={[
-                { value: "",         label: "Todas" },
+                { value: "",         label: "Todos os status" },
                 { value: "ACTIVE",   label: "Ativas" },
                 { value: "INACTIVE", label: "Inativas" },
                 { value: "EXPIRED",  label: "Expiradas" },
@@ -235,7 +235,7 @@ export default function AsaasPage() {
               value={payStatusFilter}
               onChange={setPayStatusFilter}
               options={[
-                { value: "",         label: "Todas" },
+                { value: "",         label: "Todos os status" },
                 { value: "PENDING",  label: "Pendentes" },
                 { value: "RECEIVED", label: "Recebidas" },
                 { value: "OVERDUE",  label: "Vencidas" },
