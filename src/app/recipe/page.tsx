@@ -4,9 +4,10 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import ContentMain from "@/components/content-main";
 import { useRecipeService } from "@/services/recipe.service";
+import { useUploadService } from "@/services/upload.service";
 import { Recipe } from "@/models/recipe";
 import toast from "react-hot-toast";
-import { MdMenuBook, MdEdit, MdDelete, MdAdd, MdClose, MdDragIndicator } from "react-icons/md";
+import { MdMenuBook, MdEdit, MdDelete, MdAdd, MdClose, MdDragIndicator, MdUpload, MdVideoLibrary } from "react-icons/md";
 import { FaYoutube } from "react-icons/fa";
 
 function getYouTubeId(url: string): string | null {
@@ -21,19 +22,31 @@ function getYouTubeId(url: string): string | null {
   return null;
 }
 
-function YouTubeThumbnail({ url }: { url: string }) {
-  const id = getYouTubeId(url);
-  if (!id) return <span className="text-xs text-gray-400 truncate">{url}</span>;
-  return (
-    <div className="flex items-center gap-2">
-      <img
-        src={`https://img.youtube.com/vi/${id}/default.jpg`}
-        alt="thumb"
-        className="w-14 h-10 object-cover rounded"
-      />
-      <span className="text-xs text-gray-600 truncate max-w-[180px]">{url}</span>
-    </div>
-  );
+function isDirectVideo(url: string): boolean {
+  return /\.(mp4|webm|ogg|mov|avi)(\?|$)/i.test(url) || url.includes("digitaloceanspaces.com");
+}
+
+function VideoPreview({ url }: { url: string }) {
+  const ytId = getYouTubeId(url);
+  if (ytId) {
+    return (
+      <div className="flex items-center gap-2">
+        <img src={`https://img.youtube.com/vi/${ytId}/default.jpg`} alt="thumb" className="w-14 h-10 object-cover rounded" />
+        <span className="text-xs text-gray-600 truncate max-w-[180px]">YouTube</span>
+      </div>
+    );
+  }
+  if (isDirectVideo(url)) {
+    return (
+      <div className="flex items-center gap-2">
+        <div className="w-14 h-10 rounded bg-gray-200 flex items-center justify-center shrink-0">
+          <MdVideoLibrary size={20} className="text-gray-500" />
+        </div>
+        <span className="text-xs text-gray-600 truncate max-w-[180px]">Vídeo hospedado</span>
+      </div>
+    );
+  }
+  return <span className="text-xs text-gray-400 truncate">{url}</span>;
 }
 
 interface FormState {
@@ -50,6 +63,7 @@ const EMPTY_FORM: FormState = { title: "", description: "", videos: [], active: 
 export default function RecipePage() {
   const { data: session } = useSession();
   const recipeService = useRecipeService();
+  const uploadService = useUploadService();
   const token = session?.user?.accessToken ?? "";
 
   const [recipes, setRecipes] = useState<Recipe[]>([]);
@@ -59,6 +73,9 @@ export default function RecipePage() {
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [videoInput, setVideoInput] = useState("");
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [videoTab, setVideoTab] = useState<"youtube" | "upload">("youtube");
+  const [uploading, setUploading] = useState(false);
+  const videoFileRef = useRef<HTMLInputElement>(null);
 
   const load = useCallback(async () => {
     if (!token) return;
@@ -101,11 +118,33 @@ export default function RecipePage() {
     const url = videoInput.trim();
     if (!url) return;
     if (!getYouTubeId(url)) {
-      toast.error("URL do YouTube inválida");
+      toast.error("URL do YouTube inválida. Use youtube.com/watch?v=... ou youtu.be/...");
       return;
     }
     setForm((f) => ({ ...f, videos: [...f.videos, url] }));
     setVideoInput("");
+  };
+
+  const handleVideoFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const res = await uploadService.POST({ file, folderName: "recipe-videos" });
+      const arr = Array.isArray(res) ? res : res ? [res] : [];
+      const url = arr[0]?.imageUrl;
+      if (url) {
+        setForm((f) => ({ ...f, videos: [...f.videos, url] }));
+        toast.success("Vídeo enviado com sucesso");
+      } else {
+        toast.error("Erro no upload");
+      }
+    } catch {
+      toast.error("Erro ao enviar vídeo");
+    } finally {
+      setUploading(false);
+      if (videoFileRef.current) videoFileRef.current.value = "";
+    }
   };
 
   const removeVideo = (idx: number) => {
@@ -298,41 +337,84 @@ export default function RecipePage() {
 
               {/* Videos */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Vídeos do YouTube
-                </label>
-                <div className="space-y-2 mb-3">
-                  {form.videos.map((url, idx) => (
-                    <div key={idx} className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg border border-gray-100">
-                      <div className="flex-1 min-w-0">
-                        <YouTubeThumbnail url={url} />
+                <label className="block text-sm font-medium text-gray-700 mb-2">Vídeos</label>
+
+                {/* Lista de vídeos adicionados */}
+                {form.videos.length > 0 && (
+                  <div className="space-y-2 mb-3">
+                    {form.videos.map((url, idx) => (
+                      <div key={idx} className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg border border-gray-100">
+                        <div className="flex-1 min-w-0">
+                          <VideoPreview url={url} />
+                        </div>
+                        <button onClick={() => removeVideo(idx)} className="shrink-0 p-1 text-gray-400 hover:text-red-500 transition-colors">
+                          <MdClose size={16} />
+                        </button>
                       </div>
-                      <button
-                        onClick={() => removeVideo(idx)}
-                        className="shrink-0 p-1 text-gray-400 hover:text-red-500 transition-colors"
-                      >
-                        <MdClose size={16} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2c6e49]/30 focus:border-[#2c6e49]"
-                    placeholder="Cole a URL do YouTube aqui"
-                    value={videoInput}
-                    onChange={(e) => setVideoInput(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addVideo())}
-                  />
+                    ))}
+                  </div>
+                )}
+
+                {/* Abas */}
+                <div className="flex rounded-lg border border-gray-200 overflow-hidden mb-3">
                   <button
-                    onClick={addVideo}
-                    className="px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors flex items-center gap-1 text-sm font-medium shrink-0"
+                    type="button"
+                    onClick={() => setVideoTab("youtube")}
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium transition-colors ${
+                      videoTab === "youtube" ? "bg-red-500 text-white" : "bg-white text-gray-600 hover:bg-gray-50"
+                    }`}
                   >
-                    <FaYoutube size={14} />
-                    Adicionar
+                    <FaYoutube size={13} /> YouTube
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setVideoTab("upload")}
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium transition-colors ${
+                      videoTab === "upload" ? "bg-[#2c6e49] text-white" : "bg-white text-gray-600 hover:bg-gray-50"
+                    }`}
+                  >
+                    <MdUpload size={14} /> Fazer upload
                   </button>
                 </div>
+
+                {videoTab === "youtube" ? (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2c6e49]/30 focus:border-[#2c6e49]"
+                      placeholder="Cole a URL do YouTube aqui"
+                      value={videoInput}
+                      onChange={(e) => setVideoInput(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addVideo())}
+                    />
+                    <button
+                      onClick={addVideo}
+                      className="px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors text-sm font-medium shrink-0"
+                    >
+                      Adicionar
+                    </button>
+                  </div>
+                ) : (
+                  <div>
+                    <input
+                      ref={videoFileRef}
+                      type="file"
+                      accept="video/mp4,video/webm,video/ogg,video/quicktime"
+                      className="hidden"
+                      onChange={handleVideoFileChange}
+                    />
+                    <button
+                      type="button"
+                      disabled={uploading}
+                      onClick={() => videoFileRef.current?.click()}
+                      className="w-full border-2 border-dashed border-gray-300 hover:border-[#2c6e49] rounded-lg py-4 flex flex-col items-center gap-2 text-sm text-gray-500 hover:text-[#2c6e49] transition-colors disabled:opacity-50"
+                    >
+                      <MdUpload size={22} />
+                      {uploading ? "Enviando vídeo..." : "Clique para selecionar o vídeo"}
+                      <span className="text-xs text-gray-400">MP4, WebM, MOV • máx 500 MB</span>
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* Active */}
