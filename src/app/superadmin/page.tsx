@@ -98,10 +98,12 @@ const StoreDetail = ({ store, token, onClose, websiteBase }: StoreDetailProps) =
       }
     } catch {}
     setLoadingTab(false);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [store.id, token]);
 
   useEffect(() => {
     loadTab("dashboard");
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [store.id]);
 
   const handleTabChange = (tab: TabKey) => {
@@ -339,7 +341,7 @@ const DashboardTab = ({
             </button>
           </div>
           <p className="text-[10px] text-gray-400 mt-1">
-            "Buscar" pesquisa pelo e-mail <span className="font-medium">{store.email}</span> no Asaas e preenche o ID automaticamente.
+            &ldquo;Buscar&rdquo; pesquisa pelo e-mail <span className="font-medium">{store.email}</span> no Asaas e preenche o ID automaticamente.
           </p>
         </div>
       </div>
