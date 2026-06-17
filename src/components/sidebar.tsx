@@ -125,7 +125,7 @@ const Sidebar = () => {
           />
           <MenuItem
             href="/size"
-            label="Tamanhos"
+            label="Variações"
             icon={TbRulerMeasure}
             collapsed={isCollapsed}
           />

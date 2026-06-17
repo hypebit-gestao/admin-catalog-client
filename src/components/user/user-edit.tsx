@@ -72,11 +72,12 @@ const UserEdit = ({ isOpen, onClose }: UserEditProps) => {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const inputFileRef = useRef<any>(null);
-  const bannerInputFileRef = useRef<any>(null);
   const ogImageInputFileRef = useRef<any>(null);
   const [filePreview, setFilePreview] = useState<any>(null);
-  const [bannerFilePreview, setBannerFilePreview] = useState<any>(null);
   const [ogImageFilePreview, setOgImageFilePreview] = useState<any>(null);
+  const [banners, setBanners] = useState<string[]>([]);
+  const [uploadingBanner, setUploadingBanner] = useState(false);
+  const addBannerInputRef = useRef<HTMLInputElement>(null);
 
   const handleDeleteFile = () => {
     if (inputFileRef.current) {
@@ -84,14 +85,6 @@ const UserEdit = ({ isOpen, onClose }: UserEditProps) => {
     }
     setCustomValue("image_url", "");
     setFilePreview(null);
-  };
-
-  const handleDeleteBannerFile = () => {
-    if (bannerInputFileRef.current) {
-      bannerInputFileRef.current.value = "";
-    }
-    setCustomValue("banner_url", "");
-    setBannerFilePreview(null);
   };
 
   const handleDeleteOgImageFile = () => {
@@ -199,9 +192,12 @@ const UserEdit = ({ isOpen, onClose }: UserEditProps) => {
           if (fetchedUser.image_url) {
             setFilePreview(fetchedUser.image_url);
           }
-          setCustomValue("banner_url", fetchedUser.banner_url);
-          if (fetchedUser.banner_url) {
-            setBannerFilePreview(fetchedUser.banner_url);
+          if (fetchedUser.banners && fetchedUser.banners.length > 0) {
+            setBanners(fetchedUser.banners);
+          } else if (fetchedUser.banner_url) {
+            setBanners([fetchedUser.banner_url]);
+          } else {
+            setBanners([]);
           }
           setCustomValue("og_image_url", fetchedUser.og_image_url);
           if (fetchedUser.og_image_url) {
@@ -260,7 +256,6 @@ const UserEdit = ({ isOpen, onClose }: UserEditProps) => {
   const onUpdate = async (data: z.infer<typeof formSchema>) => {
     try {
       let imageUrl = user?.image_url ?? "";
-      let bannerUrl = user?.banner_url ?? "";
       let ogImageUrl = user?.og_image_url ?? "";
 
       if (data?.image_url && data.image_url instanceof File) {
@@ -276,21 +271,6 @@ const UserEdit = ({ isOpen, onClose }: UserEditProps) => {
         imageUrl = data.image_url;
       } else if (data?.image_url === "" || data?.image_url === null) {
         imageUrl = "";
-      }
-
-      if (data?.banner_url && data.banner_url instanceof File) {
-        const bannerRes = await uploadService.POST({
-          file: data.banner_url as File,
-          folderName: "user-banners",
-        });
-        const resArray = Array.isArray(bannerRes) ? bannerRes : bannerRes ? [bannerRes] : [];
-        if (resArray.length > 0 && resArray[0].imageUrl) {
-          bannerUrl = resArray[0].imageUrl;
-        }
-      } else if (data?.banner_url && typeof data.banner_url === "string") {
-        bannerUrl = data.banner_url;
-      } else if (data?.banner_url === "" || data?.banner_url === null) {
-        bannerUrl = "";
       }
 
       if (data?.og_image_url && data.og_image_url instanceof File) {
@@ -318,7 +298,8 @@ const UserEdit = ({ isOpen, onClose }: UserEditProps) => {
             payer_id: user.payer_id,
             address_id: user.address_id,
             image_url: imageUrl,
-            banner_url: bannerUrl,
+            banner_url: banners[0] ?? user?.banner_url ?? "",
+            banners,
             og_image_url: ogImageUrl,
             shipping_taxes: user.shipping_taxes,
             shipping_type: user.shipping_type,
@@ -681,56 +662,57 @@ const UserEdit = ({ isOpen, onClose }: UserEditProps) => {
                       />
                     </div>
                     <div className="w-full mt-5 lg:mt-0 lg:ml-5">
-                      <FormField
-                        control={form.control}
-                        name="banner_url"
-                        render={({
-                          field: { value, onChange, ...fieldProps },
-                        }) => (
-                          <FormItem>
-                            <FormLabel>Banner da Loja</FormLabel>
-                            <FormControl>
-                              <Input
-                                {...fieldProps}
-                                ref={bannerInputFileRef}
-                                placeholder="Banner da Loja"
-                                type="file"
-                                accept="image/*"
-                                onChange={(event) => {
-                                  onChange(
-                                    event.target.files && event.target.files[0]
-                                  );
-                                  if (event.target.files?.[0]) {
-                                    const reader = new FileReader();
-                                    reader.onloadend = () => {
-                                      setBannerFilePreview(reader.result);
-                                    };
-                                    reader.readAsDataURL(event.target.files[0]);
-                                  }
-                                }}
-                              />
-                            </FormControl>
-                            {bannerFilePreview && (
-                              <div className="relative mt-3 w-full max-w-[600px]">
-                                <div
-                                  className="absolute top-0 right-0 cursor-pointer z-10"
-                                  onClick={handleDeleteBannerFile}
-                                >
-                                  <TiDelete color="red" size={24} />
-                                </div>
-                                <Image
-                                  src={bannerFilePreview}
-                                  alt="Preview do banner"
-                                  width={600}
-                                  height={200}
-                                  className="w-full h-auto object-cover rounded-md"
-                                />
-                              </div>
-                            )}
-                            <FormMessage />
-                          </FormItem>
-                        )}
+                      <p className="text-sm font-medium text-blue-primary mb-2">Banners da Loja</p>
+                      <p className="text-xs text-gray-500 mb-3">Adicione um ou mais banners. O primeiro será exibido como principal.</p>
+                      <div className="space-y-2">
+                        {banners.map((url, idx) => (
+                          <div key={idx} className="relative w-full">
+                            <button
+                              type="button"
+                              onClick={() => setBanners((prev) => prev.filter((_, i) => i !== idx))}
+                              className="absolute top-1 right-1 z-10 bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
+                            >
+                              ✕
+                            </button>
+                            <Image
+                              src={url}
+                              alt={`Banner ${idx + 1}`}
+                              width={600}
+                              height={200}
+                              className="w-full h-auto object-cover rounded-md border border-gray-200"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                      <input
+                        ref={addBannerInputRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          setUploadingBanner(true);
+                          try {
+                            const res = await uploadService.POST({ file, folderName: "user-banners" });
+                            const arr = Array.isArray(res) ? res : res ? [res] : [];
+                            if (arr[0]?.imageUrl) {
+                              setBanners((prev) => [...prev, arr[0].imageUrl]);
+                            }
+                          } finally {
+                            setUploadingBanner(false);
+                            if (addBannerInputRef.current) addBannerInputRef.current.value = "";
+                          }
+                        }}
                       />
+                      <button
+                        type="button"
+                        disabled={uploadingBanner}
+                        onClick={() => addBannerInputRef.current?.click()}
+                        className="mt-3 w-full border-2 border-dashed border-gray-300 hover:border-green-500 rounded-lg py-3 text-sm text-gray-500 hover:text-green-600 transition-colors disabled:opacity-50"
+                      >
+                        {uploadingBanner ? "Enviando..." : "+ Adicionar banner"}
+                      </button>
                     </div>
                   </div>
                 </div>
