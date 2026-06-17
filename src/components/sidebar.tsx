@@ -10,6 +10,7 @@ import {
   MdSettings,
   MdCalculate,
   MdHelpOutline,
+  MdMenuBook,
 } from "react-icons/md";
 import { TbRulerMeasure } from "react-icons/tb";
 import { useSession } from "next-auth/react";
@@ -127,6 +128,12 @@ const Sidebar = () => {
             href="/size"
             label="Variações"
             icon={TbRulerMeasure}
+            collapsed={isCollapsed}
+          />
+          <MenuItem
+            href="/recipe"
+            label="Modo de Preparo"
+            icon={MdMenuBook}
             collapsed={isCollapsed}
           />
           <MenuItem
