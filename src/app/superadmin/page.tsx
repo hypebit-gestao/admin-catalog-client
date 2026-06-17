@@ -29,6 +29,7 @@ import {
   MdPlayCircle,
 } from "react-icons/md";
 import { FaWhatsapp } from "react-icons/fa";
+import { useAsaasService } from "@/services/asaas.service";
 
 const PLAN_LABELS: Record<string, string> = {
   prod_PYYUnM67J8LUuW: "Standard",
@@ -71,12 +72,15 @@ type TabKey = "dashboard" | "products" | "orders";
 const StoreDetail = ({ store, token, onClose, websiteBase }: StoreDetailProps) => {
   const orderService = useOrderService();
   const productService = useProductService();
+  const asaasService = useAsaasService();
 
   const [activeTab, setActiveTab] = useState<TabKey>("dashboard");
   const [dashboard, setDashboard] = useState<OrderDashboardResponse | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loadingTab, setLoadingTab] = useState(false);
+  const [asaasId, setAsaasId] = useState(store.asaas_customer_id ?? "");
+  const [savingAsaas, setSavingAsaas] = useState(false);
 
   const loadTab = useCallback(async (tab: TabKey) => {
     setLoadingTab(true);
@@ -102,6 +106,18 @@ const StoreDetail = ({ store, token, onClose, websiteBase }: StoreDetailProps) =
   const handleTabChange = (tab: TabKey) => {
     setActiveTab(tab);
     loadTab(tab);
+  };
+
+  const handleSaveAsaasId = async () => {
+    if (!store.id) return;
+    setSavingAsaas(true);
+    try {
+      await asaasService.linkCustomer(token, store.id, asaasId || null);
+      toast.success("ID Asaas salvo");
+    } catch {
+      toast.error("Erro ao salvar ID Asaas");
+    }
+    setSavingAsaas(false);
   };
 
   const tabs: { key: TabKey; label: string }[] = [
@@ -180,7 +196,14 @@ const StoreDetail = ({ store, token, onClose, websiteBase }: StoreDetailProps) =
               <div className="w-8 h-8 border-4 border-gray-200 border-t-green-600 rounded-full animate-spin" />
             </div>
           ) : activeTab === "dashboard" ? (
-            <DashboardTab dashboard={dashboard} store={store} />
+            <DashboardTab
+              dashboard={dashboard}
+              store={store}
+              asaasId={asaasId}
+              savingAsaas={savingAsaas}
+              onAsaasIdChange={setAsaasId}
+              onSaveAsaasId={handleSaveAsaasId}
+            />
           ) : activeTab === "products" ? (
             <ProductsTab products={products} />
           ) : (
@@ -194,7 +217,16 @@ const StoreDetail = ({ store, token, onClose, websiteBase }: StoreDetailProps) =
 
 // ─── Dashboard tab ─────────────────────────────────────────────────────────────
 
-const DashboardTab = ({ dashboard, store }: { dashboard: OrderDashboardResponse | null; store: User }) => {
+const DashboardTab = ({
+  dashboard, store, asaasId, savingAsaas, onAsaasIdChange, onSaveAsaasId,
+}: {
+  dashboard: OrderDashboardResponse | null;
+  store: User;
+  asaasId: string;
+  savingAsaas: boolean;
+  onAsaasIdChange: (v: string) => void;
+  onSaveAsaasId: () => void;
+}) => {
   if (!dashboard) return <p className="text-center text-gray-400 py-12">Sem dados</p>;
 
   const rawPhone = store.phone?.replace(/\D/g, "") ?? "";
@@ -256,6 +288,30 @@ const DashboardTab = ({ dashboard, store }: { dashboard: OrderDashboardResponse 
             {store.phone}
           </a>
         )}
+
+        {/* Asaas linking */}
+        <div className="pt-3 border-t border-gray-200 mt-2">
+          <p className="text-xs font-semibold text-gray-500 mb-2">ID do Cliente Asaas</p>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={asaasId}
+              onChange={(e) => onAsaasIdChange(e.target.value)}
+              placeholder="cus_000000000000"
+              className="flex-1 text-xs px-3 py-2 border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-green-500/30"
+            />
+            <button
+              onClick={onSaveAsaasId}
+              disabled={savingAsaas}
+              className="px-3 py-2 rounded-lg bg-green-600 text-white text-xs font-semibold hover:bg-green-700 disabled:opacity-60 transition-colors whitespace-nowrap"
+            >
+              {savingAsaas ? "Salvando…" : "Salvar"}
+            </button>
+          </div>
+          <p className="text-[10px] text-gray-400 mt-1">
+            Vincule esta loja a um cliente Asaas para filtrar o painel financeiro.
+          </p>
+        </div>
       </div>
 
       {/* Recent orders */}

@@ -12,6 +12,7 @@ export interface User {
   status: string;
   plan_id?: string | null;
   stripe_subscription_id?: string | null;
+  asaas_customer_id?: string | null;
   shipping_type: string | undefined | null;
   shipping_taxes: number | undefined | null;
   image_url?: string | null;

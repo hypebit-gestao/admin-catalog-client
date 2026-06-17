@@ -84,6 +84,7 @@ export default function AsaasPage() {
   const [activeTab, setActiveTab] = useState<TabKey>("subscriptions");
   const [payStatusFilter, setPayStatusFilter] = useState<string>("");
   const [subStatusFilter, setSubStatusFilter] = useState<string>("ACTIVE");
+  const [linkedOnly, setLinkedOnly] = useState(true);
 
   const [loadingDash, setLoadingDash] = useState(true);
   const [loadingTab, setLoadingTab] = useState(false);
@@ -102,23 +103,23 @@ export default function AsaasPage() {
   const loadDashboard = useCallback(async () => {
     if (!token) return;
     setLoadingDash(true);
-    const d = await asaasService.getDashboard(token);
+    const d = await asaasService.getDashboard(token, linkedOnly);
     if (d) setDashboard(d);
     setLoadingDash(false);
-  }, [token]);
+  }, [token, linkedOnly]);
 
   const loadTab = useCallback(
     async (tab: TabKey, off = 0) => {
       if (!token) return;
       setLoadingTab(true);
       if (tab === "subscriptions") {
-        const r = await asaasService.getSubscriptions(token, subStatusFilter || undefined, off, LIMIT);
+        const r = await asaasService.getSubscriptions(token, subStatusFilter || undefined, off, LIMIT, linkedOnly);
         if (r) { setSubscriptions(r.data); setSubTotal(r.totalCount); }
       } else if (tab === "payments") {
-        const r = await asaasService.getPayments(token, payStatusFilter || undefined, off, LIMIT);
+        const r = await asaasService.getPayments(token, payStatusFilter || undefined, off, LIMIT, linkedOnly);
         if (r) { setPayments(r.data); setPayTotal(r.totalCount); }
       } else {
-        const r = await asaasService.getCustomers(token, off, LIMIT);
+        const r = await asaasService.getCustomers(token, off, LIMIT, linkedOnly);
         if (r) { setCustomers(r.data); setCustTotal(r.totalCount); }
       }
       setLoadingTab(false);
@@ -127,7 +128,7 @@ export default function AsaasPage() {
   );
 
   useEffect(() => { loadDashboard(); }, [loadDashboard]);
-  useEffect(() => { setOffset(0); loadTab(activeTab, 0); }, [activeTab, subStatusFilter, payStatusFilter]);
+  useEffect(() => { setOffset(0); loadTab(activeTab, 0); }, [activeTab, subStatusFilter, payStatusFilter, linkedOnly]);
 
   const handleTabChange = (tab: TabKey) => {
     setActiveTab(tab);
@@ -152,6 +153,35 @@ export default function AsaasPage() {
 
   return (
     <ContentMain title="Asaas — Financeiro" subtitle="Acompanhe cobranças, assinaturas e clientes da sua conta Asaas">
+
+      {/* ── Filtro Catálogo Place ────────────────────────────────────────────── */}
+      <div className="flex items-center gap-3 mb-6">
+        <button
+          onClick={() => setLinkedOnly(true)}
+          className={`px-4 py-2 rounded-xl text-sm font-semibold border transition-colors ${
+            linkedOnly
+              ? "bg-green-600 text-white border-green-600"
+              : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
+          }`}
+        >
+          Apenas Catálogo Place
+        </button>
+        <button
+          onClick={() => setLinkedOnly(false)}
+          className={`px-4 py-2 rounded-xl text-sm font-semibold border transition-colors ${
+            !linkedOnly
+              ? "bg-gray-800 text-white border-gray-800"
+              : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
+          }`}
+        >
+          Todas as cobranças
+        </button>
+        {linkedOnly && (
+          <span className="text-xs text-gray-400">
+            Filtrando por clientes vinculados no Painel Master
+          </span>
+        )}
+      </div>
 
       {/* ── Dashboard cards ─────────────────────────────────────────────────── */}
       {loadingDash ? (

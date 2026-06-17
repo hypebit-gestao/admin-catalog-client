@@ -53,8 +53,9 @@ export interface AsaasPageResponse<T> {
 }
 
 export const useAsaasService = () => {
-  const getDashboard = async (token: string): Promise<AsaasDashboard | undefined> => {
-    return fetchWrapper<AsaasDashboard>("asaas/dashboard", {
+  const getDashboard = async (token: string, linkedOnly = false): Promise<AsaasDashboard | undefined> => {
+    const params = linkedOnly ? "?linkedOnly=true" : "";
+    return fetchWrapper<AsaasDashboard>(`asaas/dashboard${params}`, {
       headers: { Authorization: token },
     });
   };
@@ -64,9 +65,11 @@ export const useAsaasService = () => {
     status?: string,
     offset = 0,
     limit = 20,
+    linkedOnly = false,
   ): Promise<AsaasPageResponse<AsaasSubscription> | undefined> => {
     const params = new URLSearchParams({ offset: String(offset), limit: String(limit) });
     if (status) params.set("status", status);
+    if (linkedOnly) params.set("linkedOnly", "true");
     return fetchWrapper<AsaasPageResponse<AsaasSubscription>>(`asaas/subscriptions?${params}`, {
       headers: { Authorization: token },
     });
@@ -77,9 +80,11 @@ export const useAsaasService = () => {
     status?: string,
     offset = 0,
     limit = 20,
+    linkedOnly = false,
   ): Promise<AsaasPageResponse<AsaasPayment> | undefined> => {
     const params = new URLSearchParams({ offset: String(offset), limit: String(limit) });
     if (status) params.set("status", status);
+    if (linkedOnly) params.set("linkedOnly", "true");
     return fetchWrapper<AsaasPageResponse<AsaasPayment>>(`asaas/payments?${params}`, {
       headers: { Authorization: token },
     });
@@ -89,12 +94,26 @@ export const useAsaasService = () => {
     token: string,
     offset = 0,
     limit = 20,
+    linkedOnly = false,
   ): Promise<AsaasPageResponse<AsaasCustomer> | undefined> => {
     const params = new URLSearchParams({ offset: String(offset), limit: String(limit) });
+    if (linkedOnly) params.set("linkedOnly", "true");
     return fetchWrapper<AsaasPageResponse<AsaasCustomer>>(`asaas/customers?${params}`, {
       headers: { Authorization: token },
     });
   };
 
-  return { getDashboard, getSubscriptions, getPayments, getCustomers };
+  const linkCustomer = async (
+    token: string,
+    userId: string,
+    asaasCustomerId: string | null,
+  ): Promise<{ ok: boolean } | undefined> => {
+    return fetchWrapper<{ ok: boolean }>(`asaas/link/${userId}`, {
+      method: "PATCH",
+      headers: { Authorization: token, "Content-Type": "application/json" },
+      body: JSON.stringify({ asaas_customer_id: asaasCustomerId }),
+    });
+  };
+
+  return { getDashboard, getSubscriptions, getPayments, getCustomers, linkCustomer };
 };
