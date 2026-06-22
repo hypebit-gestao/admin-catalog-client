@@ -20,6 +20,7 @@ import useForgotPasswordModal from "@/utils/hooks/forgotPasswordModal";
 import RenewalSubscription from "@/components/renewal-subscription";
 import useRenewalSubscriptionModal from "@/utils/hooks/renewalSubscriptionModal";
 import SubscriptionBanner from "@/components/subscription-banner";
+import ImpersonationBanner from "@/components/impersonation-banner";
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -60,6 +61,7 @@ export default function RootLayout({
           />
           <UserEdit isOpen={userEdit.isOpen} onClose={userEdit.onClose} />
           <Header />
+          <ImpersonationBanner />
           <SubscriptionBanner />
           <div className="flex flex-row w-full">
             <Sidebar />

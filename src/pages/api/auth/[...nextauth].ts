@@ -6,8 +6,18 @@ export const authOptions: NextAuthOptions = {
       credentials: {
         email: { label: "email", type: "email" },
         password: { label: "password", type: "password" },
+        impersonateToken: { label: "impersonateToken", type: "text" },
+        impersonateUser: { label: "impersonateUser", type: "text" },
       },
       async authorize(credentials, req) {
+        // Impersonation: token already issued by backend, use directly
+        if (credentials?.impersonateToken) {
+          return {
+            accessToken: credentials.impersonateToken,
+            user: JSON.parse(credentials.impersonateUser || "{}"),
+          };
+        }
+
         const res = await fetch(
           `${process.env.NEXT_PUBLIC_SERVER_URL}/auth/login`,
           {

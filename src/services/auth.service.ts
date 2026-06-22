@@ -38,8 +38,29 @@ export const useAuthService = () => {
     return response;
   };
 
+  const IMPERSONATE = async (
+    adminToken: string,
+    storeId: string
+  ): Promise<{ accessToken: string; user: any }> => {
+    const response: any = await fetchWrapper<any>(
+      `auth/impersonate/${storeId}`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: adminToken,
+        },
+      }
+    );
+
+    if (response?.error) {
+      throw new Error(response.message);
+    }
+    return response;
+  };
+
   return {
     FORGOTPASSWORD,
     RESETPASSWORD,
+    IMPERSONATE,
   };
 };

@@ -27,9 +27,12 @@ import {
   MdTrendingUp,
   MdPauseCircle,
   MdPlayCircle,
+  MdManageAccounts,
 } from "react-icons/md";
 import { FaWhatsapp } from "react-icons/fa";
 import { useAsaasService } from "@/services/asaas.service";
+import { useAuthService } from "@/services/auth.service";
+import { signIn } from "next-auth/react";
 
 const PLAN_LABELS: Record<string, string> = {
   prod_PYYUnM67J8LUuW: "Standard",
@@ -65,11 +68,13 @@ interface StoreDetailProps {
   token: string;
   onClose: () => void;
   websiteBase: string;
+  onImpersonate: (store: User) => void;
+  impersonating: boolean;
 }
 
 type TabKey = "dashboard" | "products" | "orders";
 
-const StoreDetail = ({ store, token, onClose, websiteBase }: StoreDetailProps) => {
+const StoreDetail = ({ store, token, onClose, websiteBase, onImpersonate, impersonating }: StoreDetailProps) => {
   const orderService = useOrderService();
   const productService = useProductService();
   const asaasService = useAsaasService();
@@ -190,6 +195,15 @@ const StoreDetail = ({ store, token, onClose, websiteBase }: StoreDetailProps) =
             <MdOpenInNew size={14} />
             Abrir loja
           </a>
+          <button
+            onClick={() => onImpersonate(store)}
+            disabled={impersonating}
+            title="Entrar no painel como esta loja"
+            className="flex items-center gap-1 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 px-2.5 py-1.5 rounded-lg transition-colors disabled:opacity-60 shrink-0"
+          >
+            <MdManageAccounts size={14} />
+            {impersonating ? "Entrando..." : "Gerenciar"}
+          </button>
         </div>
 
         {/* Tabs */}
@@ -429,6 +443,7 @@ const SuperAdminPage = () => {
   const { data: session, status } = useSession();
   const router = useRouter();
   const userService = useUserService();
+  const authService = useAuthService();
 
   const [stores, setStores] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -436,6 +451,7 @@ const SuperAdminPage = () => {
   const [filterStatus, setFilterStatus] = useState<"ALL" | "ACTIVE" | "INACTIVE">("ALL");
   const [selectedStore, setSelectedStore] = useState<User | null>(null);
   const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [impersonatingId, setImpersonatingId] = useState<string | null>(null);
 
   const websiteBase =
     typeof window !== "undefined"
@@ -486,6 +502,27 @@ const SuperAdminPage = () => {
     setTogglingId(null);
   };
 
+  const handleImpersonate = async (store: User) => {
+    if (!session?.user?.accessToken || !store.id) return;
+    setImpersonatingId(store.id);
+    try {
+      const data = await authService.IMPERSONATE(session.user.accessToken, store.id);
+      localStorage.setItem("impersonating", "true");
+      localStorage.setItem("impersonatedStoreName", store.name ?? "Loja");
+      localStorage.setItem("masterToken", session.user.accessToken);
+      localStorage.setItem("masterUser", JSON.stringify(session.user.user));
+      await signIn("credentials", {
+        redirect: false,
+        impersonateToken: data.accessToken,
+        impersonateUser: JSON.stringify(data.user),
+      });
+      router.push("/home");
+    } catch {
+      toast.error("Erro ao entrar como loja");
+    }
+    setImpersonatingId(null);
+  };
+
   const filtered = useMemo(() => {
     return stores.filter((s) => {
       const matchSearch =
@@ -514,6 +551,8 @@ const SuperAdminPage = () => {
           token={session.user.accessToken}
           onClose={() => setSelectedStore(null)}
           websiteBase={websiteBase}
+          onImpersonate={handleImpersonate}
+          impersonating={impersonatingId === selectedStore.id}
         />
       )}
 
@@ -643,6 +682,18 @@ const SuperAdminPage = () => {
                     className="flex-1 py-1.5 rounded-lg bg-green-primary text-white text-xs font-semibold hover:bg-green-primary/90 transition-colors"
                   >
                     Ver detalhes
+                  </button>
+                  <button
+                    onClick={() => handleImpersonate(store)}
+                    disabled={impersonatingId === store.id}
+                    title="Entrar no painel como esta loja"
+                    className="p-1.5 rounded-lg border border-blue-200 hover:bg-blue-50 transition-colors text-blue-600 disabled:opacity-50"
+                  >
+                    {impersonatingId === store.id ? (
+                      <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <MdManageAccounts size={16} />
+                    )}
                   </button>
                   <a
                     href={`${websiteBase}/${store.person_link}`}
