@@ -9,7 +9,7 @@ import usePersonalizationStoreModal from "@/utils/hooks/pesonalization-store/use
 import PersonalizationStore from "@/components/personalization_store/personalization-store";
 import useGoogleAnalyticsModal from "@/utils/hooks/analytics/useGoogleAnalyticsModal";
 import GoogleAnalyticsModal from "@/components/google-analytics/google-analytics-modal";
-import { MdLocalShipping, MdPalette, MdChevronRight, MdAnalytics, MdQrCode2, MdPayment, MdCreditScore } from "react-icons/md";
+import { MdLocalShipping, MdPalette, MdChevronRight, MdAnalytics, MdQrCode2, MdPayment, MdCreditScore, MdSend } from "react-icons/md";
 import { FaInstagram } from "react-icons/fa";
 import useQRCodeModal from "@/utils/hooks/qrcode/useQRCodeModal";
 import QRCodeModal from "@/components/qrcode/qrcode-modal";
@@ -19,6 +19,8 @@ import useInstallmentsModal from "@/utils/hooks/useInstallmentsModal";
 import InstallmentsModal from "@/components/installments-modal";
 import useSocialModal from "@/utils/hooks/useSocialModal";
 import SocialModal from "@/components/social/social-modal";
+import useOrderDestinationModal from "@/utils/hooks/useOrderDestinationModal";
+import OrderDestinationModal from "@/components/order-destination-modal";
 import { cn } from "@/lib/utils";
 
 const configCards = [
@@ -85,6 +87,15 @@ const configCards = [
     iconColor: "text-pink-600",
     borderHover: "hover:border-pink-200",
   },
+  {
+    id: "order-destination",
+    title: "Destino dos Pedidos",
+    description: "Escolha se os pedidos chegam pelo WhatsApp, por e-mail ou pelos dois canais. Ideal para distribuidoras e equipes de vendas.",
+    icon: MdSend,
+    iconBg: "bg-indigo-50",
+    iconColor: "text-indigo-600",
+    borderHover: "hover:border-indigo-200",
+  },
 ];
 
 const Configurations = () => {
@@ -96,6 +107,7 @@ const Configurations = () => {
   const paymentMethodsModal = usePaymentMethodsModal();
   const installmentsModal = useInstallmentsModal();
   const socialModal = useSocialModal();
+  const orderDestinationModal = useOrderDestinationModal();
 
   const handleCardClick = (id: string) => {
     if (id === "shipping") shippingModal.onOpen();
@@ -105,6 +117,7 @@ const Configurations = () => {
     if (id === "payment-methods") paymentMethodsModal.onOpen();
     if (id === "installments") installmentsModal.onOpen();
     if (id === "social") socialModal.onOpen();
+    if (id === "order-destination") orderDestinationModal.onOpen();
   };
 
   return (
@@ -136,6 +149,10 @@ const Configurations = () => {
       <SocialModal
         isOpen={socialModal.isOpen}
         onClose={socialModal.onClose}
+      />
+      <OrderDestinationModal
+        isOpen={orderDestinationModal.isOpen}
+        onClose={orderDestinationModal.onClose}
       />
       <ContentMain
         title="Configurações da Loja"

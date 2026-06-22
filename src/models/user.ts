@@ -33,6 +33,7 @@ export interface User {
   max_installments?: number | null;
   installment_with_interest?: boolean | null;
   installment_interest_value?: number | null;
+  order_destination?: string | null;
 }
 
 export interface UserShippingPut {
