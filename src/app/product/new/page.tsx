@@ -39,6 +39,9 @@ import { ImageDropzone, ImagePreviewItem } from "@/components/image-dropzone";
 import { VideoDropzone, VideoPreviewItem } from "@/components/video-dropzone";
 import { RichTextEditor } from "@/components/rich-text-editor";
 import { useUnsavedChanges } from "@/utils/hooks/useUnsavedChanges";
+import { useProductVolumePriceService, VolumePrice } from "@/services/productVolumePrice.service";
+import { TbTrash } from "react-icons/tb";
+import { IoMdAdd } from "react-icons/io";
 
 const formSchema = z
   .object({
@@ -75,11 +78,16 @@ const ProductNewPage = () => {
   const categoryService = useCategoryService();
   const uploadService = useUploadService();
   const sizeService = useSizeService();
+  const volumePriceService = useProductVolumePriceService();
   const [categories, setCategories] = useState<Category[]>([]);
   const [sizes, setSizes] = useState<Size[]>([]);
   const router = useRouter();
   const [previews, setPreviews] = useState<ImagePreviewItem[]>([]);
   const [videoPreviews, setVideoPreviews] = useState<VideoPreviewItem[]>([]);
+  const [hasVolumePrice, setHasVolumePrice] = useState(false);
+  const [volumePrices, setVolumePrices] = useState<Omit<VolumePrice, "id" | "product_id">[]>([]);
+  const [newVpMinQty, setNewVpMinQty] = useState("");
+  const [newVpUnitPrice, setNewVpUnitPrice] = useState("");
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -160,6 +168,23 @@ const ProductNewPage = () => {
 
   const sizeOptions = sizes.map((s) => ({ value: s.id, label: s.size }));
 
+  const handleAddVolumePrice = () => {
+    const minQty = parseInt(newVpMinQty);
+    const unitPrice = parseFloat(newVpUnitPrice);
+    if (isNaN(minQty) || minQty < 1 || isNaN(unitPrice) || unitPrice < 0) return;
+    if (volumePrices.some((vp) => vp.min_quantity === minQty)) {
+      toast.error("Já existe uma faixa com essa quantidade mínima");
+      return;
+    }
+    setVolumePrices((prev) =>
+      [...prev, { min_quantity: minQty, unit_price: unitPrice }].sort(
+        (a, b) => a.min_quantity - b.min_quantity
+      )
+    );
+    setNewVpMinQty("");
+    setNewVpUnitPrice("");
+  };
+
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     if (loading) return;
     setLoading(true);
@@ -190,7 +215,7 @@ const ProductNewPage = () => {
         }
       }
 
-      await productService.POST(
+      const created = await productService.POST(
         {
           name: data.name,
           category_id: data.category_id !== "" ? data.category_id : null,
@@ -215,6 +240,17 @@ const ProductNewPage = () => {
         },
         session?.user?.accessToken
       );
+
+      if (created?.id && hasVolumePrice && volumePrices.length > 0) {
+        await Promise.all(
+          volumePrices.map((vp) =>
+            volumePriceService.POST(
+              { product_id: created.id!, min_quantity: vp.min_quantity, unit_price: vp.unit_price },
+              session?.user?.accessToken
+            )
+          )
+        );
+      }
 
       toast.success(`${data.name} criado com sucesso`);
       router.push("/product");
@@ -376,6 +412,95 @@ const ProductNewPage = () => {
                     )}
                   </div>
                 </>
+              )}
+
+              {!priceOnRequest && (
+                <div className="mb-6">
+                  <div className="mb-2">
+                    <h3 className="font-bold">Desconto por quantidade</h3>
+                    <p className="text-xs text-gray-400 mt-1">
+                      Defina faixas de preço: a partir de X unidades o cliente paga R$ Y por unidade.
+                    </p>
+                  </div>
+                  <div className="mb-3">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <Checkbox
+                        className="w-5 h-5"
+                        checked={hasVolumePrice}
+                        onCheckedChange={(v) => setHasVolumePrice(Boolean(v))}
+                      />
+                      <span className="font-medium text-sm">Ativar desconto progressivo</span>
+                    </label>
+                  </div>
+
+                  {hasVolumePrice && (
+                    <div className="border rounded-md p-3 bg-gray-50 flex flex-col gap-3">
+                      {volumePrices.length > 0 && (
+                        <div className="flex flex-col gap-1.5">
+                          <div className="grid grid-cols-3 gap-2 text-xs font-semibold text-gray-500 px-1">
+                            <span>A partir de</span>
+                            <span>Preço por unidade</span>
+                            <span></span>
+                          </div>
+                          {volumePrices.map((vp, i) => (
+                            <div key={i} className="grid grid-cols-3 gap-2 items-center border rounded bg-white px-2 py-2">
+                              <span className="text-sm font-medium">{vp.min_quantity} unid.</span>
+                              <span className="text-sm">
+                                {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(vp.unit_price)}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => setVolumePrices((prev) => prev.filter((_, idx) => idx !== i))}
+                                className="justify-self-end text-red-400 hover:text-red-600"
+                              >
+                                <TbTrash className="w-4 h-4" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      <div className="flex items-center gap-2 pt-1 border-t">
+                        <div className="flex-1">
+                          <label className="text-xs text-gray-500 mb-1 block">A partir de (unidades)</label>
+                          <Input
+                            type="number"
+                            min={1}
+                            step={1}
+                            placeholder="Ex: 6"
+                            value={newVpMinQty}
+                            onChange={(e) => setNewVpMinQty(e.target.value)}
+                            className="text-sm"
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <label className="text-xs text-gray-500 mb-1 block">Preço por unidade (R$)</label>
+                          <Input
+                            type="number"
+                            min={0}
+                            step={0.01}
+                            placeholder="Ex: 25.00"
+                            value={newVpUnitPrice}
+                            onChange={(e) => setNewVpUnitPrice(e.target.value)}
+                            className="text-sm"
+                          />
+                        </div>
+                        <div className="self-end">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={handleAddVolumePrice}
+                            disabled={!newVpMinQty || !newVpUnitPrice}
+                          >
+                            <IoMdAdd className="w-4 h-4 mr-1" />
+                            Adicionar
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
               )}
 
               <div className="mb-5">
