@@ -8,7 +8,7 @@ export interface VolumePrice {
 }
 
 export const useProductVolumePriceService = () => {
-  const POST = async (data: VolumePrice, session: string): Promise<VolumePrice> => {
+  const POST = async (data: VolumePrice, session: string | undefined): Promise<VolumePrice> => {
     const response: any = await fetchWrapper<VolumePrice>("product-volume-price", {
       method: "POST",
       headers: {
@@ -21,7 +21,7 @@ export const useProductVolumePriceService = () => {
     return response;
   };
 
-  const GETBYPRODUCTID = async (productId: string, session: string): Promise<VolumePrice[]> => {
+  const GETBYPRODUCTID = async (productId: string, session: string | undefined): Promise<VolumePrice[]> => {
     const response = await fetchWrapper<VolumePrice[]>(
       `product-volume-price/product/${productId}`,
       {
@@ -32,7 +32,7 @@ export const useProductVolumePriceService = () => {
     return response ?? [];
   };
 
-  const DELETE = async (id: string, session: string): Promise<void> => {
+  const DELETE = async (id: string, session: string | undefined): Promise<void> => {
     await fetchWrapper<void>(`product-volume-price/${id}`, {
       method: "DELETE",
       headers: { Authorization: `${session}` },
