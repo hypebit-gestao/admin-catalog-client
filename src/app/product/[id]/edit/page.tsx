@@ -43,6 +43,7 @@ import { VideoDropzone, VideoPreviewItem } from "@/components/video-dropzone";
 import { RichTextEditor } from "@/components/rich-text-editor";
 import { FormSkeleton } from "@/components/ui/skeleton";
 import { useUnsavedChanges } from "@/utils/hooks/useUnsavedChanges";
+import { useProductVolumePriceService, VolumePrice } from "@/services/productVolumePrice.service";
 
 const formSchema = z
   .object({
@@ -103,6 +104,7 @@ const ProductEditPage = () => {
   const sizeService = useSizeService();
   const productSizeService = useProductSizeService();
   const uploadService = useUploadService();
+  const volumePriceService = useProductVolumePriceService();
 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -117,6 +119,10 @@ const ProductEditPage = () => {
   const [newGroupName, setNewGroupName] = useState<string>("");
   const [editingGroup, setEditingGroup] = useState<string | null>(null);
   const [editingGroupValue, setEditingGroupValue] = useState<string>("");
+  const [volumePrices, setVolumePrices] = useState<VolumePrice[]>([]);
+  const [hasVolumePrice, setHasVolumePrice] = useState(false);
+  const [newVpMinQty, setNewVpMinQty] = useState("");
+  const [newVpUnitPrice, setNewVpUnitPrice] = useState("");
 
   const form = useForm<z.infer<typeof formSchema>>({
     defaultValues: {
@@ -229,6 +235,11 @@ const ProductEditPage = () => {
               }))
             );
             setCustomValue("isSize", true);
+          }
+
+          if (fetchedProduct.volume_prices && fetchedProduct.volume_prices.length > 0) {
+            setVolumePrices(fetchedProduct.volume_prices);
+            setHasVolumePrice(true);
           }
         }
 
@@ -385,6 +396,38 @@ const ProductEditPage = () => {
       toast.success("Grupo renomeado");
     } catch {
       toast.error("Erro ao renomear grupo");
+    }
+  };
+
+  const handleAddVolumePrice = async () => {
+    const minQty = parseInt(newVpMinQty);
+    const unitPrice = parseFloat(newVpUnitPrice);
+    if (!product?.id || isNaN(minQty) || minQty < 1 || isNaN(unitPrice) || unitPrice < 0) return;
+    if (volumePrices.some((vp) => vp.min_quantity === minQty)) {
+      toast.error("Já existe uma faixa com essa quantidade mínima");
+      return;
+    }
+    try {
+      const created = await volumePriceService.POST(
+        { product_id: product.id, min_quantity: minQty, unit_price: unitPrice },
+        session?.user?.accessToken
+      );
+      setVolumePrices((prev) => [...prev, created].sort((a, b) => a.min_quantity - b.min_quantity));
+      setNewVpMinQty("");
+      setNewVpUnitPrice("");
+      toast.success("Faixa de desconto adicionada");
+    } catch {
+      toast.error("Erro ao adicionar faixa de desconto");
+    }
+  };
+
+  const handleDeleteVolumePrice = async (id: string) => {
+    try {
+      await volumePriceService.DELETE(id, session?.user?.accessToken);
+      setVolumePrices((prev) => prev.filter((vp) => vp.id !== id));
+      toast.success("Faixa removida");
+    } catch {
+      toast.error("Erro ao remover faixa");
     }
   };
 
@@ -954,6 +997,96 @@ const ProductEditPage = () => {
                       </Button>
                     </div>
                   </div>
+                </div>
+              )}
+
+              {/* Desconto progressivo por quantidade */}
+              {!priceOnRequest && (
+                <div className="mb-6">
+                  <div className="mb-2">
+                    <h3 className="font-bold">Desconto por quantidade</h3>
+                    <p className="text-xs text-gray-400 mt-1">
+                      Defina faixas de preço: a partir de X unidades o cliente paga R$ Y por unidade.
+                    </p>
+                  </div>
+                  <div className="mb-3">
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        className="w-5 h-5"
+                        checked={hasVolumePrice}
+                        onCheckedChange={(v) => setHasVolumePrice(Boolean(v))}
+                      />
+                      <span className="font-medium text-sm">Ativar desconto progressivo</span>
+                    </div>
+                  </div>
+
+                  {hasVolumePrice && (
+                    <div className="border rounded-md p-3 bg-gray-50 flex flex-col gap-3">
+                      {volumePrices.length > 0 && (
+                        <div className="flex flex-col gap-1.5">
+                          <div className="grid grid-cols-3 gap-2 text-xs font-semibold text-gray-500 px-1">
+                            <span>A partir de</span>
+                            <span>Preço por unidade</span>
+                            <span></span>
+                          </div>
+                          {volumePrices.map((vp) => (
+                            <div key={vp.id} className="grid grid-cols-3 gap-2 items-center border rounded bg-white px-2 py-2">
+                              <span className="text-sm font-medium">{vp.min_quantity} unid.</span>
+                              <span className="text-sm">
+                                {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(vp.unit_price))}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteVolumePrice(vp.id!)}
+                                className="justify-self-end text-red-400 hover:text-red-600"
+                              >
+                                <TbTrash className="w-4 h-4" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      <div className="flex items-center gap-2 pt-1 border-t">
+                        <div className="flex-1">
+                          <label className="text-xs text-gray-500 mb-1 block">A partir de (unidades)</label>
+                          <Input
+                            type="number"
+                            min={1}
+                            step={1}
+                            placeholder="Ex: 6"
+                            value={newVpMinQty}
+                            onChange={(e) => setNewVpMinQty(e.target.value)}
+                            className="text-sm"
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <label className="text-xs text-gray-500 mb-1 block">Preço por unidade (R$)</label>
+                          <Input
+                            type="number"
+                            min={0}
+                            step={0.01}
+                            placeholder="Ex: 25.00"
+                            value={newVpUnitPrice}
+                            onChange={(e) => setNewVpUnitPrice(e.target.value)}
+                            className="text-sm"
+                          />
+                        </div>
+                        <div className="self-end">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={handleAddVolumePrice}
+                            disabled={!newVpMinQty || !newVpUnitPrice}
+                          >
+                            <IoMdAdd className="w-4 h-4 mr-1" />
+                            Adicionar
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 

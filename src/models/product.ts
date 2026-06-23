@@ -42,4 +42,10 @@ export interface Product {
   variation_label?: string | null;
   type?: string;
   price_on_request?: boolean;
+  volume_prices?: Array<{
+    id: string;
+    product_id: string;
+    min_quantity: number;
+    unit_price: number;
+  }>;
 }
