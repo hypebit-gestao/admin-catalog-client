@@ -88,6 +88,9 @@ const ProductNewPage = () => {
   const [volumePrices, setVolumePrices] = useState<Omit<VolumePrice, "id" | "product_id">[]>([]);
   const [newVpMinQty, setNewVpMinQty] = useState("");
   const [newVpUnitPrice, setNewVpUnitPrice] = useState("");
+  const [discountEnabled, setDiscountEnabled] = useState(false);
+  const [discountType, setDiscountType] = useState<'percentage' | 'absolute'>('percentage');
+  const [discountMaxValue, setDiscountMaxValue] = useState("");
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -237,6 +240,9 @@ const ProductNewPage = () => {
           type: data.type,
           price_on_request: data.price_on_request,
           videos: uploadedVideoItems.length > 0 ? uploadedVideoItems : null,
+          discount_enabled: discountEnabled,
+          max_discount_type: discountEnabled ? discountType : 'percentage',
+          max_discount_value: discountEnabled && discountMaxValue ? Number(discountMaxValue) : null,
         },
         session?.user?.accessToken
       );
@@ -496,6 +502,59 @@ const ProductNewPage = () => {
                             <IoMdAdd className="w-4 h-4 mr-1" />
                             Adicionar
                           </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {!priceOnRequest && (
+                <div className="mb-6">
+                  <div className="mb-2">
+                    <h3 className="font-bold">Desconto negociável</h3>
+                    <p className="text-xs text-gray-400 mt-1">
+                      Permite que o vendedor ofereça desconto direto no card do produto, até o limite configurado.
+                    </p>
+                  </div>
+                  <div className="mb-3">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <Checkbox
+                        className="w-5 h-5"
+                        checked={discountEnabled}
+                        onCheckedChange={(v) => setDiscountEnabled(Boolean(v))}
+                      />
+                      <span className="font-medium text-sm">Ativar desconto negociável</span>
+                    </label>
+                  </div>
+                  {discountEnabled && (
+                    <div className="border rounded-md p-3 bg-gray-50 flex flex-col gap-3">
+                      <div className="flex gap-3 items-end">
+                        <div>
+                          <label className="text-xs text-gray-500 mb-1 block">Tipo de desconto</label>
+                          <select
+                            value={discountType}
+                            onChange={(e) => setDiscountType(e.target.value as 'percentage' | 'absolute')}
+                            className="border border-input rounded-md px-3 py-2 text-sm bg-background"
+                          >
+                            <option value="percentage">Porcentagem (%)</option>
+                            <option value="absolute">Valor fixo (R$)</option>
+                          </select>
+                        </div>
+                        <div className="flex-1">
+                          <label className="text-xs text-gray-500 mb-1 block">
+                            Desconto máximo ({discountType === 'percentage' ? '%' : 'R$'})
+                          </label>
+                          <Input
+                            type="number"
+                            min={0}
+                            step={discountType === 'percentage' ? 1 : 0.01}
+                            max={discountType === 'percentage' ? 100 : undefined}
+                            placeholder={discountType === 'percentage' ? "Ex: 15" : "Ex: 10.00"}
+                            value={discountMaxValue}
+                            onChange={(e) => setDiscountMaxValue(e.target.value)}
+                            className="text-sm"
+                          />
                         </div>
                       </div>
                     </div>

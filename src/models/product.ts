@@ -42,6 +42,9 @@ export interface Product {
   variation_label?: string | null;
   type?: string;
   price_on_request?: boolean;
+  discount_enabled?: boolean;
+  max_discount_type?: 'percentage' | 'absolute';
+  max_discount_value?: number | null;
   volume_prices?: Array<{
     id: string;
     product_id: string;
