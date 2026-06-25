@@ -11,7 +11,7 @@ import { AG_GRID_LOCALE_PT_BR } from "@/utils/locales/ag-grid";
 import { RowNode } from "ag-grid-community";
 import Loader from "@/components/loader";
 
-import { MdDelete, MdEdit, MdRequestPage, MdPeople } from "react-icons/md";
+import { MdDelete, MdEdit, MdRequestPage, MdPeople, MdContentCopy, MdCheck, MdLink } from "react-icons/md";
 import { useOrderService } from "@/services/order.service";
 import { Order as OrderModel } from "@/models/order";
 import OrderEdit from "@/components/order/order-edit";
@@ -52,6 +52,20 @@ const Order = () => {
   const [allOrders, setAllOrders] = useState<OrderModel[]>([]);
   const [activeFilter, setActiveFilter] = useState<StatusKey | "ALL">("ALL");
   const [activeTab, setActiveTab] = useState<"orders" | "reps">("orders");
+  const [newRepName, setNewRepName] = useState("");
+  const [copiedRep, setCopiedRep] = useState<string | null>(null);
+
+  const personLink = session?.user?.user?.person_link ?? "";
+  const CATALOG_BASE = "https://www.catalogoplace.com.br";
+
+  const buildRepLink = (name: string) =>
+    `${CATALOG_BASE}/${personLink}?rep=${encodeURIComponent(name.trim())}`;
+
+  const copyLink = (name: string) => {
+    navigator.clipboard.writeText(buildRepLink(name));
+    setCopiedRep(name);
+    setTimeout(() => setCopiedRep(null), 2000);
+  };
   const gridRef = useRef<AgGridReact>(null);
 
   const orderService = useOrderService();
@@ -246,14 +260,45 @@ const Order = () => {
             <Loader color="text-green-primary" />
           </div>
         ) : activeTab === "reps" ? (
-          <div className="space-y-4">
-            <p className="text-xs text-gray-400">
-              Cada representante recebe um link exclusivo:<br />
-              <code className="bg-gray-100 px-1 py-0.5 rounded text-gray-700">sualoja.com?rep=NOME</code>
-              {" "}— ao abrir o catálogo por esse link, pedidos ficam vinculados ao representante.
-            </p>
+          <div className="space-y-6">
+
+            {/* Gerador de link */}
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+              <p className="text-sm font-semibold text-gray-800 mb-1 flex items-center gap-1.5">
+                <MdLink size={16} className="text-green-primary" />
+                Gerar link de representante
+              </p>
+              <p className="text-xs text-gray-400 mb-3">
+                Compartilhe o link com o representante. Ao abrir o catálogo, todos os pedidos ficam vinculados a ele.
+              </p>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Nome do representante (ex: João Silva)"
+                  value={newRepName}
+                  onChange={(e) => setNewRepName(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && newRepName.trim() && copyLink(newRepName)}
+                  className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-green-primary transition-colors"
+                />
+                <button
+                  disabled={!newRepName.trim()}
+                  onClick={() => copyLink(newRepName)}
+                  className="flex items-center gap-1.5 px-4 py-2 bg-green-primary text-white text-sm font-medium rounded-lg hover:bg-green-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {copiedRep === newRepName ? <MdCheck size={16} /> : <MdContentCopy size={16} />}
+                  {copiedRep === newRepName ? "Copiado!" : "Copiar link"}
+                </button>
+              </div>
+              {newRepName.trim() && (
+                <p className="mt-2 text-xs text-gray-400 font-mono truncate">
+                  {buildRepLink(newRepName)}
+                </p>
+              )}
+            </div>
+
+            {/* Métricas */}
             {repStats.length === 0 ? (
-              <p className="text-sm text-gray-500 py-8 text-center">Nenhum pedido ainda.</p>
+              <p className="text-sm text-gray-500 py-8 text-center">Nenhum pedido vinculado a representantes ainda.</p>
             ) : (
               <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
                 <table className="w-full text-sm">
@@ -263,6 +308,7 @@ const Order = () => {
                       <th className="px-4 py-3 text-right">Pedidos</th>
                       <th className="px-4 py-3 text-right">Total vendido</th>
                       <th className="px-4 py-3 text-right">Ticket médio</th>
+                      <th className="px-4 py-3 text-right">Link</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -279,6 +325,18 @@ const Order = () => {
                         </td>
                         <td className="px-4 py-3 text-right text-gray-600">
                           {currencyFormatter.format(rep.total / rep.orders)}
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          {rep.name !== "(direto)" && (
+                            <button
+                              onClick={() => copyLink(rep.name)}
+                              title="Copiar link do representante"
+                              className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-green-primary transition-colors"
+                            >
+                              {copiedRep === rep.name ? <MdCheck size={14} className="text-green-primary" /> : <MdContentCopy size={14} />}
+                              {copiedRep === rep.name ? "Copiado" : "Copiar"}
+                            </button>
+                          )}
                         </td>
                       </tr>
                     ))}
