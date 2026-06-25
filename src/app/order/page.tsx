@@ -11,7 +11,7 @@ import { AG_GRID_LOCALE_PT_BR } from "@/utils/locales/ag-grid";
 import { RowNode } from "ag-grid-community";
 import Loader from "@/components/loader";
 
-import { MdDelete, MdEdit, MdRequestPage } from "react-icons/md";
+import { MdDelete, MdEdit, MdRequestPage, MdPeople } from "react-icons/md";
 import { useOrderService } from "@/services/order.service";
 import { Order as OrderModel } from "@/models/order";
 import OrderEdit from "@/components/order/order-edit";
@@ -51,6 +51,7 @@ const Order = () => {
   const { data: session } = useSession();
   const [allOrders, setAllOrders] = useState<OrderModel[]>([]);
   const [activeFilter, setActiveFilter] = useState<StatusKey | "ALL">("ALL");
+  const [activeTab, setActiveTab] = useState<"orders" | "reps">("orders");
   const gridRef = useRef<AgGridReact>(null);
 
   const orderService = useOrderService();
@@ -171,6 +172,14 @@ const Order = () => {
       cellRenderer: StatusRenderer,
     },
     {
+      field: "seller_code",
+      flex: 1,
+      headerName: "Representante",
+      valueFormatter: (params: any) => params.value || "—",
+      filter: true,
+      floatingFilter: true,
+    },
+    {
       field: "observation",
       flex: 2,
       headerName: "Observação",
@@ -186,15 +195,97 @@ const Order = () => {
     },
   ], [ActionsRenderer, StatusRenderer]);
 
+  // Métricas por representante
+  const repStats = useMemo(() => {
+    const map = new Map<string, { orders: number; total: number }>();
+    for (const o of allOrders) {
+      const key = o.seller_code || "(direto)";
+      const prev = map.get(key) ?? { orders: 0, total: 0 };
+      map.set(key, { orders: prev.orders + 1, total: prev.total + Number(o.total ?? 0) });
+    }
+    return [...map.entries()]
+      .map(([name, data]) => ({ name, ...data }))
+      .sort((a, b) => b.total - a.total);
+  }, [allOrders]);
+
   return (
     <>
       <OrderEdit isOpen={orderEditModal.isOpen} onClose={orderEditModal.onClose} />
       <OrderDelete isOpen={orderDeleteModal.isOpen} onClose={orderDeleteModal.onClose} />
 
       <ContentMain title="Pedidos" subtitle="Gerencie e acompanhe todos os pedidos da sua loja">
+        {/* Abas */}
+        <div className="flex gap-1 mb-4 border-b border-gray-200">
+          <button
+            onClick={() => setActiveTab("orders")}
+            className={cn(
+              "flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors",
+              activeTab === "orders"
+                ? "border-green-primary text-green-primary"
+                : "border-transparent text-gray-500 hover:text-gray-800"
+            )}
+          >
+            Pedidos
+          </button>
+          <button
+            onClick={() => setActiveTab("reps")}
+            className={cn(
+              "flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors",
+              activeTab === "reps"
+                ? "border-green-primary text-green-primary"
+                : "border-transparent text-gray-500 hover:text-gray-800"
+            )}
+          >
+            <MdPeople size={16} />
+            Representantes
+          </button>
+        </div>
+
         {loading ? (
           <div className="flex justify-center py-20">
             <Loader color="text-green-primary" />
+          </div>
+        ) : activeTab === "reps" ? (
+          <div className="space-y-4">
+            <p className="text-xs text-gray-400">
+              Cada representante recebe um link exclusivo:<br />
+              <code className="bg-gray-100 px-1 py-0.5 rounded text-gray-700">sualoja.com?rep=NOME</code>
+              {" "}— ao abrir o catálogo por esse link, pedidos ficam vinculados ao representante.
+            </p>
+            {repStats.length === 0 ? (
+              <p className="text-sm text-gray-500 py-8 text-center">Nenhum pedido ainda.</p>
+            ) : (
+              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-50 text-xs uppercase text-gray-500 font-semibold">
+                    <tr>
+                      <th className="px-4 py-3 text-left">Representante</th>
+                      <th className="px-4 py-3 text-right">Pedidos</th>
+                      <th className="px-4 py-3 text-right">Total vendido</th>
+                      <th className="px-4 py-3 text-right">Ticket médio</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {repStats.map((rep, i) => (
+                      <tr key={rep.name} className={i % 2 === 0 ? "bg-white" : "bg-gray-50/60"}>
+                        <td className="px-4 py-3 font-medium text-gray-900">
+                          {rep.name === "(direto)" ? (
+                            <span className="text-gray-400 italic">{rep.name}</span>
+                          ) : rep.name}
+                        </td>
+                        <td className="px-4 py-3 text-right text-gray-700">{rep.orders}</td>
+                        <td className="px-4 py-3 text-right font-semibold text-gray-900">
+                          {currencyFormatter.format(rep.total)}
+                        </td>
+                        <td className="px-4 py-3 text-right text-gray-600">
+                          {currencyFormatter.format(rep.total / rep.orders)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         ) : (
           <div className="space-y-4">
@@ -263,12 +354,13 @@ const Order = () => {
             )}
 
             <ExportToExcel
-              currencyColumns={[3]}
+              currencyColumns={[4]}
               fileName="Pedidos"
               className="bg-green-primary text-white px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-green-primary/90 transition-colors"
               label
               excelData={rowData.map((item: OrderModel) => ({
                 "Nome do cliente": item.customer_name,
+                "Representante": item.seller_code || "—",
                 "Status do pedido": formatterStatus(item.status),
                 Observação: item.observation,
                 "Total do pedido": item.total,
