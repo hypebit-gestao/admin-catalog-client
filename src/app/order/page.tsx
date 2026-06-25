@@ -203,7 +203,7 @@ const Order = () => {
       const prev = map.get(key) ?? { orders: 0, total: 0 };
       map.set(key, { orders: prev.orders + 1, total: prev.total + Number(o.total ?? 0) });
     }
-    return [...map.entries()]
+    return Array.from(map.entries())
       .map(([name, data]) => ({ name, ...data }))
       .sort((a, b) => b.total - a.total);
   }, [allOrders]);
