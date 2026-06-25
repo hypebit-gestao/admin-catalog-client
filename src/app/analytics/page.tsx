@@ -1,7 +1,8 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
+import { Order as OrderModel } from "@/models/order";
 import ContentMain from "@/components/content-main";
 import { useOrderService } from "@/services/order.service";
 import { useProductService } from "@/services/product.service";
@@ -14,6 +15,8 @@ import {
   MdCancel,
   MdDownload,
   MdTrendingUp,
+  MdPeople,
+  MdEmojiEvents,
 } from "react-icons/md";
 import { cn } from "@/lib/utils";
 import {
@@ -138,6 +141,9 @@ const Analytics = () => {
   >([]);
   const [monthlyRevenue, setMonthlyRevenue] = useState<MonthlyRevenueTrend[]>([]);
 
+  // Raw orders for rep analysis
+  const [allOrders, setAllOrders] = useState<OrderModel[]>([]);
+
   // Product data
   const [totalProducts, setTotalProducts] = useState(0);
   const [activeProducts, setActiveProducts] = useState(0);
@@ -158,11 +164,20 @@ const Analytics = () => {
       const startDate = presetDays > 0 ? toISODate(subtractDays(presetDays)) : undefined;
       const endDate = toISODate(new Date());
 
-      const [orderAnalytics, productAnalytics, byCategoryData] = await Promise.all([
+      const [orderAnalytics, productAnalytics, byCategoryData, rawOrders] = await Promise.all([
         orderService.GETANALYTICS(token, userId, startDate, endDate).catch(() => null),
         productService.GETANALYTICS(userId, token).catch(() => null),
         productService.GETBYCATEGORY(userId, token).catch(() => null),
+        orderService.GETALL(token, userId).catch(() => [] as OrderModel[]),
       ]);
+
+      // Filter raw orders by period for rep analysis
+      const cutoff = presetDays > 0 ? subtractDays(presetDays) : null;
+      const filteredOrders = (rawOrders ?? []).filter((o) => {
+        if (!cutoff || !o.created_at) return true;
+        return new Date(o.created_at) >= cutoff;
+      });
+      setAllOrders(filteredOrders);
 
       if (orderAnalytics) {
         setTotalRevenue(orderAnalytics.totalRevenue ?? 0);
@@ -268,6 +283,24 @@ const Analytics = () => {
       XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(catData), "Categorias");
     }
 
+    // Sheet 5: Representantes
+    if (repStats.length > 0) {
+      const repData = [
+        ["Representante", "Pedidos", "Total (R$)", "Ticket Médio (R$)", "Entregues"],
+        ...repStats.map((r) => [r.name, r.orders, r.total, r.avgTicket, r.delivered]),
+      ];
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(repData), "Representantes");
+    }
+
+    // Sheet 6: Top clientes
+    if (topCustomers.length > 0) {
+      const custData = [
+        ["Cliente", "Pedidos", "Total (R$)"],
+        ...topCustomers.map((c) => [c.name, c.orders, c.total]),
+      ];
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(custData), "Top Clientes");
+    }
+
     const period = activePreset > 0 ? `_ultimos_${activePreset}d` : "_total";
     XLSX.writeFile(wb, `relatorio_catalogoplace${period}.xlsx`);
   };
@@ -291,6 +324,42 @@ const Analytics = () => {
   const pieData = statusStats
     .filter((s) => s.count > 0)
     .map((s) => ({ name: s.label, value: s.count, fill: s.hex }));
+
+  // Rep stats derived from raw orders
+  const repStats = useMemo(() => {
+    const map = new Map<string, { orders: number; total: number; delivered: number }>();
+    for (const o of allOrders) {
+      const key = o.seller_code || "(direto)";
+      const prev = map.get(key) ?? { orders: 0, total: 0, delivered: 0 };
+      map.set(key, {
+        orders: prev.orders + 1,
+        total: prev.total + Number(o.total ?? 0),
+        delivered: prev.delivered + (o.status === "DELIVERED" ? 1 : 0),
+      });
+    }
+    return Array.from(map.entries())
+      .map(([name, d]) => ({ name, ...d, avgTicket: d.total / d.orders }))
+      .sort((a, b) => b.total - a.total);
+  }, [allOrders]);
+
+  const repChartData = repStats
+    .filter((r) => r.name !== "(direto)")
+    .slice(0, 10)
+    .map((r) => ({ name: r.name, total: r.total, pedidos: r.orders }));
+
+  // Top customers
+  const topCustomers = useMemo(() => {
+    const map = new Map<string, { orders: number; total: number }>();
+    for (const o of allOrders) {
+      const key = o.customer_name || "—";
+      const prev = map.get(key) ?? { orders: 0, total: 0 };
+      map.set(key, { orders: prev.orders + 1, total: prev.total + Number(o.total ?? 0) });
+    }
+    return Array.from(map.entries())
+      .map(([name, d]) => ({ name, ...d }))
+      .sort((a, b) => b.total - a.total)
+      .slice(0, 5);
+  }, [allOrders]);
 
   return (
     <ContentMain
@@ -551,6 +620,108 @@ const Analytics = () => {
               </div>
             </div>
           </div>
+
+          {/* Representantes Comerciais */}
+          {repStats.length > 0 && (
+            <div className="space-y-4">
+              <h3 className="text-base font-semibold text-gray-900 flex items-center gap-2">
+                <MdPeople className="text-green-primary" size={20} />
+                Representantes Comerciais
+              </h3>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Bar chart por rep */}
+                {repChartData.length > 0 && (
+                  <div className="bg-white rounded-xl border border-gray-200/80 p-6 shadow-sm">
+                    <h4 className="text-sm font-semibold text-gray-700 mb-4">Faturamento por Representante</h4>
+                    <ResponsiveContainer width="100%" height={220}>
+                      <BarChart data={repChartData} layout="vertical" margin={{ top: 0, right: 16, left: 8, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={false} />
+                        <XAxis
+                          type="number"
+                          tickFormatter={(v: number) => v >= 1000 ? `R$${(v / 1000).toFixed(0)}k` : `R$${v}`}
+                          tick={{ fontSize: 11, fill: "#6b7280" }}
+                          axisLine={false}
+                          tickLine={false}
+                        />
+                        <YAxis
+                          type="category"
+                          dataKey="name"
+                          width={90}
+                          tick={{ fontSize: 11, fill: "#374151" }}
+                          axisLine={false}
+                          tickLine={false}
+                        />
+                        <Tooltip formatter={(v: any) => [formatCurrency(v), "Total"]} />
+                        <Bar dataKey="total" fill="#2c6e49" radius={[0, 4, 4, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+
+                {/* Ranking detalhado */}
+                <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm overflow-hidden">
+                  <div className="px-5 py-4 border-b border-gray-100">
+                    <h4 className="text-sm font-semibold text-gray-700">Ranking de Representantes</h4>
+                  </div>
+                  <table className="w-full text-sm">
+                    <thead className="bg-gray-50 text-xs uppercase text-gray-400 font-semibold">
+                      <tr>
+                        <th className="px-4 py-2.5 text-left">#</th>
+                        <th className="px-4 py-2.5 text-left">Representante</th>
+                        <th className="px-4 py-2.5 text-right">Pedidos</th>
+                        <th className="px-4 py-2.5 text-right">Total</th>
+                        <th className="px-4 py-2.5 text-right">Ticket médio</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {repStats.map((rep, i) => (
+                        <tr key={rep.name} className={i % 2 === 0 ? "bg-white" : "bg-gray-50/60"}>
+                          <td className="px-4 py-2.5">
+                            {i === 0 && rep.name !== "(direto)" ? (
+                              <MdEmojiEvents className="text-amber-400" size={16} />
+                            ) : (
+                              <span className="text-xs text-gray-400">{rep.name !== "(direto)" ? i + 1 : "—"}</span>
+                            )}
+                          </td>
+                          <td className="px-4 py-2.5 font-medium text-gray-800">
+                            {rep.name === "(direto)" ? <span className="text-gray-400 italic text-xs">{rep.name}</span> : rep.name}
+                          </td>
+                          <td className="px-4 py-2.5 text-right text-gray-600">{rep.orders}</td>
+                          <td className="px-4 py-2.5 text-right font-semibold text-gray-900">{formatCurrency(rep.total)}</td>
+                          <td className="px-4 py-2.5 text-right text-gray-500">{formatCurrency(rep.avgTicket)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Top clientes */}
+          {topCustomers.length > 0 && (
+            <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm overflow-hidden">
+              <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
+                <MdEmojiEvents className="text-amber-400" size={18} />
+                <h3 className="text-sm font-semibold text-gray-700">Top 5 Clientes (por valor)</h3>
+              </div>
+              <div className="divide-y divide-gray-100">
+                {topCustomers.map((c, i) => (
+                  <div key={c.name} className="flex items-center justify-between px-5 py-3">
+                    <div className="flex items-center gap-3">
+                      <span className="w-5 text-xs text-gray-400 font-semibold text-center">{i + 1}</span>
+                      <span className="text-sm font-medium text-gray-800">{c.name}</span>
+                    </div>
+                    <div className="flex items-center gap-6 text-sm">
+                      <span className="text-gray-500">{c.orders} pedido{c.orders !== 1 ? "s" : ""}</span>
+                      <span className="font-semibold text-gray-900 w-28 text-right">{formatCurrency(c.total)}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Produtos por categoria (bar chart) + Resumo do catálogo */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
