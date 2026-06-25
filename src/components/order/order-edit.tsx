@@ -186,16 +186,12 @@ const OrderEdit = ({ isOpen, onClose }: CategoryUpdateProps) => {
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent className="z-[300]">
-                                <SelectItem value="PENDENT">
-                                  Pendente
-                                </SelectItem>
-                                <SelectItem value="CANCELLED">
-                                  Cancelado
-                                </SelectItem>
-                                <SelectItem value="DELIVERED">
-                                  Entregue
-                                </SelectItem>
+                                <SelectItem value="PENDENT">Novo pedido</SelectItem>
+                                <SelectItem value="NEGOTIATING">Em negociação</SelectItem>
+                                <SelectItem value="PAID">Pago</SelectItem>
                                 <SelectItem value="SENT">Enviado</SelectItem>
+                                <SelectItem value="DELIVERED">Entregue</SelectItem>
+                                <SelectItem value="CANCELLED">Cancelado</SelectItem>
                               </SelectContent>
                             </Select>
 

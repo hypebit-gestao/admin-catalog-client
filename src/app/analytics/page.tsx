@@ -46,18 +46,32 @@ const STATUS_INFO: Record<
   { label: string; icon: React.ElementType; color: string; bg: string; hex: string }
 > = {
   PENDENT: {
-    label: "Pendentes",
+    label: "Novos pedidos",
     icon: MdShoppingCart,
     color: "text-amber-600",
     bg: "bg-amber-50",
     hex: "#d97706",
   },
-  SENT: {
-    label: "Enviados",
-    icon: MdLocalShipping,
+  NEGOTIATING: {
+    label: "Em negociação",
+    icon: MdShoppingCart,
+    color: "text-orange-600",
+    bg: "bg-orange-50",
+    hex: "#ea580c",
+  },
+  PAID: {
+    label: "Pagos",
+    icon: MdAttachMoney,
     color: "text-blue-600",
     bg: "bg-blue-50",
     hex: "#2563eb",
+  },
+  SENT: {
+    label: "Enviados",
+    icon: MdLocalShipping,
+    color: "text-indigo-600",
+    bg: "bg-indigo-50",
+    hex: "#4338ca",
   },
   DELIVERED: {
     label: "Entregues",
@@ -187,7 +201,7 @@ const Analytics = () => {
         setMonthlyRevenue(orderAnalytics.monthlyRevenue ?? []);
 
         const summary = orderAnalytics.statusSummary ?? [];
-        const stats = ["PENDENT", "SENT", "DELIVERED", "CANCELLED"].map((status) => {
+        const stats = ["PENDENT", "NEGOTIATING", "PAID", "SENT", "DELIVERED", "CANCELLED"].map((status) => {
           const item = summary.find((s) => s.status === status);
           return {
             ...STATUS_INFO[status],
@@ -210,7 +224,7 @@ const Analytics = () => {
         setAvgOrderValue(orders.length > 0 ? rev / orders.length : 0);
         setMonthlyRevenue([]);
 
-        const stats = ["PENDENT", "SENT", "DELIVERED", "CANCELLED"].map((status) => {
+        const stats = ["PENDENT", "NEGOTIATING", "PAID", "SENT", "DELIVERED", "CANCELLED"].map((status) => {
           const filtered = orders.filter((o) => o.status === status);
           return {
             ...STATUS_INFO[status],
@@ -308,17 +322,11 @@ const Analytics = () => {
   // ─── Funil de vendas ────────────────────────────────────────────────────────
 
   const funnelSteps = [
-    { label: "Pedidos criados", count: totalOrders, color: "bg-blue-500" },
-    {
-      label: "Enviados",
-      count: statusStats.find((s) => s.status === "SENT")?.count ?? 0,
-      color: "bg-indigo-500",
-    },
-    {
-      label: "Entregues",
-      count: statusStats.find((s) => s.status === "DELIVERED")?.count ?? 0,
-      color: "bg-emerald-500",
-    },
+    { label: "Novos pedidos",   count: totalOrders, color: "bg-amber-500" },
+    { label: "Em negociação",   count: statusStats.find((s) => s.status === "NEGOTIATING")?.count ?? 0, color: "bg-orange-500" },
+    { label: "Pagos",           count: statusStats.find((s) => s.status === "PAID")?.count ?? 0, color: "bg-blue-500" },
+    { label: "Enviados",        count: statusStats.find((s) => s.status === "SENT")?.count ?? 0, color: "bg-indigo-500" },
+    { label: "Entregues",       count: statusStats.find((s) => s.status === "DELIVERED")?.count ?? 0, color: "bg-emerald-500" },
   ];
 
   const pieData = statusStats

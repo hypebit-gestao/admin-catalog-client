@@ -11,7 +11,7 @@ import { AG_GRID_LOCALE_PT_BR } from "@/utils/locales/ag-grid";
 import { RowNode } from "ag-grid-community";
 import Loader from "@/components/loader";
 
-import { MdDelete, MdEdit, MdRequestPage, MdPeople, MdContentCopy, MdCheck, MdLink } from "react-icons/md";
+import { MdDelete, MdEdit, MdRequestPage, MdPeople, MdContentCopy, MdCheck, MdLink, MdArrowForward } from "react-icons/md";
 import { useOrderService } from "@/services/order.service";
 import { Order as OrderModel } from "@/models/order";
 import OrderEdit from "@/components/order/order-edit";
@@ -22,20 +22,35 @@ import ExportToExcel from "@/utils/tools/excelExport";
 import { cn } from "@/lib/utils";
 
 const STATUS_CONFIG = {
-  PENDENT:   { label: "Pendente",  classes: "bg-amber-100 text-amber-800 border border-amber-200" },
-  SENT:      { label: "Enviado",   classes: "bg-blue-100 text-blue-800 border border-blue-200" },
-  DELIVERED: { label: "Entregue", classes: "bg-emerald-100 text-emerald-800 border border-emerald-200" },
-  CANCELLED: { label: "Cancelado", classes: "bg-red-100 text-red-800 border border-red-200" },
+  PENDENT:     { label: "Novo pedido",      classes: "bg-amber-100 text-amber-800 border border-amber-200",    hex: "#d97706" },
+  NEGOTIATING: { label: "Em negociação",    classes: "bg-orange-100 text-orange-800 border border-orange-200", hex: "#ea580c" },
+  PAID:        { label: "Pago",             classes: "bg-blue-100 text-blue-800 border border-blue-200",        hex: "#2563eb" },
+  SENT:        { label: "Enviado",          classes: "bg-indigo-100 text-indigo-800 border border-indigo-200",  hex: "#4338ca" },
+  DELIVERED:   { label: "Entregue",         classes: "bg-emerald-100 text-emerald-800 border border-emerald-200", hex: "#059669" },
+  CANCELLED:   { label: "Cancelado",        classes: "bg-red-100 text-red-800 border border-red-200",           hex: "#dc2626" },
 } as const;
+
+// Fluxo sequencial do pedido (exceto CANCELLED que pode vir de qualquer etapa)
+const STATUS_FLOW: (keyof typeof STATUS_CONFIG)[] = [
+  "PENDENT", "NEGOTIATING", "PAID", "SENT", "DELIVERED",
+];
+
+const nextStatus = (current: string): keyof typeof STATUS_CONFIG | null => {
+  const idx = STATUS_FLOW.indexOf(current as any);
+  if (idx === -1 || idx === STATUS_FLOW.length - 1) return null;
+  return STATUS_FLOW[idx + 1];
+};
 
 type StatusKey = keyof typeof STATUS_CONFIG;
 
 const STATUS_FILTERS: { key: StatusKey | "ALL"; label: string }[] = [
-  { key: "ALL",       label: "Todos" },
-  { key: "PENDENT",   label: "Pendente" },
-  { key: "SENT",      label: "Enviado" },
-  { key: "DELIVERED", label: "Entregue" },
-  { key: "CANCELLED", label: "Cancelado" },
+  { key: "ALL",         label: "Todos" },
+  { key: "PENDENT",     label: "Novo pedido" },
+  { key: "NEGOTIATING", label: "Em negociação" },
+  { key: "PAID",        label: "Pago" },
+  { key: "SENT",        label: "Enviado" },
+  { key: "DELIVERED",   label: "Entregue" },
+  { key: "CANCELLED",   label: "Cancelado" },
 ];
 
 const currencyFormatter = new Intl.NumberFormat("pt-BR", {
@@ -114,6 +129,13 @@ const Order = () => {
     [allOrders]
   );
 
+  const quickAdvance = useCallback(async (order: OrderModel) => {
+    const next = nextStatus(order.status);
+    if (!next || !session?.user?.accessToken) return;
+    await orderService.PUT({ ...order, status: next }, session.user.accessToken);
+    setAllOrders((prev) => prev.map((o) => o.id === order.id ? { ...o, status: next } : o));
+  }, [session?.user?.accessToken, orderService]);
+
   const handleDelete = useCallback((id: string | undefined) => {
     useOrderDeleteModal.setState({ itemId: id });
     orderDeleteModal.onOpen();
@@ -145,15 +167,27 @@ const Order = () => {
 
   const StatusRenderer = useCallback((props: any) => {
     const cfg = STATUS_CONFIG[props.value as StatusKey];
-    if (!cfg) return <span>{props.value}</span>;
+    const next = nextStatus(props.value);
+    const nextCfg = next ? STATUS_CONFIG[next] : null;
+    if (!cfg) return <span className="text-xs text-gray-400">{props.value}</span>;
     return (
-      <div className="flex items-center h-full">
-        <span className={cn("text-xs font-semibold px-2.5 py-1 rounded-full", cfg.classes)}>
+      <div className="flex items-center gap-2 h-full">
+        <span className={cn("text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap", cfg.classes)}>
           {cfg.label}
         </span>
+        {nextCfg && (
+          <button
+            onClick={() => quickAdvance(props.data)}
+            title={`Avançar para: ${nextCfg.label}`}
+            className="flex items-center gap-1 text-xs text-gray-400 hover:text-green-primary transition-colors whitespace-nowrap"
+          >
+            <MdArrowForward size={14} />
+            <span className="hidden xl:inline">{nextCfg.label}</span>
+          </button>
+        )}
       </div>
     );
-  }, []);
+  }, [quickAdvance]);
 
   const getRowStyle = (params: { node: RowNode }) => {
     if (params.node?.rowIndex !== null && params.node?.rowIndex !== undefined) {
