@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import MenuItem from "./menu-item";
-import { FaCubes, FaHome, FaStore, FaUser, FaCrown, FaChartLine } from "react-icons/fa";
+import { FaCubes, FaHome, FaStore, FaUser, FaCrown, FaChartLine, FaChartBar } from "react-icons/fa";
 import {
   MdCategory,
   MdOutlineProductionQuantityLimits,
@@ -140,6 +140,12 @@ const Sidebar = () => {
             href="/order"
             label="Pedidos"
             icon={MdRequestPage}
+            collapsed={isCollapsed}
+          />
+          <MenuItem
+            href="/analytics"
+            label="Relatórios"
+            icon={FaChartBar}
             collapsed={isCollapsed}
           />
           {/* <MenuItem
