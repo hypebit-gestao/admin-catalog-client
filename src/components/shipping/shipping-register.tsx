@@ -192,6 +192,7 @@ const ShippingRegister = ({ isOpen, onClose }: ShippingRegisterProps) => {
                             <SelectItem value="1">Preço Fixo</SelectItem>
                             <SelectItem value="2">Calcular via Correios</SelectItem>
                             <SelectItem value="3">A Combinar</SelectItem>
+                            <SelectItem value="4">Entrega via Transportadora</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
