@@ -35,6 +35,7 @@ export interface User {
   installment_interest_value?: number | null;
   order_destination?: string | null;
   checkout_fields?: Array<{ id: string; label: string; required: boolean; type: 'text' | 'number' }> | null;
+  delivery_types?: string[] | null;
 }
 
 export interface UserShippingPut {
