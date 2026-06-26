@@ -36,6 +36,7 @@ export interface User {
   order_destination?: string | null;
   checkout_fields?: Array<{ id: string; label: string; required: boolean; type: 'text' | 'number' }> | null;
   delivery_types?: string[] | null;
+  hide_whatsapp_float?: boolean | null;
 }
 
 export interface UserShippingPut {

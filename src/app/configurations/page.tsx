@@ -10,7 +10,7 @@ import PersonalizationStore from "@/components/personalization_store/personaliza
 import useGoogleAnalyticsModal from "@/utils/hooks/analytics/useGoogleAnalyticsModal";
 import GoogleAnalyticsModal from "@/components/google-analytics/google-analytics-modal";
 import { MdLocalShipping, MdPalette, MdChevronRight, MdAnalytics, MdQrCode2, MdPayment, MdCreditScore, MdSend, MdAssignment, MdDirectionsCar } from "react-icons/md";
-import { FaInstagram } from "react-icons/fa";
+import { FaInstagram, FaWhatsapp } from "react-icons/fa";
 import useQRCodeModal from "@/utils/hooks/qrcode/useQRCodeModal";
 import QRCodeModal from "@/components/qrcode/qrcode-modal";
 import usePaymentMethodsModal from "@/utils/hooks/usePaymentMethodsModal";
@@ -25,6 +25,8 @@ import useCheckoutFieldsModal from "@/utils/hooks/useCheckoutFieldsModal";
 import CheckoutFieldsModal from "@/components/checkout-fields-modal";
 import useDeliveryTypesModal from "@/utils/hooks/useDeliveryTypesModal";
 import DeliveryTypesModal from "@/components/delivery-types-modal";
+import useWhatsAppFloatModal from "@/utils/hooks/useWhatsAppFloatModal";
+import WhatsAppFloatModal from "@/components/whatsapp-float-modal";
 import { cn } from "@/lib/utils";
 
 const configCards = [
@@ -118,6 +120,15 @@ const configCards = [
     iconColor: "text-cyan-600",
     borderHover: "hover:border-cyan-200",
   },
+  {
+    id: "whatsapp-float",
+    title: "Botão Flutuante WhatsApp",
+    description: "Ative ou oculte o botão flutuante de WhatsApp que aparece no canto da sua loja virtual.",
+    icon: FaWhatsapp,
+    iconBg: "bg-green-50",
+    iconColor: "text-green-600",
+    borderHover: "hover:border-green-200",
+  },
 ];
 
 const Configurations = () => {
@@ -132,6 +143,7 @@ const Configurations = () => {
   const orderDestinationModal = useOrderDestinationModal();
   const checkoutFieldsModal = useCheckoutFieldsModal();
   const deliveryTypesModal = useDeliveryTypesModal();
+  const whatsappFloatModal = useWhatsAppFloatModal();
 
   const handleCardClick = (id: string) => {
     if (id === "shipping") shippingModal.onOpen();
@@ -144,6 +156,7 @@ const Configurations = () => {
     if (id === "order-destination") orderDestinationModal.onOpen();
     if (id === "checkout-fields") checkoutFieldsModal.onOpen();
     if (id === "delivery-types") deliveryTypesModal.onOpen();
+    if (id === "whatsapp-float") whatsappFloatModal.onOpen();
   };
 
   return (
@@ -187,6 +200,10 @@ const Configurations = () => {
       <DeliveryTypesModal
         isOpen={deliveryTypesModal.isOpen}
         onClose={deliveryTypesModal.onClose}
+      />
+      <WhatsAppFloatModal
+        isOpen={whatsappFloatModal.isOpen}
+        onClose={whatsappFloatModal.onClose}
       />
       <ContentMain
         title="Configurações da Loja"
