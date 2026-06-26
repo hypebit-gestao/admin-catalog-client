@@ -8,4 +8,5 @@ export interface Category {
   };
   user_id?: string | undefined;
   image_url?: string;
+  position?: number;
 }

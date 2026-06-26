@@ -110,6 +110,20 @@ export const useCategoryService = () => {
     return response;
   };
 
+  const REORDER = async (
+    ids: string[],
+    session: string | any
+  ): Promise<void> => {
+    await fetchWrapper<void>(`category/reorder`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `${session}`,
+      },
+      body: JSON.stringify({ ids }),
+    });
+  };
+
   return {
     POST,
 
@@ -118,5 +132,6 @@ export const useCategoryService = () => {
     COUNTCATEGORIES,
     PUT,
     DELETE,
+    REORDER,
   };
 };
