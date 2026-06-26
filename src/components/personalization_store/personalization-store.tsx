@@ -46,20 +46,45 @@ const THEMES = [
   {
     id: "modern",
     label: "Moderno",
-    desc: "Bordas arredondadas, sombras suaves, visual atual",
-    preview: "rounded-2xl shadow-md border border-gray-100",
+    desc: "Bordas arredondadas, sombras suaves",
+    previewClass: "rounded-2xl shadow-md border border-gray-100 bg-white text-gray-700",
+    pageBg: "#ffffff",
   },
   {
     id: "minimal",
     label: "Minimalista",
-    desc: "Design limpo, sem sombras, muito espaço em branco",
-    preview: "rounded-none border-b-2 border-gray-400 shadow-none",
+    desc: "Design limpo, sem sombras",
+    previewClass: "rounded-none border-b-2 border-gray-400 shadow-none bg-white text-gray-700",
+    pageBg: "#ffffff",
   },
   {
     id: "bold",
     label: "Arrojado",
-    desc: "Bordas marcadas, tipografia forte, alto contraste",
-    preview: "rounded-xl border-2 border-gray-900 shadow-lg",
+    desc: "Bordas marcadas, alto contraste",
+    previewClass: "rounded-xl border-2 border-gray-900 shadow-lg bg-white text-gray-900",
+    pageBg: "#ffffff",
+  },
+  {
+    id: "dark",
+    label: "Escuro",
+    desc: "Fundo escuro moderno e elegante",
+    previewClass: "rounded-2xl border border-gray-600 shadow-none text-gray-200",
+    pageBg: "#0d1117",
+  },
+  {
+    id: "luxury",
+    label: "Luxo",
+    desc: "Ideal para perfumes e produtos premium",
+    previewClass: "rounded-2xl border-2 text-yellow-300",
+    pageBg: "#0e0900",
+    borderColor: "#b45309",
+  },
+  {
+    id: "rose",
+    label: "Rosê",
+    desc: "Ideal para moda, beleza e cosméticos",
+    previewClass: "rounded-3xl border-2 border-rose-300 shadow-sm bg-rose-100 text-rose-700",
+    pageBg: "#fff1f2",
   },
 ];
 
@@ -200,7 +225,7 @@ const PersonalizationStore = ({ isOpen, onClose }: ShippingRegisterProps) => {
                 </div>
                 {/* Theme selector */}
                 <div className="mt-6">
-                  <h2 className="font-semibold text-green-primary mb-3">Layout dos cards</h2>
+                  <h2 className="font-semibold text-green-primary mb-3">Tema da loja</h2>
                   <div className="grid grid-cols-1 gap-3">
                     {THEMES.map((t) => (
                       <button
@@ -213,7 +238,13 @@ const PersonalizationStore = ({ isOpen, onClose }: ShippingRegisterProps) => {
                             : "border-gray-200 hover:border-gray-300"
                         }`}
                       >
-                        <div className={`w-14 h-10 bg-gray-100 flex items-center justify-center text-[10px] text-gray-500 shrink-0 ${t.preview}`}>
+                        <div
+                          className={`w-14 h-10 flex items-center justify-center text-[10px] font-bold shrink-0 ${t.previewClass}`}
+                          style={{
+                            backgroundColor: t.pageBg,
+                            ...(t.borderColor ? { borderColor: t.borderColor } : {}),
+                          }}
+                        >
                           Abc
                         </div>
                         <div>
