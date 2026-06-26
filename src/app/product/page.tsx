@@ -58,6 +58,8 @@ const Product = () => {
   const [refreshKey, setRefreshKey] = useState(0);
   const [importing, setImporting] = useState(false);
   const importInputRef = useRef<HTMLInputElement>(null);
+  const [stockEditId, setStockEditId] = useState<string | null>(null);
+  const [stockEditValue, setStockEditValue] = useState<string>("");
   const router = useRouter();
 
   const productService = useProductService();
@@ -283,6 +285,24 @@ const Product = () => {
     }
   };
 
+  const handleQuickStock = async (product: ProductModel, newQty: number) => {
+    const updated = products.map((p) =>
+      p.id === product.id ? { ...p, stock_quantity: newQty } : p
+    );
+    setProducts(updated);
+    setStockEditId(null);
+    try {
+      await productService.UPDATESTOCK(
+        product.id!,
+        { stock_quantity: newQty },
+        session?.user?.accessToken
+      );
+    } catch {
+      setProducts(products);
+      toast.error("Erro ao atualizar estoque");
+    }
+  };
+
   return (
     <>
       <ProductDelete
@@ -466,6 +486,16 @@ const Product = () => {
                         Arquivado
                       </span>
                     )}
+                    {product.stock_enabled && (product.stock_quantity ?? 1) <= 0 && (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-500 text-white">
+                        Esgotado
+                      </span>
+                    )}
+                    {product.stock_enabled && (product.stock_quantity ?? 1) > 0 && (product.stock_quantity ?? 1) <= 5 && (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-400 text-amber-900">
+                        Estoque baixo
+                      </span>
+                    )}
                   </div>
 
                   {/* Body */}
@@ -482,6 +512,58 @@ const Product = () => {
                         ),
                       }}
                     />
+
+                    {product.stock_enabled && (
+                      <div className="mt-2 mb-1">
+                        {stockEditId === product.id ? (
+                          <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                            <button
+                              onClick={() => setStockEditValue((v) => String(Math.max(0, Number(v) - 1)))}
+                              className="w-6 h-6 rounded border border-gray-300 flex items-center justify-center text-sm font-bold bg-white hover:bg-gray-50"
+                            >−</button>
+                            <input
+                              autoFocus
+                              type="number"
+                              min={0}
+                              value={stockEditValue}
+                              onChange={(e) => setStockEditValue(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") handleQuickStock(product, Number(stockEditValue));
+                                if (e.key === "Escape") setStockEditId(null);
+                              }}
+                              className="w-14 text-center text-xs border border-gray-300 rounded px-1 py-1 outline-none focus:border-green-primary"
+                            />
+                            <button
+                              onClick={() => setStockEditValue((v) => String(Number(v) + 1))}
+                              className="w-6 h-6 rounded border border-gray-300 flex items-center justify-center text-sm font-bold bg-white hover:bg-gray-50"
+                            >+</button>
+                            <button
+                              onClick={() => handleQuickStock(product, Number(stockEditValue))}
+                              className="text-xs text-white bg-green-primary px-2 py-1 rounded hover:bg-green-primary/90"
+                            >OK</button>
+                            <button
+                              onClick={() => setStockEditId(null)}
+                              className="text-xs text-gray-400 hover:text-gray-600 px-1"
+                            >✕</button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setStockEditId(product.id!); setStockEditValue(product.stock_quantity?.toString() ?? "0"); }}
+                            className={`text-xs font-semibold px-2 py-0.5 rounded-md flex items-center gap-1 transition-colors ${
+                              (product.stock_quantity ?? 1) <= 0
+                                ? "bg-red-50 text-red-600 hover:bg-red-100"
+                                : (product.stock_quantity ?? 1) <= 5
+                                ? "bg-amber-50 text-amber-700 hover:bg-amber-100"
+                                : "bg-green-primary/10 text-green-primary hover:bg-green-primary/20"
+                            }`}
+                            title="Clique para editar estoque"
+                          >
+                            <span>Estoque: {product.stock_quantity ?? 0}</span>
+                            <MdEdit size={12} />
+                          </button>
+                        )}
+                      </div>
+                    )}
 
                     <div className="mt-3 flex items-center justify-between">
                       <div>

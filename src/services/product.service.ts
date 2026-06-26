@@ -145,6 +145,26 @@ export const useProductService = () => {
     return response;
   };
 
+  const UPDATESTOCK = async (
+    id: string,
+    data: {
+      stock_quantity?: number | null;
+      stock_enabled?: boolean;
+      out_of_stock_behavior?: 'show_unavailable' | 'hide';
+    },
+    session: string | any
+  ): Promise<Product | undefined> => {
+    const response = await fetchWrapper<Product>(`product/${id}/stock`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `${session}`,
+      },
+      body: JSON.stringify(data),
+    });
+    return response;
+  };
+
   return {
     GETBYUSERID,
     GETBYID,
@@ -154,5 +174,6 @@ export const useProductService = () => {
     POST,
     PUT,
     DELETE,
+    UPDATESTOCK,
   };
 };

@@ -126,6 +126,9 @@ const ProductEditPage = () => {
   const [discountEnabled, setDiscountEnabled] = useState(false);
   const [discountType, setDiscountType] = useState<'percentage' | 'absolute'>('percentage');
   const [discountMaxValue, setDiscountMaxValue] = useState("");
+  const [stockEnabled, setStockEnabled] = useState(false);
+  const [stockQuantity, setStockQuantity] = useState<string>("");
+  const [outOfStockBehavior, setOutOfStockBehavior] = useState<'show_unavailable' | 'hide'>('show_unavailable');
 
   const form = useForm<z.infer<typeof formSchema>>({
     defaultValues: {
@@ -214,6 +217,9 @@ const ProductEditPage = () => {
           setDiscountEnabled(Boolean(fetchedProduct.discount_enabled));
           setDiscountType((fetchedProduct.max_discount_type as 'percentage' | 'absolute') ?? 'percentage');
           setDiscountMaxValue(fetchedProduct.max_discount_value?.toString() ?? "");
+          setStockEnabled(Boolean(fetchedProduct.stock_enabled));
+          setStockQuantity(fetchedProduct.stock_quantity?.toString() ?? "");
+          setOutOfStockBehavior((fetchedProduct.out_of_stock_behavior as 'show_unavailable' | 'hide') ?? 'show_unavailable');
 
           if (fetchedProduct.images) {
             setFilePreviews(fetchedProduct.images as ImagePreviewItem[]);
@@ -498,6 +504,9 @@ const ProductEditPage = () => {
           discount_enabled: discountEnabled,
           max_discount_type: discountEnabled ? discountType : 'percentage',
           max_discount_value: discountEnabled && discountMaxValue ? Number(discountMaxValue) : null,
+          stock_enabled: stockEnabled,
+          stock_quantity: stockEnabled && stockQuantity !== "" ? Number(stockQuantity) : null,
+          out_of_stock_behavior: outOfStockBehavior,
         },
         session?.user?.accessToken
       );
@@ -1177,6 +1186,103 @@ const ProductEditPage = () => {
                   onDelete={handleDeleteVideo}
                   onChangeOrientation={handleChangeVideoOrientation}
                 />
+              </div>
+
+              {/* Estoque */}
+              <div className="mb-6">
+                <h3 className="font-bold mb-1">Controle de estoque</h3>
+                <p className="text-xs text-gray-400 mb-3">
+                  Quando ativado, o site exibe o produto como esgotado ou o oculta automaticamente.
+                </p>
+                <label className="flex items-center gap-2 cursor-pointer mb-4">
+                  <Checkbox
+                    className="w-5 h-5"
+                    checked={stockEnabled}
+                    onCheckedChange={(v) => setStockEnabled(Boolean(v))}
+                  />
+                  <span className="font-medium text-sm">Controlar estoque deste produto</span>
+                </label>
+
+                {stockEnabled && (
+                  <div className="border rounded-md p-4 bg-gray-50 flex flex-col gap-4">
+                    <div>
+                      <label className="text-xs font-medium text-gray-600 mb-1 block">
+                        Quantidade em estoque
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setStockQuantity((q) => String(Math.max(0, Number(q || 0) - 1)))}
+                          className="w-8 h-8 rounded-md border border-gray-300 bg-white flex items-center justify-center text-lg font-bold text-gray-600 hover:bg-gray-100 transition-colors"
+                        >
+                          −
+                        </button>
+                        <Input
+                          type="number"
+                          min={0}
+                          step={1}
+                          placeholder="0"
+                          value={stockQuantity}
+                          onChange={(e) => setStockQuantity(e.target.value)}
+                          className="w-24 text-center text-base font-semibold"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setStockQuantity((q) => String(Number(q || 0) + 1))}
+                          className="w-8 h-8 rounded-md border border-gray-300 bg-white flex items-center justify-center text-lg font-bold text-gray-600 hover:bg-gray-100 transition-colors"
+                        >
+                          +
+                        </button>
+                        {Number(stockQuantity) === 0 && (
+                          <span className="text-xs font-semibold text-red-500 bg-red-50 px-2 py-1 rounded-md">
+                            Esgotado
+                          </span>
+                        )}
+                        {Number(stockQuantity) > 0 && Number(stockQuantity) <= 5 && (
+                          <span className="text-xs font-semibold text-amber-600 bg-amber-50 px-2 py-1 rounded-md">
+                            Estoque baixo
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-medium text-gray-600 mb-2 block">
+                        Quando o estoque chegar a zero:
+                      </label>
+                      <div className="flex flex-col gap-2">
+                        <label className="flex items-start gap-2 cursor-pointer p-2.5 rounded-lg border border-transparent hover:bg-white hover:border-gray-200 transition-colors">
+                          <input
+                            type="radio"
+                            name="out_of_stock_behavior"
+                            value="show_unavailable"
+                            checked={outOfStockBehavior === 'show_unavailable'}
+                            onChange={() => setOutOfStockBehavior('show_unavailable')}
+                            className="mt-0.5 accent-green-600"
+                          />
+                          <div>
+                            <p className="text-sm font-medium">Exibir como esgotado</p>
+                            <p className="text-xs text-gray-400">O produto continua visível no site com o botão desabilitado e badge "Esgotado".</p>
+                          </div>
+                        </label>
+                        <label className="flex items-start gap-2 cursor-pointer p-2.5 rounded-lg border border-transparent hover:bg-white hover:border-gray-200 transition-colors">
+                          <input
+                            type="radio"
+                            name="out_of_stock_behavior"
+                            value="hide"
+                            checked={outOfStockBehavior === 'hide'}
+                            onChange={() => setOutOfStockBehavior('hide')}
+                            className="mt-0.5 accent-green-600"
+                          />
+                          <div>
+                            <p className="text-sm font-medium">Ocultar do catálogo</p>
+                            <p className="text-xs text-gray-400">O produto some automaticamente do site quando o estoque zerar.</p>
+                          </div>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div>

@@ -45,6 +45,9 @@ export interface Product {
   discount_enabled?: boolean;
   max_discount_type?: 'percentage' | 'absolute';
   max_discount_value?: number | null;
+  stock_enabled?: boolean;
+  stock_quantity?: number | null;
+  out_of_stock_behavior?: 'show_unavailable' | 'hide';
   volume_prices?: Array<{
     id: string;
     product_id: string;
