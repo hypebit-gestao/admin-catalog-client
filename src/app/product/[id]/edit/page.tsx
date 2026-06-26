@@ -1262,7 +1262,7 @@ const ProductEditPage = () => {
                           />
                           <div>
                             <p className="text-sm font-medium">Exibir como esgotado</p>
-                            <p className="text-xs text-gray-400">O produto continua visível no site com o botão desabilitado e badge "Esgotado".</p>
+                            <p className="text-xs text-gray-400">O produto continua visível no site com o botão desabilitado e badge &ldquo;Esgotado&rdquo;.</p>
                           </div>
                         </label>
                         <label className="flex items-start gap-2 cursor-pointer p-2.5 rounded-lg border border-transparent hover:bg-white hover:border-gray-200 transition-colors">

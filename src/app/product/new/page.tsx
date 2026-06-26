@@ -715,7 +715,7 @@ const ProductNewPage = () => {
                           />
                           <div>
                             <p className="text-sm font-medium">Exibir como esgotado</p>
-                            <p className="text-xs text-gray-400">O produto continua visível com badge "Esgotado" e botão desabilitado.</p>
+                            <p className="text-xs text-gray-400">O produto continua visível com badge &ldquo;Esgotado&rdquo; e botão desabilitado.</p>
                           </div>
                         </label>
                         <label className="flex items-start gap-2 cursor-pointer p-2.5 rounded-lg border border-transparent hover:bg-white hover:border-gray-200 transition-colors">
