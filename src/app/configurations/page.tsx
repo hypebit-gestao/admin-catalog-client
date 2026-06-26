@@ -9,7 +9,7 @@ import usePersonalizationStoreModal from "@/utils/hooks/pesonalization-store/use
 import PersonalizationStore from "@/components/personalization_store/personalization-store";
 import useGoogleAnalyticsModal from "@/utils/hooks/analytics/useGoogleAnalyticsModal";
 import GoogleAnalyticsModal from "@/components/google-analytics/google-analytics-modal";
-import { MdLocalShipping, MdPalette, MdChevronRight, MdAnalytics, MdQrCode2, MdPayment, MdCreditScore, MdSend } from "react-icons/md";
+import { MdLocalShipping, MdPalette, MdChevronRight, MdAnalytics, MdQrCode2, MdPayment, MdCreditScore, MdSend, MdAssignment } from "react-icons/md";
 import { FaInstagram } from "react-icons/fa";
 import useQRCodeModal from "@/utils/hooks/qrcode/useQRCodeModal";
 import QRCodeModal from "@/components/qrcode/qrcode-modal";
@@ -21,6 +21,8 @@ import useSocialModal from "@/utils/hooks/useSocialModal";
 import SocialModal from "@/components/social/social-modal";
 import useOrderDestinationModal from "@/utils/hooks/useOrderDestinationModal";
 import OrderDestinationModal from "@/components/order-destination-modal";
+import useCheckoutFieldsModal from "@/utils/hooks/useCheckoutFieldsModal";
+import CheckoutFieldsModal from "@/components/checkout-fields-modal";
 import { cn } from "@/lib/utils";
 
 const configCards = [
@@ -96,6 +98,15 @@ const configCards = [
     iconColor: "text-indigo-600",
     borderHover: "hover:border-indigo-200",
   },
+  {
+    id: "checkout-fields",
+    title: "Campos do Checkout",
+    description: "Adicione campos extras que o cliente preenche ao finalizar o pedido, como CNPJ, Razão Social, Inscrição Estadual, etc.",
+    icon: MdAssignment,
+    iconBg: "bg-amber-50",
+    iconColor: "text-amber-600",
+    borderHover: "hover:border-amber-200",
+  },
 ];
 
 const Configurations = () => {
@@ -108,6 +119,7 @@ const Configurations = () => {
   const installmentsModal = useInstallmentsModal();
   const socialModal = useSocialModal();
   const orderDestinationModal = useOrderDestinationModal();
+  const checkoutFieldsModal = useCheckoutFieldsModal();
 
   const handleCardClick = (id: string) => {
     if (id === "shipping") shippingModal.onOpen();
@@ -118,6 +130,7 @@ const Configurations = () => {
     if (id === "installments") installmentsModal.onOpen();
     if (id === "social") socialModal.onOpen();
     if (id === "order-destination") orderDestinationModal.onOpen();
+    if (id === "checkout-fields") checkoutFieldsModal.onOpen();
   };
 
   return (
@@ -153,6 +166,10 @@ const Configurations = () => {
       <OrderDestinationModal
         isOpen={orderDestinationModal.isOpen}
         onClose={orderDestinationModal.onClose}
+      />
+      <CheckoutFieldsModal
+        isOpen={checkoutFieldsModal.isOpen}
+        onClose={checkoutFieldsModal.onClose}
       />
       <ContentMain
         title="Configurações da Loja"

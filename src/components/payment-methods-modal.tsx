@@ -19,6 +19,7 @@ const ALL_METHODS = [
   { value: "PIX", label: "Pix" },
   { value: "CREDIT_CARD", label: "Cartão de Crédito" },
   { value: "DEBIT_CARD", label: "Cartão de Débito" },
+  { value: "BOLETO", label: "Boleto" },
 ];
 
 const PaymentMethodsModal = ({ isOpen, onClose }: PaymentMethodsModalProps) => {
@@ -56,10 +57,6 @@ const PaymentMethodsModal = ({ isOpen, onClose }: PaymentMethodsModalProps) => {
   const onSubmit = async () => {
     if (selected.length === 0) {
       toast.error("Selecione pelo menos um método de pagamento.");
-      return;
-    }
-    if (pixEnabled && !pixKey.trim()) {
-      toast.error("Informe a chave Pix.");
       return;
     }
     setLoading(true);
@@ -135,7 +132,7 @@ const PaymentMethodsModal = ({ isOpen, onClose }: PaymentMethodsModalProps) => {
                         className="h-11 rounded-xl"
                       />
                       <p className="text-xs text-muted-foreground mt-1">
-                        Será exibida ao cliente quando ele selecionar Pix.
+                        Opcional. Será exibida ao cliente quando ele selecionar Pix.
                       </p>
                     </div>
                   )}
