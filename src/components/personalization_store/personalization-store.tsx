@@ -94,6 +94,7 @@ const PersonalizationStore = ({ isOpen, onClose }: ShippingRegisterProps) => {
   const [user, setUser] = useState<User>()
   const [currentColor, setCurrentColor] = useState("");
   const [selectedTheme, setSelectedTheme] = useState("modern");
+  const [showStockQuantity, setShowStockQuantity] = useState(false);
 
   const userService = useUserService();
 
@@ -125,6 +126,7 @@ const PersonalizationStore = ({ isOpen, onClose }: ShippingRegisterProps) => {
           credit_discount: Number(data.credit_discount),
           debit_discount: Number(data.debit_discount),
           theme: selectedTheme,
+          show_stock_quantity: showStockQuantity,
         },
         session?.user.accessToken
       )
@@ -182,6 +184,7 @@ const PersonalizationStore = ({ isOpen, onClose }: ShippingRegisterProps) => {
         setCustomValue("credit_discount", String(user.credit_discount));
         setCustomValue("debit_discount", String(user.debit_discount));
         setSelectedTheme(user.theme ?? "modern");
+        setShowStockQuantity(user.show_stock_quantity ?? false);
       }
     }
   }, [isOpen]);
@@ -335,7 +338,29 @@ const PersonalizationStore = ({ isOpen, onClose }: ShippingRegisterProps) => {
                 </div>
               </div>
 
-              <div className="mt-12">
+              <div className="mt-8">
+                <h1 className="my-4 font-semibold text-green-primary">
+                  Estoque
+                </h1>
+                <div
+                  className="flex items-center justify-between p-4 rounded-xl border border-gray-200 cursor-pointer select-none"
+                  onClick={() => setShowStockQuantity((v) => !v)}
+                >
+                  <div>
+                    <p className="text-sm font-semibold text-gray-800">Exibir quantidade em estoque</p>
+                    <p className="text-xs text-gray-500 mt-0.5">Clientes verão a quantidade disponível nos cards e na página do produto</p>
+                  </div>
+                  <div
+                    className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ml-4 ${showStockQuantity ? "bg-green-500" : "bg-gray-300"}`}
+                  >
+                    <span
+                      className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${showStockQuantity ? "translate-x-5" : "translate-x-0"}`}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6">
                 <Button
                   size="lg"
                   className={`w-full ${loading && "cursor-not-allowed"}`}
