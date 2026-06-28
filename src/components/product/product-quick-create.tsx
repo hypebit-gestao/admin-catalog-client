@@ -182,14 +182,14 @@ const ProductQuickCreate = ({ isOpen, onClose, onCreated }: Props) => {
                 render={({ field }) => (
                   <FormItem className="flex-1">
                     <FormLabel>Categoria</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue="">
+                    <Select onValueChange={(v) => field.onChange(v === "none" ? "" : v)} defaultValue="none">
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Sem categoria" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent className="z-[300]">
-                        <SelectItem value="">Sem categoria</SelectItem>
+                        <SelectItem value="none">Sem categoria</SelectItem>
                         {categories.map((c) => (
                           <SelectItem key={c.id} value={c.id as string}>
                             {c.name}
