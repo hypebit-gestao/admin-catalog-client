@@ -44,6 +44,81 @@ import { RichTextEditor } from "@/components/rich-text-editor";
 import { FormSkeleton } from "@/components/ui/skeleton";
 import { useUnsavedChanges } from "@/utils/hooks/useUnsavedChanges";
 import { useProductVolumePriceService, VolumePrice } from "@/services/productVolumePrice.service";
+import { cn } from "@/lib/utils";
+
+function CreateInlineSize({ token, userId, onCreated }: {
+  token?: string;
+  userId?: string;
+  onCreated: (size: Size) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState("");
+  const [loading, setLoading] = useState(false);
+  const sizeService = useSizeService();
+
+  const handleCreate = async () => {
+    if (!value.trim() || !token || !userId) return;
+    setLoading(true);
+    try {
+      const created = await sizeService.POST({ size: value.trim(), user_id: userId }, token);
+      if (created) {
+        onCreated(created as Size);
+        setValue("");
+        setOpen(false);
+        toast.success(`Variação "${value.trim()}" criada`);
+      }
+    } catch {
+      toast.error("Erro ao criar variação");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!open) {
+    return (
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="text-xs text-green-700 hover:text-green-800 font-medium flex items-center gap-1"
+      >
+        <IoMdAdd className="w-3.5 h-3.5" />
+        Criar nova opção que ainda não existe na lista
+      </button>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-2 border rounded-md p-2 bg-green-50">
+      <Input
+        autoFocus
+        placeholder="Nome da nova variação (Ex: 500g, GG, Menta...)"
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") { e.preventDefault(); handleCreate(); }
+          if (e.key === "Escape") { setOpen(false); setValue(""); }
+        }}
+        className="flex-1 text-sm"
+      />
+      <Button
+        type="button"
+        size="sm"
+        onClick={handleCreate}
+        disabled={!value.trim() || loading}
+        className="bg-green-primary hover:bg-green-primary/90 text-white"
+      >
+        {loading ? "..." : "Criar"}
+      </Button>
+      <button
+        type="button"
+        onClick={() => { setOpen(false); setValue(""); }}
+        className="text-gray-400 hover:text-gray-600"
+      >
+        <TbX className="w-4 h-4" />
+      </button>
+    </div>
+  );
+}
 
 const formSchema = z
   .object({
@@ -93,6 +168,15 @@ type SizeListItem = {
   imageIndex: number | null;
 };
 
+type TabKey = "basic" | "media" | "sizes" | "advanced";
+
+const TAB_LABELS: Record<TabKey, string> = {
+  basic: "Básico",
+  media: "Mídia",
+  sizes: "Variações",
+  advanced: "Avançado",
+};
+
 const ProductEditPage = () => {
   const { data: session } = useSession();
   const params = useParams()!;
@@ -108,6 +192,7 @@ const ProductEditPage = () => {
 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [activeTab, setActiveTab] = useState<TabKey>("basic");
   const [categories, setCategories] = useState<Category[]>([]);
   const [product, setProduct] = useState<Product>();
   const [sizes, setSizes] = useState<Size[]>([]);
@@ -153,7 +238,7 @@ const ProductEditPage = () => {
     },
   });
 
-  const { setValue, watch } = form;
+  const { setValue, watch, formState: { errors } } = form;
   const { confirmLeave } = useUnsavedChanges(form.formState.isDirty);
 
   type FormSchemaType = z.infer<typeof formSchema>;
@@ -171,6 +256,18 @@ const ProductEditPage = () => {
   const isSize = watch("isSize");
   const priceOnRequest = watch("price_on_request");
   const productType = watch("type");
+  const watchedPrice = watch("price");
+  const watchedPromoPrice = watch("promotion_price");
+
+  const discountPercent =
+    isPromotion && Number(watchedPrice) > 0 && Number(watchedPromoPrice) > 0
+      ? Math.round((1 - Number(watchedPromoPrice) / Number(watchedPrice)) * 100)
+      : null;
+
+  const handleTabOnError = () => {
+    const errs = form.formState.errors;
+    if (errs.name || errs.price || errs.category_id) setActiveTab("basic");
+  };
 
   // Group sizeList by groupName for display
   const groupedSizeList = sizeList.reduce<Record<string, SizeListItem[]>>(
@@ -535,12 +632,43 @@ const ProductEditPage = () => {
     >
       <div className="max-w-2xl">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onUpdate)} className="w-full">
-            <div>
-              <h2 className="my-4 font-semibold text-green-primary">
-                Informações do produto
-              </h2>
+          <form
+            onSubmit={(e) => {
+              form.handleSubmit(onUpdate)(e);
+              setTimeout(() => {
+                if (Object.keys(form.formState.errors).length > 0) handleTabOnError();
+              }, 0);
+            }}
+            className="w-full"
+          >
+            {/* Tab header */}
+            <div className="flex border-b border-gray-200 mb-6 overflow-x-auto">
+              {(["basic", "media", "sizes", "advanced"] as const).map((tab) => {
+                const hasError =
+                  tab === "basic" && (!!errors.name || !!errors.price);
+                return (
+                  <button
+                    key={tab}
+                    type="button"
+                    onClick={() => setActiveTab(tab)}
+                    className={cn(
+                      "px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 -mb-px transition-colors flex items-center gap-1.5 flex-shrink-0",
+                      activeTab === tab
+                        ? "border-green-primary text-green-primary"
+                        : "border-transparent text-gray-500 hover:text-gray-700"
+                    )}
+                  >
+                    {TAB_LABELS[tab]}
+                    {hasError && (
+                      <span className="w-2 h-2 rounded-full bg-red-500 inline-block" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
 
+            {/* ── TAB: Básico ── */}
+            <div className={activeTab === "basic" ? "" : "hidden"}>
               <div className="mb-5">
                 <FormField
                   control={form.control}
@@ -579,56 +707,39 @@ const ProductEditPage = () => {
                 />
               </div>
 
-              <div className="flex flex-col lg:flex-row gap-5 mb-5">
-                <div className="flex-1">
-                  <FormField
-                    control={form.control}
-                    name="category_id"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Categoria</FormLabel>
-                        <SelectComponent
-                          onValueChange={(value) =>
-                            field.onChange(value === "null" ? null : value)
-                          }
-                          defaultValue={
-                            field.value === null ? "null" : (field.value as any)
-                          }
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione a categoria" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent className="z-[300]">
-                            <SelectItem value="null">Sem categoria</SelectItem>
-                            {categories.map((category, i) => (
-                              <SelectItem key={i} value={category.id as string}>
-                                {category.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </SelectComponent>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <div className="flex-1">
-                  <FormItem>
-                    <FormLabel>Usuário</FormLabel>
-                    <SelectComponent disabled defaultValue={session?.user?.user?.name}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value={session?.user?.user?.name ?? ""}>
-                          {session?.user?.user?.name}
-                        </SelectItem>
-                      </SelectContent>
-                    </SelectComponent>
-                  </FormItem>
-                </div>
+              <div className="mb-5">
+                <FormField
+                  control={form.control}
+                  name="category_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Categoria</FormLabel>
+                      <SelectComponent
+                        onValueChange={(value) =>
+                          field.onChange(value === "null" ? null : value)
+                        }
+                        defaultValue={
+                          field.value === null ? "null" : (field.value as any)
+                        }
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione a categoria" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent className="z-[300]">
+                          <SelectItem value="null">Sem categoria</SelectItem>
+                          {categories.map((category, i) => (
+                            <SelectItem key={i} value={category.id as string}>
+                              {category.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </SelectComponent>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
 
               <div className="mb-5">
@@ -659,28 +770,30 @@ const ProductEditPage = () => {
               {!priceOnRequest && (
                 <>
                   <div className="mb-3">
-                    <h3 className="font-bold">Deseja adicionar preço promocional no produto?</h3>
-                  </div>
-                  <div className="mb-5">
-                    <FormField
-                      control={form.control}
-                      name="isPromotion"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <Checkbox
-                              className="w-5 h-5"
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <FormField
+                        control={form.control}
+                        name="isPromotion"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <label className="flex items-center gap-2 cursor-pointer">
+                                <Checkbox
+                                  className="w-5 h-5"
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                />
+                                <span className="font-bold text-sm">Possui preço promocional?</span>
+                              </label>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </label>
                   </div>
 
-                  <div className="flex flex-col lg:flex-row gap-5 mb-5">
+                  <div className="flex flex-col lg:flex-row gap-5 mb-2">
                     <div className="flex-1">
                       <FormField
                         control={form.control}
@@ -714,6 +827,12 @@ const ProductEditPage = () => {
                       </div>
                     )}
                   </div>
+
+                  {discountPercent !== null && discountPercent > 0 && (
+                    <p className="text-xs text-emerald-600 font-medium mb-5">
+                      → {discountPercent}% de desconto
+                    </p>
+                  )}
                 </>
               )}
 
@@ -762,18 +881,45 @@ const ProductEditPage = () => {
               </div>
             </div>
 
-            <div className="mt-8">
-              <h2 className="my-4 font-semibold text-green-primary">
-                Informações adicionais
-              </h2>
+            {/* ── TAB: Mídia ── */}
+            <div className={activeTab === "media" ? "" : "hidden"}>
+              <div className="mb-5">
+                <FormItem>
+                  <FormLabel>Imagens do {productType === "service" ? "serviço" : "produto"}</FormLabel>
+                  <ImageDropzone
+                    id="product-images"
+                    previews={filePreviews}
+                    onAdd={handleAddImages}
+                    onDelete={handleDeleteFile}
+                    onMoveLeft={handleMoveLeft}
+                    onMoveRight={handleMoveRight}
+                  />
+                </FormItem>
+              </div>
 
-              {/* Variações unificadas */}
+              <div className="mb-5">
+                <FormLabel>Vídeos</FormLabel>
+                <p className="text-xs text-gray-400 mt-1 mb-2">
+                  Adicione vídeos que serão exibidos na galeria do produto (MP4, MOV, WEBM).
+                </p>
+                <VideoDropzone
+                  previews={videoPreviews}
+                  onAdd={handleAddVideos}
+                  onDelete={handleDeleteVideo}
+                  onChangeOrientation={handleChangeVideoOrientation}
+                />
+              </div>
+            </div>
+
+            {/* ── TAB: Variações ── */}
+            <div className={activeTab === "sizes" ? "" : "hidden"}>
               <div className="mb-3">
-                <h3 className="font-bold">Seu produto possui variações?</h3>
+                <h3 className="font-bold">Variações do produto</h3>
                 <p className="text-xs text-gray-400 mt-1">
-                  Ex: Peso (250G, 500G, 1KG), Sabor (Morango, Chocolate), Tamanho (P, M, G)
+                  Use para oferecer opções ao cliente: tamanho (P, M, G), peso (250g, 500g), sabor (morango, chocolate), cor, etc.
                 </p>
               </div>
+
               <div className="mb-5">
                 <FormField
                   control={form.control}
@@ -781,11 +927,14 @@ const ProductEditPage = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormControl>
-                        <Checkbox
-                          className="w-5 h-5"
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
+                        <label className="flex items-center gap-2 cursor-pointer select-none">
+                          <Checkbox
+                            className="w-5 h-5"
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                          <span className="font-medium">Sim, este produto tem variações</span>
+                        </label>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -795,7 +944,6 @@ const ProductEditPage = () => {
 
               {isSize && (
                 <div className="mb-6">
-                  {/* Variações agrupadas */}
                   {Object.keys(groupedSizeList).length > 0 && (
                     <div className="mb-4 flex flex-col gap-4">
                       {Object.entries(groupedSizeList).map(([groupName, items]) => (
@@ -879,12 +1027,15 @@ const ProductEditPage = () => {
                                         };
                                         setSizeList(updated);
                                       }}
+                                      onBlur={() => { if (item.productSizeId) handleUpdateSizePrice(index); }}
                                     />
                                     <Button
                                       type="button"
                                       variant="outline"
                                       size="sm"
+                                      title="Salvar agora"
                                       onClick={() => handleUpdateSizePrice(index)}
+                                      className="text-gray-400"
                                     >
                                       <FaSave className="w-4 h-4" />
                                     </Button>
@@ -952,12 +1103,22 @@ const ProductEditPage = () => {
                     </div>
                   )}
 
-                  {/* Adicionar nova variação */}
+                  <div className="mb-3">
+                    <CreateInlineSize
+                      token={session?.user?.accessToken}
+                      userId={session?.user?.user?.id}
+                      onCreated={(newSize) => {
+                        setSizes((prev) => [...prev, newSize]);
+                        setSelectedNewSizeId(newSize.id!);
+                      }}
+                    />
+                  </div>
+
                   <div className="border rounded-md p-3 bg-gray-50 flex flex-col gap-2">
-                    <p className="text-xs font-medium text-gray-500">Adicionar variação</p>
+                    <p className="text-xs font-medium text-gray-500">Adicionar opção de variação</p>
                     <div className="flex items-center gap-2">
                       <Input
-                        placeholder="Grupo (Ex: Peso, Sabor, Tamanho, Cor...)"
+                        placeholder="Tipo (Ex: Peso, Sabor, Tamanho, Cor) — opcional"
                         value={newGroupName}
                         onChange={(e) => setNewGroupName(e.target.value)}
                         list="group-suggestions"
@@ -1017,8 +1178,10 @@ const ProductEditPage = () => {
                   </div>
                 </div>
               )}
+            </div>
 
-              {/* Desconto progressivo por quantidade */}
+            {/* ── TAB: Avançado ── */}
+            <div className={activeTab === "advanced" ? "" : "hidden"}>
               {!priceOnRequest && (
                 <div className="mb-6">
                   <div className="mb-2">
@@ -1161,34 +1324,6 @@ const ProductEditPage = () => {
                 </div>
               )}
 
-              <div className="mb-5">
-                <FormItem>
-                  <FormLabel>Imagens do {productType === "service" ? "serviço" : "produto"}</FormLabel>
-                  <ImageDropzone
-                    id="product-images"
-                    previews={filePreviews}
-                    onAdd={handleAddImages}
-                    onDelete={handleDeleteFile}
-                    onMoveLeft={handleMoveLeft}
-                    onMoveRight={handleMoveRight}
-                  />
-                </FormItem>
-              </div>
-
-              <div className="mb-5">
-                <FormLabel>Vídeos</FormLabel>
-                <p className="text-xs text-gray-400 mt-1 mb-2">
-                  Adicione vídeos que serão exibidos na galeria do produto (MP4, MOV, WEBM).
-                </p>
-                <VideoDropzone
-                  previews={videoPreviews}
-                  onAdd={handleAddVideos}
-                  onDelete={handleDeleteVideo}
-                  onChangeOrientation={handleChangeVideoOrientation}
-                />
-              </div>
-
-              {/* Estoque */}
               <div className="mb-6">
                 <h3 className="font-bold mb-1">Controle de estoque</h3>
                 <p className="text-xs text-gray-400 mb-3">
@@ -1294,14 +1429,14 @@ const ProductEditPage = () => {
                     render={({ field }) => (
                       <FormItem>
                         <FormControl>
-                          <div className="flex items-center gap-2">
+                          <label className="flex items-center gap-2 cursor-pointer">
                             <Checkbox
                               className="w-5 h-5"
                               checked={field.value}
                               onCheckedChange={field.onChange}
                             />
                             <span>Produto ativo</span>
-                          </div>
+                          </label>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -1313,14 +1448,14 @@ const ProductEditPage = () => {
                     render={({ field }) => (
                       <FormItem>
                         <FormControl>
-                          <div className="flex items-center gap-2">
+                          <label className="flex items-center gap-2 cursor-pointer">
                             <Checkbox
                               className="w-5 h-5"
                               checked={field.value}
                               onCheckedChange={field.onChange}
                             />
                             <span>Produto em destaque</span>
-                          </div>
+                          </label>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -1330,13 +1465,12 @@ const ProductEditPage = () => {
               </div>
             </div>
 
-            <div className="mt-10 flex gap-3">
+            {/* Sticky save bar */}
+            <div className="sticky bottom-0 bg-white border-t border-gray-200 py-4 flex gap-3 mt-8 shadow-[0_-2px_8px_rgba(0,0,0,0.08)] z-10">
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => {
-                  if (confirmLeave()) router.push("/product");
-                }}
+                onClick={() => { if (confirmLeave()) router.push("/product"); }}
                 className="flex-1"
               >
                 Cancelar
@@ -1346,7 +1480,7 @@ const ProductEditPage = () => {
                 disabled={submitting}
                 className="flex-1 bg-green-primary hover:bg-green-primary/90"
               >
-                {submitting ? <Loader /> : "Atualizar"}
+                {submitting ? <Loader /> : "Salvar produto"}
               </Button>
             </div>
           </form>

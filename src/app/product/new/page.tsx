@@ -42,6 +42,7 @@ import { useUnsavedChanges } from "@/utils/hooks/useUnsavedChanges";
 import { useProductVolumePriceService, VolumePrice } from "@/services/productVolumePrice.service";
 import { TbTrash } from "react-icons/tb";
 import { IoMdAdd } from "react-icons/io";
+import { cn } from "@/lib/utils";
 
 const formSchema = z
   .object({
@@ -68,12 +69,15 @@ const formSchema = z
       message: "O preço promocional não pode ser maior que o preço normal",
       path: ["promotion_price"],
     }
-  )
-;
+  );
+
+type TabKey = "basic" | "media" | "advanced";
+const TAB_LABELS: Record<TabKey, string> = { basic: "Básico", media: "Mídia", advanced: "Avançado" };
 
 const ProductNewPage = () => {
   const { data: session } = useSession();
   const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<TabKey>("basic");
   const productService = useProductService();
   const categoryService = useCategoryService();
   const uploadService = useUploadService();
@@ -113,11 +117,16 @@ const ProductNewPage = () => {
     },
   });
 
-  const { setValue, watch } = form;
+  const { setValue, watch, formState: { errors } } = form;
   const { confirmLeave } = useUnsavedChanges(form.formState.isDirty);
 
   const isPromotion = watch("isPromotion");
   const priceOnRequest = watch("price_on_request");
+
+  const handleTabOnError = () => {
+    const errs = form.formState.errors;
+    if (errs.name || errs.price) setActiveTab("basic");
+  };
 
   useEffect(() => {
     if (!session?.user?.accessToken) return;
@@ -273,12 +282,49 @@ const ProductNewPage = () => {
     }
   };
 
+  const discountPct =
+    isPromotion && Number(watch("price")) > 0 && Number(watch("promotion_price")) > 0
+      ? Math.round((1 - Number(watch("promotion_price")) / Number(watch("price"))) * 100)
+      : null;
+
   return (
     <ContentMain title="Novo Produto" subtitle="Preencha as informações do produto">
       <div className="max-w-2xl">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="w-full">
-            <div>
+          <form
+            onSubmit={(e) => {
+              form.handleSubmit(onSubmit)(e);
+              setTimeout(() => {
+                if (Object.keys(form.formState.errors).length > 0) handleTabOnError();
+              }, 0);
+            }}
+            className="w-full"
+          >
+            {/* Tab header */}
+            <div className="flex border-b border-gray-200 mb-6 overflow-x-auto">
+              {(["basic", "media", "advanced"] as const).map((tab) => {
+                const hasError = tab === "basic" && (!!errors.name || !!errors.price);
+                return (
+                  <button
+                    key={tab}
+                    type="button"
+                    onClick={() => setActiveTab(tab)}
+                    className={cn(
+                      "px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 -mb-px transition-colors flex items-center gap-1.5",
+                      activeTab === tab
+                        ? "border-green-primary text-green-primary"
+                        : "border-transparent text-gray-500 hover:text-gray-700"
+                    )}
+                  >
+                    {TAB_LABELS[tab]}
+                    {hasError && <span className="w-2 h-2 rounded-full bg-red-500 inline-block" />}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* ── Aba: Básico ── */}
+            <div className={activeTab === "basic" ? "" : "hidden"}>
               <h2 className="my-4 font-semibold text-green-primary">Informações do produto</h2>
 
               <div className="mb-5">
@@ -389,7 +435,7 @@ const ProductNewPage = () => {
                     />
                   </div>
 
-                  <div className="flex flex-col lg:flex-row gap-5 mb-5">
+                  <div className="flex flex-col lg:flex-row gap-5 mb-1">
                     <div className="flex-1">
                       <FormField
                         control={form.control}
@@ -423,149 +469,13 @@ const ProductNewPage = () => {
                       </div>
                     )}
                   </div>
+                  {discountPct !== null && discountPct > 0 && (
+                    <p className="text-xs text-emerald-600 font-medium mb-5">
+                      → {discountPct}% de desconto
+                    </p>
+                  )}
+                  {!discountPct && <div className="mb-5" />}
                 </>
-              )}
-
-              {!priceOnRequest && (
-                <div className="mb-6">
-                  <div className="mb-2">
-                    <h3 className="font-bold">Desconto por quantidade</h3>
-                    <p className="text-xs text-gray-400 mt-1">
-                      Defina faixas de preço: a partir de X unidades o cliente paga R$ Y por unidade.
-                    </p>
-                  </div>
-                  <div className="mb-3">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <Checkbox
-                        className="w-5 h-5"
-                        checked={hasVolumePrice}
-                        onCheckedChange={(v) => setHasVolumePrice(Boolean(v))}
-                      />
-                      <span className="font-medium text-sm">Ativar desconto progressivo</span>
-                    </label>
-                  </div>
-
-                  {hasVolumePrice && (
-                    <div className="border rounded-md p-3 bg-gray-50 flex flex-col gap-3">
-                      {volumePrices.length > 0 && (
-                        <div className="flex flex-col gap-1.5">
-                          <div className="grid grid-cols-3 gap-2 text-xs font-semibold text-gray-500 px-1">
-                            <span>A partir de</span>
-                            <span>Preço por unidade</span>
-                            <span></span>
-                          </div>
-                          {volumePrices.map((vp, i) => (
-                            <div key={i} className="grid grid-cols-3 gap-2 items-center border rounded bg-white px-2 py-2">
-                              <span className="text-sm font-medium">{vp.min_quantity} unid.</span>
-                              <span className="text-sm">
-                                {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(vp.unit_price)}
-                              </span>
-                              <button
-                                type="button"
-                                onClick={() => setVolumePrices((prev) => prev.filter((_, idx) => idx !== i))}
-                                className="justify-self-end text-red-400 hover:text-red-600"
-                              >
-                                <TbTrash className="w-4 h-4" />
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-
-                      <div className="flex items-center gap-2 pt-1 border-t">
-                        <div className="flex-1">
-                          <label className="text-xs text-gray-500 mb-1 block">A partir de (unidades)</label>
-                          <Input
-                            type="number"
-                            min={1}
-                            step={1}
-                            placeholder="Ex: 6"
-                            value={newVpMinQty}
-                            onChange={(e) => setNewVpMinQty(e.target.value)}
-                            className="text-sm"
-                          />
-                        </div>
-                        <div className="flex-1">
-                          <label className="text-xs text-gray-500 mb-1 block">Preço por unidade (R$)</label>
-                          <Input
-                            type="number"
-                            min={0}
-                            step={0.01}
-                            placeholder="Ex: 25.00"
-                            value={newVpUnitPrice}
-                            onChange={(e) => setNewVpUnitPrice(e.target.value)}
-                            className="text-sm"
-                          />
-                        </div>
-                        <div className="self-end">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={handleAddVolumePrice}
-                            disabled={!newVpMinQty || !newVpUnitPrice}
-                          >
-                            <IoMdAdd className="w-4 h-4 mr-1" />
-                            Adicionar
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {!priceOnRequest && (
-                <div className="mb-6">
-                  <div className="mb-2">
-                    <h3 className="font-bold">Desconto negociável</h3>
-                    <p className="text-xs text-gray-400 mt-1">
-                      Permite que o vendedor ofereça desconto direto no card do produto, até o limite configurado.
-                    </p>
-                  </div>
-                  <div className="mb-3">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <Checkbox
-                        className="w-5 h-5"
-                        checked={discountEnabled}
-                        onCheckedChange={(v) => setDiscountEnabled(Boolean(v))}
-                      />
-                      <span className="font-medium text-sm">Ativar desconto negociável</span>
-                    </label>
-                  </div>
-                  {discountEnabled && (
-                    <div className="border rounded-md p-3 bg-gray-50 flex flex-col gap-3">
-                      <div className="flex gap-3 items-end">
-                        <div>
-                          <label className="text-xs text-gray-500 mb-1 block">Tipo de desconto</label>
-                          <select
-                            value={discountType}
-                            onChange={(e) => setDiscountType(e.target.value as 'percentage' | 'absolute')}
-                            className="border border-input rounded-md px-3 py-2 text-sm bg-background"
-                          >
-                            <option value="percentage">Porcentagem (%)</option>
-                            <option value="absolute">Valor fixo (R$)</option>
-                          </select>
-                        </div>
-                        <div className="flex-1">
-                          <label className="text-xs text-gray-500 mb-1 block">
-                            Desconto máximo ({discountType === 'percentage' ? '%' : 'R$'})
-                          </label>
-                          <Input
-                            type="number"
-                            min={0}
-                            step={discountType === 'percentage' ? 1 : 0.01}
-                            max={discountType === 'percentage' ? 100 : undefined}
-                            placeholder={discountType === 'percentage' ? "Ex: 15" : "Ex: 10.00"}
-                            value={discountMaxValue}
-                            onChange={(e) => setDiscountMaxValue(e.target.value)}
-                            className="text-sm"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
               )}
 
               <div className="mb-5">
@@ -613,12 +523,9 @@ const ProductNewPage = () => {
               </div>
             </div>
 
-            <div className="mt-8">
-              <h2 className="my-4 font-semibold text-green-primary">Informações adicionais</h2>
-
-              <div className="mb-5 rounded-md border border-dashed border-gray-300 bg-gray-50 p-4 text-sm text-gray-500">
-                Variações (peso, sabor, tamanho, etc.) são gerenciadas na <strong>edição do produto</strong> após o cadastro.
-              </div>
+            {/* ── Aba: Mídia ── */}
+            <div className={activeTab === "media" ? "" : "hidden"}>
+              <h2 className="my-4 font-semibold text-green-primary">Mídia</h2>
 
               <div className="mb-5">
                 <FormLabel>Imagens do {watch("type") === "service" ? "serviço" : "produto"}</FormLabel>
@@ -645,8 +552,13 @@ const ProductNewPage = () => {
                   onChangeOrientation={handleChangeVideoOrientation}
                 />
               </div>
+            </div>
 
-              {/* Estoque */}
+            {/* ── Aba: Avançado ── */}
+            <div className={activeTab === "advanced" ? "" : "hidden"}>
+              <h2 className="my-4 font-semibold text-green-primary">Configurações avançadas</h2>
+
+              {/* Controle de estoque */}
               <div className="mb-6">
                 <h3 className="font-bold mb-1">Controle de estoque</h3>
                 <p className="text-xs text-gray-400 mb-3">
@@ -738,7 +650,152 @@ const ProductNewPage = () => {
                 )}
               </div>
 
-              <div>
+              {/* Desconto por quantidade */}
+              {!priceOnRequest && (
+                <div className="mb-6">
+                  <div className="mb-2">
+                    <h3 className="font-bold">Desconto por quantidade</h3>
+                    <p className="text-xs text-gray-400 mt-1">
+                      Defina faixas de preço: a partir de X unidades o cliente paga R$ Y por unidade.
+                    </p>
+                  </div>
+                  <div className="mb-3">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <Checkbox
+                        className="w-5 h-5"
+                        checked={hasVolumePrice}
+                        onCheckedChange={(v) => setHasVolumePrice(Boolean(v))}
+                      />
+                      <span className="font-medium text-sm">Ativar desconto progressivo</span>
+                    </label>
+                  </div>
+
+                  {hasVolumePrice && (
+                    <div className="border rounded-md p-3 bg-gray-50 flex flex-col gap-3">
+                      {volumePrices.length > 0 && (
+                        <div className="flex flex-col gap-1.5">
+                          <div className="grid grid-cols-3 gap-2 text-xs font-semibold text-gray-500 px-1">
+                            <span>A partir de</span>
+                            <span>Preço por unidade</span>
+                            <span></span>
+                          </div>
+                          {volumePrices.map((vp, i) => (
+                            <div key={i} className="grid grid-cols-3 gap-2 items-center border rounded bg-white px-2 py-2">
+                              <span className="text-sm font-medium">{vp.min_quantity} unid.</span>
+                              <span className="text-sm">
+                                {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(vp.unit_price)}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => setVolumePrices((prev) => prev.filter((_, idx) => idx !== i))}
+                                className="justify-self-end text-red-400 hover:text-red-600"
+                              >
+                                <TbTrash className="w-4 h-4" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      <div className="flex items-center gap-2 pt-1 border-t">
+                        <div className="flex-1">
+                          <label className="text-xs text-gray-500 mb-1 block">A partir de (unidades)</label>
+                          <Input
+                            type="number"
+                            min={1}
+                            step={1}
+                            placeholder="Ex: 6"
+                            value={newVpMinQty}
+                            onChange={(e) => setNewVpMinQty(e.target.value)}
+                            className="text-sm"
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <label className="text-xs text-gray-500 mb-1 block">Preço por unidade (R$)</label>
+                          <Input
+                            type="number"
+                            min={0}
+                            step={0.01}
+                            placeholder="Ex: 25.00"
+                            value={newVpUnitPrice}
+                            onChange={(e) => setNewVpUnitPrice(e.target.value)}
+                            className="text-sm"
+                          />
+                        </div>
+                        <div className="self-end">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={handleAddVolumePrice}
+                            disabled={!newVpMinQty || !newVpUnitPrice}
+                          >
+                            <IoMdAdd className="w-4 h-4 mr-1" />
+                            Adicionar
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Desconto negociável */}
+              {!priceOnRequest && (
+                <div className="mb-6">
+                  <div className="mb-2">
+                    <h3 className="font-bold">Desconto negociável</h3>
+                    <p className="text-xs text-gray-400 mt-1">
+                      Permite que o vendedor ofereça desconto direto no card do produto, até o limite configurado.
+                    </p>
+                  </div>
+                  <div className="mb-3">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <Checkbox
+                        className="w-5 h-5"
+                        checked={discountEnabled}
+                        onCheckedChange={(v) => setDiscountEnabled(Boolean(v))}
+                      />
+                      <span className="font-medium text-sm">Ativar desconto negociável</span>
+                    </label>
+                  </div>
+                  {discountEnabled && (
+                    <div className="border rounded-md p-3 bg-gray-50 flex flex-col gap-3">
+                      <div className="flex gap-3 items-end">
+                        <div>
+                          <label className="text-xs text-gray-500 mb-1 block">Tipo de desconto</label>
+                          <select
+                            value={discountType}
+                            onChange={(e) => setDiscountType(e.target.value as 'percentage' | 'absolute')}
+                            className="border border-input rounded-md px-3 py-2 text-sm bg-background"
+                          >
+                            <option value="percentage">Porcentagem (%)</option>
+                            <option value="absolute">Valor fixo (R$)</option>
+                          </select>
+                        </div>
+                        <div className="flex-1">
+                          <label className="text-xs text-gray-500 mb-1 block">
+                            Desconto máximo ({discountType === 'percentage' ? '%' : 'R$'})
+                          </label>
+                          <Input
+                            type="number"
+                            min={0}
+                            step={discountType === 'percentage' ? 1 : 0.01}
+                            max={discountType === 'percentage' ? 100 : undefined}
+                            placeholder={discountType === 'percentage' ? "Ex: 15" : "Ex: 10.00"}
+                            value={discountMaxValue}
+                            onChange={(e) => setDiscountMaxValue(e.target.value)}
+                            className="text-sm"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Status */}
+              <div className="mb-6">
                 <FormLabel>Status</FormLabel>
                 <div className="mt-3 space-y-3">
                   <FormField
@@ -775,7 +832,8 @@ const ProductNewPage = () => {
               </div>
             </div>
 
-            <div className="mt-10 flex gap-3">
+            {/* Sticky save bar */}
+            <div className="sticky bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-0 py-4 flex gap-3 mt-8 shadow-[0_-2px_8px_rgba(0,0,0,0.08)] z-10">
               <Button
                 type="button"
                 variant="outline"
@@ -789,7 +847,7 @@ const ProductNewPage = () => {
                 disabled={loading}
                 className="flex-1 bg-green-primary hover:bg-green-primary/90"
               >
-                {loading ? <Loader /> : "Cadastrar"}
+                {loading ? <Loader /> : "Cadastrar produto"}
               </Button>
             </div>
           </form>
