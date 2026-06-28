@@ -17,12 +17,16 @@ import {
 import { HiSearch } from "react-icons/hi";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import NotificationBell from "@/components/notification-bell";
 
 const Header = () => {
   const { data: session, status } = useSession();
   const router = useRouter();
   const profileModal = useProfileModal();
   const [searchFocused, setSearchFocused] = useState(false);
+
+  const isAdmin = session?.user?.user?.user_type === 2;
+  const token = session?.user?.accessToken;
 
   const onLogout = () => {
     signOut({ redirect: false }).then(() => {
@@ -68,6 +72,8 @@ const Header = () => {
 
       {/* Right section */}
       <div className="flex items-center gap-2 md:gap-4">
+        {isAdmin && token && <NotificationBell token={token} />}
+
         <span className="hidden lg:block text-white/90 text-sm font-medium truncate max-w-[150px]">
           {session?.user?.user?.name}
         </span>
