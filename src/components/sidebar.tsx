@@ -11,6 +11,7 @@ import {
   MdCalculate,
   MdHelpOutline,
   MdMenuBook,
+  MdHistory,
 } from "react-icons/md";
 import { TbRulerMeasure } from "react-icons/tb";
 import { useSession } from "next-auth/react";
@@ -109,6 +110,14 @@ const Sidebar = () => {
               href="/asaas"
               label="Financeiro"
               icon={FaChartLine}
+              collapsed={isCollapsed}
+            />
+          )}
+          {isAdmin && (
+            <MenuItem
+              href="/superadmin/auditoria"
+              label="Auditoria"
+              icon={MdHistory}
               collapsed={isCollapsed}
             />
           )}
