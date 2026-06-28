@@ -24,8 +24,10 @@ import {
   MdStarBorder,
   MdCheckBox,
   MdCheckBoxOutlineBlank,
+  MdBolt,
 } from "react-icons/md";
 import ProductDelete from "@/components/product/product-delete";
+import ProductQuickCreate from "@/components/product/product-quick-create";
 import useProductDeleteModal from "@/utils/hooks/product/useDeleteProductModal";
 import {
   Select,
@@ -64,6 +66,7 @@ const Product = () => {
   const [stockEditValue, setStockEditValue] = useState<string>("");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkLoading, setBulkLoading] = useState(false);
+  const [quickCreateOpen, setQuickCreateOpen] = useState(false);
   const router = useRouter();
 
   const productService = useProductService();
@@ -379,6 +382,11 @@ const Product = () => {
         isOpen={productDeleteModal.isOpen}
         onClose={productDeleteModal.onClose}
       />
+      <ProductQuickCreate
+        isOpen={quickCreateOpen}
+        onClose={() => setQuickCreateOpen(false)}
+        onCreated={() => { setQuickCreateOpen(false); fetchProducts(); }}
+      />
 
       <ContentMain
         title="Produtos"
@@ -522,6 +530,14 @@ const Product = () => {
               {selectedIds.size === filteredProducts.length ? "Desmarcar" : "Selecionar tudo"}
             </Button>
           )}
+          <Button
+            onClick={() => setQuickCreateOpen(true)}
+            variant="outline"
+            className="gap-2 flex-shrink-0 border-green-primary text-green-primary hover:bg-green-primary/5"
+          >
+            <MdBolt size={18} />
+            Rápido
+          </Button>
           <Button
             onClick={() => router.push("/product/new")}
             className="bg-green-primary hover:bg-green-primary/90 gap-2 sm:ml-auto flex-shrink-0"
