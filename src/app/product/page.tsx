@@ -22,6 +22,8 @@ import {
   MdUpload,
   MdStar,
   MdStarBorder,
+  MdCheckBox,
+  MdCheckBoxOutlineBlank,
 } from "react-icons/md";
 import ProductDelete from "@/components/product/product-delete";
 import useProductDeleteModal from "@/utils/hooks/product/useDeleteProductModal";
@@ -60,6 +62,8 @@ const Product = () => {
   const importInputRef = useRef<HTMLInputElement>(null);
   const [stockEditId, setStockEditId] = useState<string | null>(null);
   const [stockEditValue, setStockEditValue] = useState<string>("");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkLoading, setBulkLoading] = useState(false);
   const router = useRouter();
 
   const productService = useProductService();
@@ -285,6 +289,72 @@ const Product = () => {
     }
   };
 
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const selectAll = () => setSelectedIds(new Set(filteredProducts.map((p) => p.id!).filter(Boolean)));
+  const clearSelection = () => setSelectedIds(new Set());
+
+  const handleBulkToggleActive = async (activate: boolean) => {
+    const ids = Array.from(selectedIds);
+    setBulkLoading(true);
+    try {
+      await Promise.all(
+        ids.map((id) => {
+          const product = products.find((p) => p.id === id);
+          if (!product) return Promise.resolve();
+          return productService.PUT(
+            {
+              id: product.id, name: product.name, description: product.description,
+              category_id: product.category_id, images: product.images,
+              currency: product.currency ?? "brl", price: product.price,
+              promotion_price: product.promotion_price ?? null,
+              user_id: product.user_id, featured: product.featured,
+              active: activate, archived: product.archived,
+              installment_available: product.installment_available,
+              installment_with_interest: product.installment_with_interest,
+              installment_interest_value: product.installment_interest_value ?? null,
+              max_installments: product.max_installments ?? 1,
+            },
+            session?.user?.accessToken
+          );
+        })
+      );
+      setProducts((prev) =>
+        prev.map((p) => selectedIds.has(p.id!) ? { ...p, active: activate } : p)
+      );
+      toast.success(`${ids.length} produto(s) ${activate ? "ativado(s)" : "desativado(s)"}`);
+      clearSelection();
+    } catch {
+      toast.error("Erro ao atualizar produtos");
+    } finally {
+      setBulkLoading(false);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    const ids = Array.from(selectedIds);
+    if (!confirm(`Excluir ${ids.length} produto(s)? Esta ação não pode ser desfeita.`)) return;
+    setBulkLoading(true);
+    try {
+      await Promise.all(
+        ids.map((id) => productService.DELETE(id, session?.user?.accessToken))
+      );
+      setProducts((prev) => prev.filter((p) => !selectedIds.has(p.id!)));
+      toast.success(`${ids.length} produto(s) excluído(s)`);
+      clearSelection();
+    } catch {
+      toast.error("Erro ao excluir produtos");
+    } finally {
+      setBulkLoading(false);
+    }
+  };
+
   const handleQuickStock = async (product: ProductModel, newQty: number) => {
     const updated = products.map((p) =>
       p.id === product.id ? { ...p, stock_quantity: newQty } : p
@@ -318,14 +388,51 @@ const Product = () => {
             : " cadastrado" + (filteredProducts.length !== 1 ? "s" : "")
         }`}
       >
+        {/* Bulk action floating bar */}
+        {selectedIds.size > 0 && (
+          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[150] flex items-center gap-2 bg-gray-900 text-white px-4 py-3 rounded-2xl shadow-2xl">
+            <span className="text-sm font-medium mr-2">{selectedIds.size} selecionado(s)</span>
+            <button
+              onClick={() => handleBulkToggleActive(true)}
+              disabled={bulkLoading}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-sm font-medium transition-colors disabled:opacity-50"
+            >
+              <MdToggleOn size={18} />
+              Ativar
+            </button>
+            <button
+              onClick={() => handleBulkToggleActive(false)}
+              disabled={bulkLoading}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-sm font-medium transition-colors disabled:opacity-50"
+            >
+              <MdToggleOff size={18} />
+              Desativar
+            </button>
+            <button
+              onClick={handleBulkDelete}
+              disabled={bulkLoading}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-500 text-sm font-medium transition-colors disabled:opacity-50"
+            >
+              <MdDelete size={18} />
+              Excluir
+            </button>
+            <button
+              onClick={clearSelection}
+              className="ml-2 text-white/60 hover:text-white text-xs"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
         {/* Type filter tabs */}
-        <div className="flex gap-2 mb-4">
+        <div className="flex gap-2 mb-4 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
           {(["all", "product", "service"] as const).map((t) => (
             <button
               key={t}
               onClick={() => setFilterType(t)}
               className={cn(
-                "px-4 py-1.5 rounded-full text-sm font-medium border transition-colors",
+                "px-4 py-1.5 rounded-full text-sm font-medium border transition-colors flex-shrink-0",
                 filterType === t
                   ? "bg-green-primary text-white border-green-primary"
                   : "bg-white text-gray-600 border-gray-200 hover:border-green-primary/40"
@@ -401,6 +508,20 @@ const Product = () => {
             <MdDownload size={18} />
             Exportar
           </Button>
+          {filteredProducts.length > 0 && (
+            <Button
+              onClick={selectedIds.size === filteredProducts.length ? clearSelection : selectAll}
+              variant="outline"
+              className="gap-2 flex-shrink-0"
+            >
+              {selectedIds.size === filteredProducts.length ? (
+                <MdCheckBox size={18} className="text-green-primary" />
+              ) : (
+                <MdCheckBoxOutlineBlank size={18} />
+              )}
+              {selectedIds.size === filteredProducts.length ? "Desmarcar" : "Selecionar tudo"}
+            </Button>
+          )}
           <Button
             onClick={() => router.push("/product/new")}
             className="bg-green-primary hover:bg-green-primary/90 gap-2 sm:ml-auto flex-shrink-0"
@@ -445,11 +566,31 @@ const Product = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-              {filteredProducts.map((product, index) => (
+              {filteredProducts.map((product, index) => {
+                const isSelected = !!product.id && selectedIds.has(product.id);
+                return (
                 <div
                   key={index}
-                  className="group relative flex flex-col bg-white border border-gray-100 rounded-xl overflow-hidden hover:shadow-lg hover:border-green-primary/20 transition-all duration-200"
+                  className={cn(
+                    "group relative flex flex-col bg-white border rounded-xl overflow-hidden hover:shadow-lg transition-all duration-200",
+                    isSelected
+                      ? "border-green-primary ring-2 ring-green-primary/30"
+                      : "border-gray-100 hover:border-green-primary/20"
+                  )}
                 >
+                  {/* Checkbox overlay */}
+                  <button
+                    onClick={() => product.id && toggleSelect(product.id)}
+                    className="absolute top-2 right-2 z-10 p-0.5 rounded bg-white/80 backdrop-blur-sm hover:bg-white transition-colors"
+                    title={isSelected ? "Desmarcar" : "Selecionar"}
+                  >
+                    {isSelected ? (
+                      <MdCheckBox size={20} className="text-green-primary" />
+                    ) : (
+                      <MdCheckBoxOutlineBlank size={20} className="text-gray-400 group-hover:text-gray-600" />
+                    )}
+                  </button>
+
                   {/* Image */}
                   <div className="w-full h-[200px] overflow-hidden bg-gray-50">
                     <Image
@@ -646,7 +787,8 @@ const Product = () => {
                     </button>
                   </div>
                 </div>
-              ))}
+              );
+              })}
             </div>
           )}
         </div>

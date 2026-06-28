@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { signOut, useSession } from "next-auth/react";
 import { CgLogOut, CgProfile } from "react-icons/cg";
+import { MdOpenInNew, MdContentCopy } from "react-icons/md";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import useProfileModal from "@/utils/hooks/user/useProfileModal";
@@ -18,6 +19,9 @@ import { HiSearch } from "react-icons/hi";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import NotificationBell from "@/components/notification-bell";
+import OrderBell from "@/components/order-bell";
+
+const CATALOG_BASE = "https://www.catalogoplace.com.br";
 
 const Header = () => {
   const { data: session, status } = useSession();
@@ -25,8 +29,17 @@ const Header = () => {
   const profileModal = useProfileModal();
   const [searchFocused, setSearchFocused] = useState(false);
 
-  const isAdmin = session?.user?.user?.user_type === 2;
+  const user = session?.user?.user;
+  const isAdmin = user?.user_type === 2;
   const token = session?.user?.accessToken;
+  const storeUrl = user?.person_link ? `${CATALOG_BASE}/${user.person_link}` : null;
+
+  const copyStoreLink = () => {
+    if (!storeUrl) return;
+    navigator.clipboard.writeText(storeUrl).then(() => {
+      toast.success("Link copiado!");
+    });
+  };
 
   const onLogout = () => {
     signOut({ redirect: false }).then(() => {
@@ -51,31 +64,41 @@ const Header = () => {
         </h1>
       </Link>
 
-      {/* Search bar - desktop */}
-      {/* <div className="hidden md:flex flex-1 max-w-md mx-4 lg:mx-8">
-        <div
-          className={cn(
-            "flex items-center w-full bg-white/10 rounded-lg px-3 py-2 transition-all duration-200",
-            searchFocused && "bg-white/15 ring-2 ring-white/20"
-          )}
-        >
-          <HiSearch className="text-white/60 mr-2 flex-shrink-0" size={20} />
-          <input
-            type="text"
-            placeholder="Buscar produtos, pedidos..."
-            className="bg-transparent text-white placeholder-white/60 w-full text-sm outline-none"
-            onFocus={() => setSearchFocused(true)}
-            onBlur={() => setSearchFocused(false)}
-          />
-        </div>
-      </div> */}
-
       {/* Right section */}
-      <div className="flex items-center gap-2 md:gap-4">
+      <div className="flex items-center gap-1 md:gap-3">
+        {/* Admin: audit notification bell */}
         {isAdmin && token && <NotificationBell token={token} />}
 
+        {/* Store owner: order bell + store link */}
+        {!isAdmin && token && user?.id && (
+          <>
+            <OrderBell token={token} userId={user.id} />
+            {storeUrl && (
+              <div className="hidden sm:flex items-center gap-1 bg-white/10 rounded-lg px-2 py-1.5">
+                <a
+                  href={storeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 text-white/90 text-xs font-medium hover:text-white transition-colors"
+                >
+                  <MdOpenInNew size={14} />
+                  Ver minha loja
+                </a>
+                <button
+                  onClick={copyStoreLink}
+                  className="ml-1 p-0.5 rounded hover:bg-white/10 transition-colors"
+                  aria-label="Copiar link da loja"
+                  title="Copiar link"
+                >
+                  <MdContentCopy size={13} className="text-white/70 hover:text-white" />
+                </button>
+              </div>
+            )}
+          </>
+        )}
+
         <span className="hidden lg:block text-white/90 text-sm font-medium truncate max-w-[150px]">
-          {session?.user?.user?.name}
+          {user?.name}
         </span>
 
         <DropdownMenu>
@@ -87,7 +110,7 @@ const Header = () => {
               <Avatar className="h-9 w-9 md:h-10 md:w-10 ring-2 ring-white/20">
                 <AvatarImage
                   className="object-cover"
-                  src={session?.user?.user?.image_url}
+                  src={user?.image_url}
                 />
                 <AvatarFallback className="bg-white/20 text-white text-sm">
                   <CgProfile size={20} />
@@ -97,14 +120,30 @@ const Header = () => {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
             <div className="px-2 py-2">
-              <p className="text-sm font-medium truncate">
-                {session?.user?.user?.name}
-              </p>
-              <p className="text-xs text-muted-foreground truncate">
-                {session?.user?.user?.email}
-              </p>
+              <p className="text-sm font-medium truncate">{user?.name}</p>
+              <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+              {storeUrl && (
+                <p className="text-xs text-green-600 truncate mt-0.5">
+                  catalogoplace.com.br/{user?.person_link}
+                </p>
+              )}
             </div>
             <DropdownMenuSeparator />
+            {storeUrl && (
+              <>
+                <DropdownMenuItem asChild className="cursor-pointer">
+                  <a href={storeUrl} target="_blank" rel="noopener noreferrer">
+                    <MdOpenInNew className="mr-2" size={16} />
+                    Ver minha loja
+                  </a>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={copyStoreLink} className="cursor-pointer">
+                  <MdContentCopy className="mr-2" size={16} />
+                  Copiar link da loja
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+              </>
+            )}
             <DropdownMenuItem
               onClick={() => profileModal.onOpen()}
               className="cursor-pointer"

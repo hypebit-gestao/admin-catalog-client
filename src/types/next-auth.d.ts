@@ -17,6 +17,9 @@ declare module "next-auth" {
         last_name: string;
         user_type: number;
         payer_id: string | null;
+        shipping_type?: string | null;
+        background_color?: string | null;
+        theme?: string | null;
       };
     };
   }

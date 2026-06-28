@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import ContentMain from "@/components/content-main";
 import { useCategoryService } from "@/services/category.service";
 import { useProductService } from "@/services/product.service";
@@ -22,6 +22,36 @@ import { FaCircleCheck } from "react-icons/fa6";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { RecentOrderItem } from "@/models/order-analytics";
+import { Order } from "@/models/order";
+
+type Period = "today" | "week" | "month" | "year" | "all";
+
+const PERIOD_LABELS: Record<Period, string> = {
+  today: "Hoje",
+  week: "Esta semana",
+  month: "Este mês",
+  year: "Este ano",
+  all: "Todos",
+};
+
+function filterByPeriod(orders: Order[], period: Period): Order[] {
+  if (period === "all") return orders;
+  const now = new Date();
+  const start = new Date();
+  if (period === "today") {
+    start.setHours(0, 0, 0, 0);
+  } else if (period === "week") {
+    start.setDate(now.getDate() - now.getDay());
+    start.setHours(0, 0, 0, 0);
+  } else if (period === "month") {
+    start.setDate(1);
+    start.setHours(0, 0, 0, 0);
+  } else if (period === "year") {
+    start.setMonth(0, 1);
+    start.setHours(0, 0, 0, 0);
+  }
+  return orders.filter((o) => o.created_at && new Date(o.created_at) >= start);
+}
 
 const STATUS_LABELS: Record<string, string> = {
   PENDENT: "Pendente",
@@ -43,11 +73,8 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [countProducts, setCountProducts] = useState(0);
   const [countCategories, setCountCategories] = useState(0);
-  const [countOrders, setCountOrders] = useState(0);
-  const [totalRevenue, setTotalRevenue] = useState(0);
-  const [pendingOrders, setPendingOrders] = useState(0);
-  const [recentOrders, setRecentOrders] = useState<RecentOrderItem[]>([]);
-  const [statusCounts, setStatusCounts] = useState<Record<string, number>>({});
+  const [allOrders, setAllOrders] = useState<Order[]>([]);
+  const [period, setPeriod] = useState<Period>("all");
   const [productsByCategory, setProductsByCategory] = useState<
     Record<string, number>
   >({});
@@ -68,76 +95,28 @@ const Home = () => {
 
         const [
           productsCount,
-          dashboardData,
           categoriesCount,
-          productsData,
           categoriesData,
+          ordersData,
           productByCategoryData,
         ] = await Promise.all([
           productService.COUNTPRODUCTS(userId, token),
-          orderService.GETDASHBOARD(token, userId).catch(() => null),
           categoryService.COUNTCATEGORIES(token).catch(() => null),
-          productService.GETBYUSERID(userId, "", token).catch(() => []),
           categoryService.GETALL(token).catch(() => []),
+          orderService.GETALL(token, userId).catch(() => []),
           productService.GETBYCATEGORY(userId, token).catch(() => null),
         ]);
 
         setCountProducts(productsCount ?? 0);
         setCountCategories(categoriesCount ?? categoriesData?.length ?? 0);
-
-        if (dashboardData) {
-          setTotalRevenue(dashboardData.totalRevenue ?? 0);
-          setCountOrders(dashboardData.totalOrders ?? 0);
-          setRecentOrders(dashboardData.recentOrders ?? []);
-          setStatusCounts(dashboardData.ordersByStatus ?? {});
-          setPendingOrders(
-            (dashboardData.ordersByStatus?.PENDENT ?? 0) +
-              (dashboardData.ordersByStatus?.SENT ?? 0)
-          );
-        } else {
-          const ordersData = await orderService.GETALL(token, userId).catch(
-            () => []
-          );
-          const orders = ordersData ?? [];
-          setCountOrders(orders.length);
-          setTotalRevenue(
-            orders.reduce((acc, o) => acc + (o.total || 0), 0)
-          );
-          setPendingOrders(
-            orders.filter(
-              (o) => o.status === "PENDENT" || o.status === "SENT"
-            ).length
-          );
-          setRecentOrders(orders.slice(0, 5) as RecentOrderItem[]);
-          const counts = orders.reduce(
-            (acc, o) => {
-              const s = o.status || "PENDENT";
-              acc[s] = (acc[s] || 0) + 1;
-              return acc;
-            },
-            {} as Record<string, number>
-          );
-          setStatusCounts(counts);
-        }
+        setAllOrders(ordersData ?? []);
 
         if (productByCategoryData?.categories) {
           const byCat: Record<string, number> = {};
           let withoutCat = 0;
           productByCategoryData.categories.forEach((c) => {
             byCat[c.categoryName] = c.count;
-            if (c.categoryName === "Sem categoria") {
-              withoutCat = c.count;
-            }
-          });
-          setProductsByCategory(byCat);
-          setProductsWithoutCategory(withoutCat);
-        } else if (productsData && productsData.length > 0) {
-          const byCat: Record<string, number> = {};
-          let withoutCat = 0;
-          productsData.forEach((p) => {
-            const cat = p.category?.name || "Sem categoria";
-            byCat[cat] = (byCat[cat] || 0) + 1;
-            if (!p.category_id) withoutCat++;
+            if (c.categoryName === "Sem categoria") withoutCat = c.count;
           });
           setProductsByCategory(byCat);
           setProductsWithoutCategory(withoutCat);
@@ -149,6 +128,25 @@ const Home = () => {
 
     loadData();
   }, [session?.user?.accessToken, session?.user?.user?.id]);
+
+  const filteredOrders = useMemo(() => filterByPeriod(allOrders, period), [allOrders, period]);
+
+  const totalRevenue = useMemo(
+    () => filteredOrders.reduce((acc, o) => acc + (o.total || 0), 0),
+    [filteredOrders]
+  );
+  const countOrders = filteredOrders.length;
+  const statusCounts = useMemo(
+    () =>
+      filteredOrders.reduce((acc, o) => {
+        const s = o.status || "PENDENT";
+        acc[s] = (acc[s] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>),
+    [filteredOrders]
+  );
+  const pendingOrders = (statusCounts.PENDENT ?? 0) + (statusCounts.SENT ?? 0);
+  const recentOrders = filteredOrders.slice(0, 5) as RecentOrderItem[];
 
   const totalForStatus = Object.values(statusCounts).reduce(
     (a, b) => a + b,
@@ -190,6 +188,10 @@ const Home = () => {
     },
   ];
 
+  const storeUser = session?.user?.user;
+  const shippingConfigured = !!storeUser?.shipping_type;
+  const storePersonalized = !!(storeUser?.image_url || storeUser?.background_color || storeUser?.theme);
+
   const onboardingSteps = [
     {
       label: "Crie sua primeira categoria",
@@ -205,19 +207,20 @@ const Home = () => {
     },
     {
       label: "Configure o frete",
-      done: false,
+      done: shippingConfigured,
       href: "/configurations",
       action: "Configurar",
     },
     {
       label: "Personalize sua loja",
-      done: false,
+      done: storePersonalized,
       href: "/configurations",
       action: "Personalizar",
     },
   ];
 
-  const onboardingComplete = countCategories > 0 && countProducts > 0;
+  const onboardingComplete =
+    countCategories > 0 && countProducts > 0 && shippingConfigured && storePersonalized;
 
   return (
     <ContentMain
@@ -301,6 +304,25 @@ const Home = () => {
                     card.color
                   )}
                 />
+              </button>
+            ))}
+          </div>
+
+          {/* Period filter */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-sm text-gray-500 font-medium mr-1">Período:</span>
+            {(Object.keys(PERIOD_LABELS) as Period[]).map((p) => (
+              <button
+                key={p}
+                onClick={() => setPeriod(p)}
+                className={cn(
+                  "px-3 py-1 rounded-full text-sm font-medium border transition-colors",
+                  period === p
+                    ? "bg-green-primary text-white border-green-primary"
+                    : "bg-white text-gray-600 border-gray-200 hover:border-green-primary/40"
+                )}
+              >
+                {PERIOD_LABELS[p]}
               </button>
             ))}
           </div>

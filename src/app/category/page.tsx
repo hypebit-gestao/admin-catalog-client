@@ -12,6 +12,7 @@ import { AG_GRID_LOCALE_PT_BR } from "@/utils/locales/ag-grid";
 import { RowNode } from "ag-grid-community";
 import Loader from "@/components/loader";
 import { useCategoryService } from "@/services/category.service";
+import { useProductService } from "@/services/product.service";
 import { Category } from "@/models/category";
 import { MdDelete, MdEdit, MdSearch, MdDragIndicator } from "react-icons/md";
 import { RxDragHandleDots2 } from "react-icons/rx";
@@ -30,8 +31,10 @@ const CategoryPage = () => {
   const [isReorderMode, setIsReorderMode] = useState(false);
   const [reorderList, setReorderList] = useState<Category[]>([]);
   const [hasReorderChanges, setHasReorderChanges] = useState(false);
+  const [productCounts, setProductCounts] = useState<Record<string, number>>({});
   const dragIndex = useRef<number | null>(null);
   const categoryService = useCategoryService();
+  const productService = useProductService();
   const categoryDeleteModal = useCategoryDeleteModal();
   const router = useRouter();
 
@@ -43,6 +46,21 @@ const CategoryPage = () => {
       .then((res) => { if (res) setRowData(res as Category[]); })
       .finally(() => setLoading(false));
   }, [session?.user?.accessToken, categoryDeleteModal.isDelete]);
+
+  useEffect(() => {
+    if (!session?.user?.accessToken || !session?.user?.user?.id) return;
+    productService
+      .GETBYCATEGORY(session.user.user.id, session.user.accessToken)
+      .then((res) => {
+        if (!res?.categories) return;
+        const counts: Record<string, number> = {};
+        res.categories.forEach((c) => {
+          if (c.categoryName) counts[c.categoryName] = c.count;
+        });
+        setProductCounts(counts);
+      })
+      .catch(() => {});
+  }, [session?.user?.accessToken, session?.user?.user?.id]);
 
   const filtered = useMemo(() => {
     if (!search.trim()) return rowData;
@@ -130,8 +148,18 @@ const CategoryPage = () => {
     return {};
   };
 
+  const CountRenderer = (props: any) => {
+    const count = productCounts[props.data?.name];
+    return (
+      <span className={`text-sm font-semibold ${count > 0 ? "text-green-primary" : "text-gray-400"}`}>
+        {count ?? 0}
+      </span>
+    );
+  };
+
   const colDefs = [
     { field: "name", flex: 1, headerName: "Nome", filter: true, floatingFilter: true },
+    { field: "count", headerName: "Produtos", width: 120, cellRenderer: CountRenderer },
     { field: "actions", headerName: "Ações", width: 200, cellRenderer: ActionsRenderer },
   ];
 
@@ -273,9 +301,16 @@ const CategoryPage = () => {
                       />
                     </div>
                     <div className="p-4 flex items-center justify-between">
-                      <h2 className="font-bold text-base text-green-primary truncate flex-1">
-                        {category.name}
-                      </h2>
+                      <div className="min-w-0 flex-1">
+                        <h2 className="font-bold text-base text-green-primary truncate">
+                          {category.name}
+                        </h2>
+                        {category.name && productCounts[category.name] !== undefined && (
+                          <p className="text-xs text-gray-500 mt-0.5">
+                            {productCounts[category.name]} produto(s)
+                          </p>
+                        )}
+                      </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
                         <button
                           onClick={() => router.push(`/category/${category.id}/edit`)}

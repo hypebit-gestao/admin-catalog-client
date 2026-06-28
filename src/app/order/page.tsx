@@ -11,7 +11,7 @@ import { AG_GRID_LOCALE_PT_BR } from "@/utils/locales/ag-grid";
 import { RowNode } from "ag-grid-community";
 import Loader from "@/components/loader";
 
-import { MdDelete, MdEdit, MdRequestPage, MdPeople, MdContentCopy, MdCheck, MdLink, MdArrowForward } from "react-icons/md";
+import { MdDelete, MdEdit, MdRequestPage, MdPeople, MdContentCopy, MdCheck, MdLink, MdArrowForward, MdOpenInNew } from "react-icons/md";
 import { useOrderService } from "@/services/order.service";
 import { Order as OrderModel } from "@/models/order";
 import OrderEdit from "@/components/order/order-edit";
@@ -69,9 +69,17 @@ const Order = () => {
   const [activeTab, setActiveTab] = useState<"orders" | "reps">("orders");
   const [newRepName, setNewRepName] = useState("");
   const [copiedRep, setCopiedRep] = useState<string | null>(null);
+  const [copiedStoreLink, setCopiedStoreLink] = useState(false);
 
   const personLink = session?.user?.user?.person_link ?? "";
   const CATALOG_BASE = "https://www.catalogoplace.com.br";
+  const storeUrl = `${CATALOG_BASE}/${personLink}`;
+
+  const copyStoreLink = () => {
+    navigator.clipboard.writeText(storeUrl);
+    setCopiedStoreLink(true);
+    setTimeout(() => setCopiedStoreLink(false), 2000);
+  };
 
   const buildRepLink = (name: string) =>
     `${CATALOG_BASE}/${personLink}?rep=${encodeURIComponent(name.trim())}`;
@@ -382,7 +390,7 @@ const Order = () => {
         ) : (
           <div className="space-y-4">
             {/* Quick filter buttons */}
-            <div className="flex flex-wrap gap-2">
+            <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
               {STATUS_FILTERS.map((f) => {
                 const count = f.key === "ALL" ? allOrders.length : (statusCounts[f.key as StatusKey] ?? 0);
                 return (
@@ -390,7 +398,7 @@ const Order = () => {
                     key={f.key}
                     onClick={() => setActiveFilter(f.key)}
                     className={cn(
-                      "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-150 border",
+                      "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-150 border flex-shrink-0",
                       activeFilter === f.key
                         ? "bg-green-primary text-white border-green-primary shadow-sm"
                         : "bg-white text-gray-600 border-gray-200 hover:border-green-primary/40 hover:text-green-primary"
@@ -414,18 +422,51 @@ const Order = () => {
 
             {/* Grid */}
             {rowData.length === 0 && !loading ? (
-              <div className="bg-white rounded-xl border border-gray-200/80 py-16 flex flex-col items-center text-center shadow-sm">
+              <div className="bg-white rounded-xl border border-gray-200/80 py-16 flex flex-col items-center text-center shadow-sm px-6">
                 <MdRequestPage size={48} className="text-gray-200 mb-3" />
-                <p className="font-medium text-gray-500">
-                  {activeFilter === "ALL" ? "Nenhum pedido ainda" : `Nenhum pedido com status "${formatterStatus(activeFilter)}"`}
-                </p>
-                {activeFilter !== "ALL" && (
-                  <button
-                    onClick={() => setActiveFilter("ALL")}
-                    className="mt-3 text-sm text-green-primary hover:underline"
-                  >
-                    Ver todos os pedidos
-                  </button>
+                {activeFilter === "ALL" ? (
+                  <>
+                    <p className="font-semibold text-gray-700 text-lg mb-1">Nenhum pedido ainda</p>
+                    <p className="text-sm text-gray-400 mb-6 max-w-xs">
+                      Compartilhe o link da sua loja para começar a receber pedidos.
+                    </p>
+                    {personLink && (
+                      <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 mb-4 w-full max-w-sm">
+                        <MdLink size={16} className="text-gray-400 shrink-0" />
+                        <span className="text-xs text-gray-500 truncate flex-1">{storeUrl}</span>
+                        <button
+                          onClick={copyStoreLink}
+                          className="flex items-center gap-1 text-xs text-green-700 hover:text-green-800 font-medium shrink-0 ml-1"
+                        >
+                          {copiedStoreLink ? <MdCheck size={14} /> : <MdContentCopy size={14} />}
+                          {copiedStoreLink ? "Copiado!" : "Copiar"}
+                        </button>
+                      </div>
+                    )}
+                    {personLink && (
+                      <a
+                        href={storeUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-green-primary text-white text-sm font-medium hover:bg-green-primary/90 transition-colors"
+                      >
+                        <MdOpenInNew size={16} />
+                        Abrir minha loja
+                      </a>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <p className="font-medium text-gray-500">
+                      Nenhum pedido com status &quot;{formatterStatus(activeFilter)}&quot;
+                    </p>
+                    <button
+                      onClick={() => setActiveFilter("ALL")}
+                      className="mt-3 text-sm text-green-primary hover:underline"
+                    >
+                      Ver todos os pedidos
+                    </button>
+                  </>
                 )}
               </div>
             ) : (

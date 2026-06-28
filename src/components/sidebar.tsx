@@ -121,6 +121,7 @@ const Sidebar = () => {
               collapsed={isCollapsed}
             />
           )}
+          {isAdmin && <li className="border-t border-white/20 my-2 mx-4" />}
           <MenuItem
             href="/category"
             label="Categorias"
