@@ -28,10 +28,13 @@ import {
   MdPauseCircle,
   MdPlayCircle,
   MdManageAccounts,
+  MdHistory,
 } from "react-icons/md";
 import { FaWhatsapp } from "react-icons/fa";
 import { useAsaasService } from "@/services/asaas.service";
 import { useAuthService } from "@/services/auth.service";
+import { useAuditLogService } from "@/services/audit-log.service";
+import { AuditLog } from "@/models/audit-log";
 import { signIn } from "next-auth/react";
 
 const PLAN_LABELS: Record<string, string> = {
@@ -61,6 +64,57 @@ const ORDER_STATUS_COLOR: Record<string, string> = {
 
 const formatter = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
+// ─── Audit helpers ─────────────────────────────────────────────────────────────
+
+function auditBadgeClass(action?: string): string {
+  if (!action) return "bg-gray-100 text-gray-600";
+  if (action.startsWith("FAILED")) return "bg-red-100 text-red-700";
+  if (action.startsWith("CREATE")) return "bg-emerald-100 text-emerald-700";
+  if (action.startsWith("DELETE")) return "bg-red-100 text-red-700";
+  return "bg-blue-100 text-blue-700";
+}
+
+function relativeTime(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return "agora";
+  if (m < 60) return `${m}min atrás`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h atrás`;
+  return `${Math.floor(h / 24)}d atrás`;
+}
+
+const AuditTab = ({ logs }: { logs: AuditLog[] }) => {
+  if (logs.length === 0)
+    return <p className="text-center text-gray-400 py-12">Nenhum evento registrado</p>;
+  return (
+    <div className="space-y-2">
+      <p className="text-xs text-gray-500 mb-3">{logs.length} evento(s)</p>
+      {logs.map((log) => (
+        <div
+          key={log.id}
+          className="bg-white border border-gray-100 rounded-xl px-4 py-3 flex items-start gap-3"
+        >
+          <span
+            className={`shrink-0 mt-0.5 text-[10px] font-bold px-2 py-0.5 rounded-full ${auditBadgeClass(log.action)}`}
+          >
+            {log.action ?? log.method}
+          </span>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-mono text-gray-600 truncate">{log.route}</p>
+            {log.entity_id && (
+              <p className="text-[10px] text-gray-400 truncate">ID: {log.entity_id}</p>
+            )}
+          </div>
+          <span className="shrink-0 text-[10px] text-gray-400 whitespace-nowrap">
+            {relativeTime(log.created_at)}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+};
+
 // ─── Store detail drawer ───────────────────────────────────────────────────────
 
 interface StoreDetailProps {
@@ -72,17 +126,19 @@ interface StoreDetailProps {
   impersonating: boolean;
 }
 
-type TabKey = "dashboard" | "products" | "orders";
+type TabKey = "dashboard" | "products" | "orders" | "audit";
 
 const StoreDetail = ({ store, token, onClose, websiteBase, onImpersonate, impersonating }: StoreDetailProps) => {
   const orderService = useOrderService();
   const productService = useProductService();
   const asaasService = useAsaasService();
+  const auditLogService = useAuditLogService();
 
   const [activeTab, setActiveTab] = useState<TabKey>("dashboard");
   const [dashboard, setDashboard] = useState<OrderDashboardResponse | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [loadingTab, setLoadingTab] = useState(false);
   const [asaasId, setAsaasId] = useState(store.asaas_customer_id ?? "");
   const [savingAsaas, setSavingAsaas] = useState(false);
@@ -100,6 +156,9 @@ const StoreDetail = ({ store, token, onClose, websiteBase, onImpersonate, impers
       } else if (tab === "orders") {
         const o = await orderService.GETALL(token, store.id);
         if (o) setOrders(o);
+      } else if (tab === "audit") {
+        const a = await auditLogService.GETBYUSER(token, store.id, 100);
+        if (a) setAuditLogs(a);
       }
     } catch {}
     setLoadingTab(false);
@@ -149,6 +208,7 @@ const StoreDetail = ({ store, token, onClose, websiteBase, onImpersonate, impers
     { key: "dashboard", label: "Dashboard" },
     { key: "products", label: "Produtos" },
     { key: "orders", label: "Pedidos" },
+    { key: "audit", label: "Auditoria" },
   ];
 
   return (
@@ -242,8 +302,10 @@ const StoreDetail = ({ store, token, onClose, websiteBase, onImpersonate, impers
             />
           ) : activeTab === "products" ? (
             <ProductsTab products={products} />
-          ) : (
+          ) : activeTab === "orders" ? (
             <OrdersTab orders={orders} />
+          ) : (
+            <AuditTab logs={auditLogs} />
           )}
         </div>
       </div>
@@ -445,6 +507,8 @@ const SuperAdminPage = () => {
   const userService = useUserService();
   const authService = useAuthService();
 
+  const auditLogService = useAuditLogService();
+
   const [stores, setStores] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -452,6 +516,9 @@ const SuperAdminPage = () => {
   const [selectedStore, setSelectedStore] = useState<User | null>(null);
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [impersonatingId, setImpersonatingId] = useState<string | null>(null);
+  const [showGlobalFeed, setShowGlobalFeed] = useState(false);
+  const [globalLogs, setGlobalLogs] = useState<AuditLog[]>([]);
+  const [loadingGlobalFeed, setLoadingGlobalFeed] = useState(false);
 
   const websiteBase =
     typeof window !== "undefined"
@@ -479,6 +546,25 @@ const SuperAdminPage = () => {
   useEffect(() => {
     fetchStores();
   }, [fetchStores]);
+
+  const handleToggleGlobalFeed = async () => {
+    const next = !showGlobalFeed;
+    setShowGlobalFeed(next);
+    if (next && globalLogs.length === 0 && session?.user?.accessToken) {
+      setLoadingGlobalFeed(true);
+      const logs = await auditLogService.GETALL(session.user.accessToken, undefined, 150);
+      if (logs) setGlobalLogs(logs);
+      setLoadingGlobalFeed(false);
+    }
+  };
+
+  const refreshGlobalFeed = async () => {
+    if (!session?.user?.accessToken) return;
+    setLoadingGlobalFeed(true);
+    const logs = await auditLogService.GETALL(session.user.accessToken, undefined, 150);
+    if (logs) setGlobalLogs(logs);
+    setLoadingGlobalFeed(false);
+  };
 
   const handleToggleStatus = async (store: User) => {
     if (!session?.user?.accessToken) return;
@@ -604,11 +690,70 @@ const SuperAdminPage = () => {
           <button
             onClick={fetchStores}
             className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
-            title="Recarregar"
+            title="Recarregar lojas"
           >
             <MdRefresh size={18} className="text-gray-500" />
           </button>
+          <button
+            onClick={handleToggleGlobalFeed}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border text-sm font-medium transition-colors ${
+              showGlobalFeed
+                ? "bg-violet-600 text-white border-violet-600"
+                : "border-gray-200 text-gray-600 hover:border-gray-300 bg-white"
+            }`}
+            title="Feed global de auditoria"
+          >
+            <MdHistory size={16} />
+            Auditoria
+          </button>
         </div>
+
+        {/* Global audit feed */}
+        {showGlobalFeed && (
+          <div className="mb-6 border border-violet-100 rounded-xl bg-violet-50/40 p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold text-violet-800 flex items-center gap-2">
+                <MdHistory size={16} />
+                Feed Global de Auditoria
+              </h3>
+              <button
+                onClick={refreshGlobalFeed}
+                disabled={loadingGlobalFeed}
+                className="p-1 rounded hover:bg-violet-100 transition-colors disabled:opacity-50"
+              >
+                <MdRefresh size={15} className="text-violet-600" />
+              </button>
+            </div>
+            {loadingGlobalFeed ? (
+              <div className="flex justify-center py-8">
+                <div className="w-6 h-6 border-4 border-violet-200 border-t-violet-600 rounded-full animate-spin" />
+              </div>
+            ) : globalLogs.length === 0 ? (
+              <p className="text-center text-gray-400 py-6 text-sm">Nenhum evento registrado</p>
+            ) : (
+              <div className="space-y-1.5 max-h-80 overflow-y-auto pr-1">
+                {globalLogs.map((log) => {
+                  const storeName =
+                    stores.find((s) => s.id === log.user_id)?.name ?? log.user_id?.slice(0, 8) ?? "—";
+                  return (
+                    <div
+                      key={log.id}
+                      className="bg-white border border-gray-100 rounded-lg px-3 py-2 flex items-center gap-3 text-xs"
+                    >
+                      <span className={`shrink-0 font-bold px-2 py-0.5 rounded-full text-[10px] ${auditBadgeClass(log.action)}`}>
+                        {log.action ?? log.method}
+                      </span>
+                      <span className="font-medium text-gray-700 shrink-0">{storeName}</span>
+                      <span className="font-mono text-gray-400 truncate flex-1">{log.route}</span>
+                      <span className="shrink-0 text-gray-400 whitespace-nowrap">{relativeTime(log.created_at)}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            <p className="text-[10px] text-gray-400 mt-2 text-right">{globalLogs.length} eventos</p>
+          </div>
+        )}
 
         {/* Stores grid */}
         {loading ? (
