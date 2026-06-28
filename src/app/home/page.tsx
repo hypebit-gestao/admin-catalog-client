@@ -132,7 +132,7 @@ const Home = () => {
   const filteredOrders = useMemo(() => filterByPeriod(allOrders, period), [allOrders, period]);
 
   const totalRevenue = useMemo(
-    () => filteredOrders.reduce((acc, o) => acc + (o.total || 0), 0),
+    () => filteredOrders.reduce((acc, o) => acc + (Number(o.total) || 0), 0),
     [filteredOrders]
   );
   const countOrders = filteredOrders.length;
