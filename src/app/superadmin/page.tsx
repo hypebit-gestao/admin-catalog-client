@@ -157,7 +157,7 @@ const StoreDetail = ({ store, token, onClose, websiteBase, onImpersonate, impers
         const o = await orderService.GETALL(token, store.id);
         if (o) setOrders(o);
       } else if (tab === "audit") {
-        const a = await auditLogService.GETBYUSER(token, store.id, 100);
+        const a = await auditLogService.GETBYUSER(token, store.id!, 100);
         if (a) setAuditLogs(a);
       }
     } catch {}
