@@ -95,6 +95,7 @@ const PersonalizationStore = ({ isOpen, onClose }: ShippingRegisterProps) => {
   const [currentColor, setCurrentColor] = useState("");
   const [selectedTheme, setSelectedTheme] = useState("modern");
   const [showStockQuantity, setShowStockQuantity] = useState(false);
+  const [hideShareButtons, setHideShareButtons] = useState(false);
 
   const userService = useUserService();
 
@@ -127,6 +128,7 @@ const PersonalizationStore = ({ isOpen, onClose }: ShippingRegisterProps) => {
           debit_discount: Number(data.debit_discount),
           theme: selectedTheme,
           show_stock_quantity: showStockQuantity,
+          hide_share_buttons: hideShareButtons,
         },
         session?.user.accessToken
       )
@@ -185,6 +187,7 @@ const PersonalizationStore = ({ isOpen, onClose }: ShippingRegisterProps) => {
         setCustomValue("debit_discount", String(user.debit_discount));
         setSelectedTheme(user.theme ?? "modern");
         setShowStockQuantity(user.show_stock_quantity ?? false);
+        setHideShareButtons(user.hide_share_buttons ?? false);
       }
     }
   }, [isOpen]);
@@ -355,6 +358,25 @@ const PersonalizationStore = ({ isOpen, onClose }: ShippingRegisterProps) => {
                   >
                     <span
                       className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${showStockQuantity ? "translate-x-5" : "translate-x-0"}`}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4">
+                <div
+                  className="flex items-center justify-between p-4 rounded-xl border border-gray-200 cursor-pointer select-none"
+                  onClick={() => setHideShareButtons((v) => !v)}
+                >
+                  <div>
+                    <p className="text-sm font-semibold text-gray-800">Ocultar botões de compartilhamento</p>
+                    <p className="text-xs text-gray-500 mt-0.5">Remove os botões de compartilhar via WhatsApp, Facebook, X e copiar link da página do produto</p>
+                  </div>
+                  <div
+                    className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ml-4 ${hideShareButtons ? "bg-green-500" : "bg-gray-300"}`}
+                  >
+                    <span
+                      className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${hideShareButtons ? "translate-x-5" : "translate-x-0"}`}
                     />
                   </div>
                 </div>
