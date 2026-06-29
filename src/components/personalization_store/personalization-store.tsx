@@ -392,7 +392,7 @@ const PersonalizationStore = ({ isOpen, onClose }: ShippingRegisterProps) => {
                 >
                   <div>
                     <p className="text-sm font-semibold text-gray-800">Ocultar link de rastreamento do pedido</p>
-                    <p className="text-xs text-gray-500 mt-0.5">Remove o "Acompanhe seu pedido" da mensagem enviada ao WhatsApp (não se aplica a orçamentos)</p>
+                    <p className="text-xs text-gray-500 mt-0.5">Remove o &ldquo;Acompanhe seu pedido&rdquo; da mensagem enviada ao WhatsApp (não se aplica a orçamentos)</p>
                   </div>
                   <div
                     className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ml-4 ${hideOrderTracking ? "bg-green-500" : "bg-gray-300"}`}
