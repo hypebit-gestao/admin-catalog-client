@@ -308,7 +308,7 @@ const UserEdit = ({ isOpen, onClose }: UserEditProps) => {
           {
             id: user.id,
             name: data.name,
-            cpf_cnpj: data.cpf_cnpj,
+            cpf_cnpj: removeFormatting(data.cpf_cnpj),
             email: data.email,
             phone: data.phone,
             person_link: data.person_link,
