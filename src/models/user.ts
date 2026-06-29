@@ -39,6 +39,7 @@ export interface User {
   hide_whatsapp_float?: boolean | null;
   show_stock_quantity?: boolean | null;
   hide_share_buttons?: boolean | null;
+  hide_order_tracking?: boolean | null;
 }
 
 export interface UserShippingPut {

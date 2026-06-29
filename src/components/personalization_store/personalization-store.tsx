@@ -96,6 +96,7 @@ const PersonalizationStore = ({ isOpen, onClose }: ShippingRegisterProps) => {
   const [selectedTheme, setSelectedTheme] = useState("modern");
   const [showStockQuantity, setShowStockQuantity] = useState(false);
   const [hideShareButtons, setHideShareButtons] = useState(false);
+  const [hideOrderTracking, setHideOrderTracking] = useState(false);
 
   const userService = useUserService();
 
@@ -129,6 +130,7 @@ const PersonalizationStore = ({ isOpen, onClose }: ShippingRegisterProps) => {
           theme: selectedTheme,
           show_stock_quantity: showStockQuantity,
           hide_share_buttons: hideShareButtons,
+          hide_order_tracking: hideOrderTracking,
         },
         session?.user.accessToken
       )
@@ -188,6 +190,7 @@ const PersonalizationStore = ({ isOpen, onClose }: ShippingRegisterProps) => {
         setSelectedTheme(user.theme ?? "modern");
         setShowStockQuantity(user.show_stock_quantity ?? false);
         setHideShareButtons(user.hide_share_buttons ?? false);
+        setHideOrderTracking(user.hide_order_tracking ?? false);
       }
     }
   }, [isOpen]);
@@ -377,6 +380,25 @@ const PersonalizationStore = ({ isOpen, onClose }: ShippingRegisterProps) => {
                   >
                     <span
                       className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${hideShareButtons ? "translate-x-5" : "translate-x-0"}`}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4">
+                <div
+                  className="flex items-center justify-between p-4 rounded-xl border border-gray-200 cursor-pointer select-none"
+                  onClick={() => setHideOrderTracking((v) => !v)}
+                >
+                  <div>
+                    <p className="text-sm font-semibold text-gray-800">Ocultar link de rastreamento do pedido</p>
+                    <p className="text-xs text-gray-500 mt-0.5">Remove o "Acompanhe seu pedido" da mensagem enviada ao WhatsApp (não se aplica a orçamentos)</p>
+                  </div>
+                  <div
+                    className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ml-4 ${hideOrderTracking ? "bg-green-500" : "bg-gray-300"}`}
+                  >
+                    <span
+                      className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${hideOrderTracking ? "translate-x-5" : "translate-x-0"}`}
                     />
                   </div>
                 </div>
