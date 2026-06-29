@@ -729,13 +729,17 @@ const Product = () => {
                         ) : (
                           <>
                             <p className="font-bold text-green-primary text-base">
-                              {formatter.format(product.price)}
+                              {formatter.format(
+                                product.promotion_price && product.promotion_price > 0 && product.promotion_price < product.price
+                                  ? product.promotion_price
+                                  : product.price
+                              )}
                             </p>
                             {product.promotion_price &&
                               product.promotion_price > 0 &&
                               product.promotion_price < product.price && (
                                 <p className="text-xs text-muted-foreground line-through">
-                                  {formatter.format(product.promotion_price)}
+                                  {formatter.format(product.price)}
                                 </p>
                               )}
                           </>
