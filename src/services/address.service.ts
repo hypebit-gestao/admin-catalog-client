@@ -57,7 +57,7 @@ export const useAddressService = () => {
     session: string | any,
     data: Address
   ): Promise<Address | undefined> => {
-    const response = await fetchWrapper<Address>(`address`, {
+    const response = await fetchWrapper<Address>(`address/${data.id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",

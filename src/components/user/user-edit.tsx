@@ -52,7 +52,7 @@ const formSchema = z.object({
   og_image_url: z.any(),
   cep: z.string().min(1, "CEP é obrigatório"),
   street: z.string().min(1, "Logradouro é obrigatório"),
-  number: z.number(),
+  number: z.coerce.number(),
   district: z.string().min(1, "Bairro é obrigatório"),
   city: z.string().min(1, "Cidade é obrigatório"),
   state: z.string().min(1, "Estado é obrigatório"),
@@ -291,10 +291,27 @@ const UserEdit = ({ isOpen, onClose }: UserEditProps) => {
       }
 
       if (user?.id) {
+        if (user.address_id) {
+          await addressService.PUT(session?.user?.accessToken, {
+            id: user.address_id,
+            cep: data.cep.replace(/\D/g, ""),
+            street: data.street,
+            number: Number(data.number),
+            district: data.district,
+            city: data.city,
+            state: data.state,
+            complement: data.complement ?? "",
+          });
+        }
+
         await userService.PUT(
           {
             id: user.id,
-            ...data,
+            name: data.name,
+            cpf_cnpj: data.cpf_cnpj,
+            email: data.email,
+            phone: data.phone,
+            person_link: data.person_link,
             user_type: 1,
             status: "ACTIVE",
             payer_id: user.payer_id,
