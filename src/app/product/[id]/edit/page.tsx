@@ -214,6 +214,8 @@ const ProductEditPage = () => {
   const [stockEnabled, setStockEnabled] = useState(false);
   const [stockQuantity, setStockQuantity] = useState<string>("");
   const [outOfStockBehavior, setOutOfStockBehavior] = useState<'show_unavailable' | 'hide'>('show_unavailable');
+  const [tags, setTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState("");
 
   const form = useForm<z.infer<typeof formSchema>>({
     defaultValues: {
@@ -317,6 +319,7 @@ const ProductEditPage = () => {
           setStockEnabled(Boolean(fetchedProduct.stock_enabled));
           setStockQuantity(fetchedProduct.stock_quantity?.toString() ?? "");
           setOutOfStockBehavior((fetchedProduct.out_of_stock_behavior as 'show_unavailable' | 'hide') ?? 'show_unavailable');
+          setTags(Array.isArray(fetchedProduct.tags) ? fetchedProduct.tags : []);
 
           if (fetchedProduct.images) {
             setFilePreviews(fetchedProduct.images as ImagePreviewItem[]);
@@ -582,6 +585,7 @@ const ProductEditPage = () => {
           name: data.name,
           description: data.description,
           category_id: data.category_id !== "" ? data.category_id : null,
+          tags: tags.length > 0 ? tags : null,
           images: data.images,
           currency: data.currency,
           price: data.price_on_request ? 0 : Number(data.price),
@@ -740,6 +744,36 @@ const ProductEditPage = () => {
                     </FormItem>
                   )}
                 />
+              </div>
+
+              <div className="mb-5">
+                <label className="text-sm font-medium">Tags</label>
+                <div className="mt-1.5 flex flex-wrap gap-1.5 min-h-[38px] p-2 border rounded-md bg-background">
+                  {tags.map((tag, i) => (
+                    <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">
+                      {tag}
+                      <button type="button" onClick={() => setTags((prev) => prev.filter((_, idx) => idx !== i))} className="hover:text-red-500 leading-none">&times;</button>
+                    </span>
+                  ))}
+                  <input
+                    type="text"
+                    value={tagInput}
+                    onChange={(e) => setTagInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if ((e.key === "Enter" || e.key === ",") && tagInput.trim()) {
+                        e.preventDefault();
+                        const t = tagInput.trim().replace(/,$/, "");
+                        if (t && !tags.includes(t)) setTags((prev) => [...prev, t]);
+                        setTagInput("");
+                      } else if (e.key === "Backspace" && !tagInput && tags.length > 0) {
+                        setTags((prev) => prev.slice(0, -1));
+                      }
+                    }}
+                    placeholder={tags.length === 0 ? "Digite e pressione Enter para adicionar" : ""}
+                    className="flex-1 min-w-[160px] outline-none bg-transparent text-sm"
+                  />
+                </div>
+                <p className="text-xs text-gray-400 mt-1">Ex: Masculino, Árabe, Floral — use Enter ou vírgula para confirmar.</p>
               </div>
 
               <div className="mb-5">
