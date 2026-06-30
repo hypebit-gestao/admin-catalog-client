@@ -12,6 +12,7 @@ import {
   MdHelpOutline,
   MdMenuBook,
   MdHistory,
+  MdCreditCard,
 } from "react-icons/md";
 import { TbRulerMeasure } from "react-icons/tb";
 import { useSession } from "next-auth/react";
@@ -168,6 +169,12 @@ const Sidebar = () => {
             href="/configurations"
             label="Configurações"
             icon={MdSettings}
+            collapsed={isCollapsed}
+          />
+          <MenuItem
+            href="/assinatura"
+            label="Assinatura"
+            icon={MdCreditCard}
             collapsed={isCollapsed}
           />
           <MenuItem

@@ -129,11 +129,21 @@ export const useAsaasService = () => {
   const getUserSubscription = async (
     userId: string,
     token: string,
-  ): Promise<{ status: string; nextDueDate: string | null; value: number; subscriptionId: string } | null> => {
+  ): Promise<{ status: string; nextDueDate: string | null; value: number; subscriptionId: string; billingType: string } | null> => {
     return fetchWrapper(`asaas/subscription/${userId}`, {
       method: "GET",
       headers: { Authorization: token },
     });
+  };
+
+  const cancelSubscription = async (
+    userId: string,
+    token: string,
+  ): Promise<{ ok: boolean }> => {
+    return fetchWrapper(`asaas/subscription/${userId}`, {
+      method: "DELETE",
+      headers: { Authorization: token },
+    }) as any;
   };
 
   const getUserInvoices = async (
@@ -166,5 +176,6 @@ export const useAsaasService = () => {
     getUserSubscription,
     getUserInvoices,
     getRenewalUrl,
+    cancelSubscription,
   };
 };
