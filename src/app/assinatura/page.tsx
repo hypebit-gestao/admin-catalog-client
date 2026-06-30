@@ -123,7 +123,7 @@ export default function AssinaturaPage() {
   const paymentCfg = PAYMENT_LABELS[sub?.billingType ?? ""] ?? { label: sub?.billingType ?? "—", icon: <MdCreditCard size={18} /> };
 
   return (
-    <ContentMain>
+    <ContentMain title="Minha Assinatura">
       <div className="max-w-3xl mx-auto space-y-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Minha Assinatura</h1>
