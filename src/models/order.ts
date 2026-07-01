@@ -16,6 +16,13 @@ export interface Order {
   seller_code?: string | null;
   custom_fields?: Record<string, string> | null;
   customer_name?: string;
+  customer_phone?: string | null;
+  delivery_cep?: string | null;
+  delivery_street?: string | null;
+  delivery_number?: string | null;
+  delivery_district?: string | null;
+  delivery_city?: string | null;
+  delivery_state?: string | null;
   status: string;
   total: number;
   created_at?: string;

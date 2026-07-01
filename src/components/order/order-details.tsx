@@ -4,7 +4,8 @@ import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Modal from "../modal";
 import { useSession } from "next-auth/react";
-import { MdEdit, MdInventory2 } from "react-icons/md";
+import { MdEdit, MdInventory2, MdPhone, MdLocationOn } from "react-icons/md";
+import { FaWhatsapp } from "react-icons/fa";
 import { useOrderService } from "@/services/order.service";
 import useOrderDetailsModal from "@/utils/hooks/order/useOrderDetailsModal";
 import { Order } from "@/models/order";
@@ -66,6 +67,19 @@ const OrderDetails = ({ isOpen, onClose, onEdit }: OrderDetailsProps) => {
   const orderRef = order?.id ? order.id.replace(/-/g, "").slice(0, 8).toUpperCase() : "";
   const itemsCount = order?.items?.reduce((acc, i) => acc + i.quantity, 0) ?? 0;
 
+  const phoneDigits = order?.customer_phone?.replace(/\D/g, "") ?? "";
+  const whatsappPhone = phoneDigits
+    ? phoneDigits.startsWith("55") ? phoneDigits : `55${phoneDigits}`
+    : "";
+
+  const hasAddress = !!(order?.delivery_street || order?.delivery_cep);
+  const addressLine1 = [order?.delivery_street, order?.delivery_number]
+    .filter(Boolean)
+    .join(", ");
+  const addressLine2 = [order?.delivery_district, order?.delivery_city, order?.delivery_state]
+    .filter(Boolean)
+    .join(" - ");
+
   return (
     <Modal
       isOpen={isOpen}
@@ -111,6 +125,54 @@ const OrderDetails = ({ isOpen, onClose, onEdit }: OrderDetailsProps) => {
                   </span>
                 )}
               </div>
+
+              {/* Contato e entrega */}
+              {(order.customer_phone || hasAddress) && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {order.customer_phone && (
+                    <div className="bg-gray-50 border border-gray-100 rounded-xl p-4">
+                      <p className="text-xs text-gray-400 mb-1 flex items-center gap-1">
+                        <MdPhone size={14} /> Telefone
+                      </p>
+                      <p className="text-sm font-medium text-gray-800 mb-2">
+                        {order.customer_phone}
+                      </p>
+                      <div className="flex gap-3">
+                        <a
+                          href={`tel:${phoneDigits}`}
+                          className="flex items-center gap-1 text-xs text-blue-600 hover:underline font-medium"
+                        >
+                          <MdPhone size={14} /> Ligar
+                        </a>
+                        <a
+                          href={`https://wa.me/${whatsappPhone}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 text-xs text-green-600 hover:underline font-medium"
+                        >
+                          <FaWhatsapp size={14} /> WhatsApp
+                        </a>
+                      </div>
+                    </div>
+                  )}
+                  {hasAddress && (
+                    <div className="bg-gray-50 border border-gray-100 rounded-xl p-4">
+                      <p className="text-xs text-gray-400 mb-1 flex items-center gap-1">
+                        <MdLocationOn size={14} /> Endereço de entrega
+                      </p>
+                      <p className="text-sm font-medium text-gray-800">
+                        {addressLine1 || "—"}
+                      </p>
+                      {addressLine2 && (
+                        <p className="text-sm text-gray-600">{addressLine2}</p>
+                      )}
+                      {order.delivery_cep && (
+                        <p className="text-xs text-gray-400 mt-1">CEP: {order.delivery_cep}</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Campos personalizados */}
               {order.custom_fields && Object.keys(order.custom_fields).length > 0 && (
