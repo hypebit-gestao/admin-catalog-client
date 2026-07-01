@@ -11,37 +11,18 @@ import { AG_GRID_LOCALE_PT_BR } from "@/utils/locales/ag-grid";
 import { RowNode } from "ag-grid-community";
 import Loader from "@/components/loader";
 
-import { MdDelete, MdEdit, MdRequestPage, MdPeople, MdContentCopy, MdCheck, MdLink, MdArrowForward, MdOpenInNew } from "react-icons/md";
+import { MdDelete, MdEdit, MdRequestPage, MdPeople, MdContentCopy, MdCheck, MdLink, MdArrowForward, MdOpenInNew, MdVisibility } from "react-icons/md";
 import { useOrderService } from "@/services/order.service";
 import { Order as OrderModel } from "@/models/order";
 import OrderEdit from "@/components/order/order-edit";
 import useEditOrderModal from "@/utils/hooks/order/useEditOrderModal";
 import OrderDelete from "@/components/order/order-delete";
 import useOrderDeleteModal from "@/utils/hooks/order/useDeleteOrderModal";
+import OrderDetails from "@/components/order/order-details";
+import useOrderDetailsModal from "@/utils/hooks/order/useOrderDetailsModal";
 import ExportToExcel from "@/utils/tools/excelExport";
 import { cn } from "@/lib/utils";
-
-const STATUS_CONFIG = {
-  PENDENT:     { label: "Novo pedido",      classes: "bg-amber-100 text-amber-800 border border-amber-200",    hex: "#d97706" },
-  NEGOTIATING: { label: "Em negociação",    classes: "bg-orange-100 text-orange-800 border border-orange-200", hex: "#ea580c" },
-  PAID:        { label: "Pago",             classes: "bg-blue-100 text-blue-800 border border-blue-200",        hex: "#2563eb" },
-  SENT:        { label: "Enviado",          classes: "bg-indigo-100 text-indigo-800 border border-indigo-200",  hex: "#4338ca" },
-  DELIVERED:   { label: "Entregue",         classes: "bg-emerald-100 text-emerald-800 border border-emerald-200", hex: "#059669" },
-  CANCELLED:   { label: "Cancelado",        classes: "bg-red-100 text-red-800 border border-red-200",           hex: "#dc2626" },
-} as const;
-
-// Fluxo sequencial do pedido (exceto CANCELLED que pode vir de qualquer etapa)
-const STATUS_FLOW: (keyof typeof STATUS_CONFIG)[] = [
-  "PENDENT", "NEGOTIATING", "PAID", "SENT", "DELIVERED",
-];
-
-const nextStatus = (current: string): keyof typeof STATUS_CONFIG | null => {
-  const idx = STATUS_FLOW.indexOf(current as any);
-  if (idx === -1 || idx === STATUS_FLOW.length - 1) return null;
-  return STATUS_FLOW[idx + 1];
-};
-
-type StatusKey = keyof typeof STATUS_CONFIG;
+import { STATUS_CONFIG, StatusKey, nextStatus, formatterStatus } from "@/utils/order-status";
 
 const STATUS_FILTERS: { key: StatusKey | "ALL"; label: string }[] = [
   { key: "ALL",         label: "Todos" },
@@ -57,9 +38,6 @@ const currencyFormatter = new Intl.NumberFormat("pt-BR", {
   style: "currency",
   currency: "BRL",
 });
-
-const formatterStatus = (status: string) =>
-  STATUS_CONFIG[status as StatusKey]?.label ?? "Pendente";
 
 const Order = () => {
   const [loading, setLoading] = useState(false);
@@ -94,6 +72,7 @@ const Order = () => {
   const orderService = useOrderService();
   const orderEditModal = useEditOrderModal();
   const orderDeleteModal = useOrderDeleteModal();
+  const orderDetailsModal = useOrderDetailsModal();
 
   useEffect(() => {
     if (!session?.user?.accessToken) return;
@@ -154,8 +133,20 @@ const Order = () => {
     useEditOrderModal.setState({ itemId: id });
   }, [orderEditModal]);
 
+  const handleViewDetails = useCallback((id: string | undefined) => {
+    useOrderDetailsModal.setState({ itemId: id });
+    orderDetailsModal.onOpen();
+  }, [orderDetailsModal]);
+
   const ActionsRenderer = useCallback((props: any) => (
     <div className="flex flex-row justify-center items-center h-full gap-2">
+      <button
+        className="text-green-primary hover:text-green-primary/70 transition-colors"
+        onClick={() => handleViewDetails(props.data.id)}
+        title="Ver detalhes do pedido"
+      >
+        <MdVisibility size={26} />
+      </button>
       <button
         className="text-blue-500 hover:text-blue-600 transition-colors"
         onClick={() => handleEdit(props.data.id)}
@@ -171,7 +162,7 @@ const Order = () => {
         <MdDelete size={26} />
       </button>
     </div>
-  ), [handleEdit, handleDelete]);
+  ), [handleViewDetails, handleEdit, handleDelete]);
 
   const StatusRenderer = useCallback((props: any) => {
     const cfg = STATUS_CONFIG[props.value as StatusKey];
@@ -206,6 +197,16 @@ const Order = () => {
     return {};
   };
 
+  const CustomerRenderer = useCallback((props: any) => (
+    <button
+      className="text-left font-medium text-gray-800 hover:text-green-primary hover:underline transition-colors truncate"
+      onClick={() => handleViewDetails(props.data.id)}
+      title="Ver detalhes do pedido"
+    >
+      {props.value}
+    </button>
+  ), [handleViewDetails]);
+
   const colDefs = useMemo(() => [
     {
       field: "customer_name",
@@ -213,6 +214,7 @@ const Order = () => {
       headerName: "Cliente",
       filter: true,
       floatingFilter: true,
+      cellRenderer: CustomerRenderer,
     },
     {
       field: "total",
@@ -244,12 +246,12 @@ const Order = () => {
     {
       field: "actions",
       headerName: "Ações",
-      width: 120,
+      width: 160,
       sortable: false,
       filter: false,
       cellRenderer: ActionsRenderer,
     },
-  ], [ActionsRenderer, StatusRenderer]);
+  ], [ActionsRenderer, StatusRenderer, CustomerRenderer]);
 
   // Métricas por representante
   const repStats = useMemo(() => {
@@ -268,6 +270,7 @@ const Order = () => {
     <>
       <OrderEdit isOpen={orderEditModal.isOpen} onClose={orderEditModal.onClose} />
       <OrderDelete isOpen={orderDeleteModal.isOpen} onClose={orderDeleteModal.onClose} />
+      <OrderDetails isOpen={orderDetailsModal.isOpen} onClose={orderDetailsModal.onClose} onEdit={handleEdit} />
 
       <ContentMain title="Pedidos" subtitle="Gerencie e acompanhe todos os pedidos da sua loja">
         {/* Abas */}
